@@ -119,6 +119,7 @@ venv.bak/
 # Linux
 bin/
 include/
+share/
 
 # Window
 Include/
