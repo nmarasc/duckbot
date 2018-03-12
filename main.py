@@ -24,8 +24,8 @@ def main():
     # Create the slack client
     global sc
     sc = SlackClient(bot_token)
-    # Get bot id and check validity
-    bot_id = sc.api_call("auth.test")["user_id"]
+    # Get bot info
+    bot_id, bot_channels = util.getBotInfo(sc, bot_token)
     if not util.matchUserId(bot_id):
         print("Invalid bot id: " + bot_id)
         sys.exit(EXIT_CODES["INVALID_BOT_ID"])

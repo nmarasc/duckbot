@@ -17,7 +17,7 @@ class MessageHandler:
         if "subtype" not in event:
 
             print(event["user"] + ": " + event["text"])
-            command, *parms = self._parseMessage(event["text"])
+            command, parms = self._parseMessage(event["text"])
 
             # Check command type
             if command is not None:
@@ -44,10 +44,10 @@ class MessageHandler:
         text_arr = text.upper().split(" ")
 
         temp = text_arr.pop(0)
-        valid, id_str = util.matchUserId(temp)
+        _, id_str = util.matchUserId(temp)
         # Check for mention
-        if (valid and id_str == self.bot_id) or\
-           (temp == ":DUCKBOT:"):
+        if (id_str == self.bot_id) or\
+           (temp   == ":DUCKBOT:"):
 
             command = self.COMMANDS.get(text_arr.pop(0),-1)
             return command, text_arr
