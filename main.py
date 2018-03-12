@@ -26,7 +26,7 @@ def main():
     sc = SlackClient(bot_token)
     # Get bot id and check validity
     bot_id = sc.api_call("auth.test")["user_id"]
-    if not util.validUserId(bot_id):
+    if not util.matchUserId(bot_id):
         print("Invalid bot id: " + bot_id)
         sys.exit(EXIT_CODES["INVALID_BOT_ID"])
 

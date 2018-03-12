@@ -19,7 +19,7 @@ class Duckbot:
         # Message event, pass to message handler
         if event["type"] == "message":
 
-            response = self.messageHandler.handle(event)
+            response = self.messageHandler.act(event)
 
             if response:
                 user    = event["user"]

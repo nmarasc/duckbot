@@ -1,3 +1,4 @@
+import util
 
 # Message handler class
 class MessageHandler:
@@ -9,16 +10,12 @@ class MessageHandler:
 
     def __init__(self, bot_id):
         self.bot_id = bot_id
-        self.mention = "<@"+bot_id+">"
 
-    def handle(self, event):
-
-        # Some nonstandard message type
-        if "subtype" in event:
-            return ""
+    def act(self, event):
 
         # Standard message type
-        else:
+        if "subtype" not in event:
+
             print(event["user"] + ": " + event["text"])
             command, *parms = self._parseMessage(event["text"])
 
@@ -33,8 +30,13 @@ class MessageHandler:
                 else:
                     return ""
 
+            # Regular chat message, do nothing
             else:
                 return ""
+
+        # Message with subtype
+        else:
+            return ""
 
     # Parse message for mention, command, and parms
     def _parseMessage(self, text):
@@ -42,9 +44,10 @@ class MessageHandler:
         text_arr = text.upper().split(" ")
 
         temp = text_arr.pop(0)
+        valid, id_str = util.matchUserId(temp)
         # Check for mention
-        if temp == self.mention or\
-           temp == ":DUCKBOT:":
+        if (valid and id_str == self.bot_id) or\
+           (temp == ":DUCKBOT:"):
 
             command = self.COMMANDS.get(text_arr.pop(0),-1)
             return command, text_arr
