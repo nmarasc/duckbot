@@ -1,6 +1,7 @@
 # Python imports
 import sys
 import time
+import argparse
 
 # Slack import
 from slackclient import SlackClient
@@ -16,6 +17,12 @@ def main():
 
     event_list = []
 
+    # Construct commandline parser
+    cl_parser = argparse.ArgumentParser(description='Start up Duckbot')
+    cl_parser.add_argument('--debug', action='store_true')
+    args = cl_parser.parse_args()
+    global DEBUG
+    DEBUG = args.debug
     # Get bot token from the env file
     with open(".env") as env_file:
         bot_token = env_file.readline().rstrip().split("=")[1]
@@ -58,6 +65,9 @@ def main():
 # Running loop
 # Reads for rtm events
 def run():
+
+    if DEBUG:
+        print("Duckbot running in debug mode")
 
     RUNNING = True
 

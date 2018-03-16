@@ -1,15 +1,18 @@
 import util
+from commandHandlers import RollHandler
 
 # Message handler class
 class MessageHandler:
 
     DEFAULT_RESPONSE = "Kweh! :DUCK:"
     COMMANDS = {\
-                 'HI' : 0, 'HELLO' : 0,\
+                 'HI'   : 0, 'HELLO'      : 0,\
+                 'ROLL' : 1, ':GAME_DIE:' : 1,\
                }
 
     def __init__(self, bot_id):
         self.bot_id = bot_id
+        self.rollHandler = RollHandler()
 
     def act(self, event):
 
@@ -22,9 +25,13 @@ class MessageHandler:
             # Check command type
             if command is not None:
 
-                # 'HI' command
+                # HI command
                 if command == 0:
                     return self.DEFAULT_RESPONSE
+
+                # ROLL command
+                elif command == 1:
+                    rolls = self.rollHandler.act(parms)
 
                 # Unknown command
                 else:

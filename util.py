@@ -1,5 +1,6 @@
 import re
 
+DEBUG = False
 USER_REGEX = "<@(U[A-Z0-9]{8})>$"
 EXIT_CODES = {\
          "INVALID_BOT_ID"     : 10\
