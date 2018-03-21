@@ -14,7 +14,7 @@ class Duckbot:
 
         if "type" not in event:
 #             print(event)
-            return
+            return 0
 
         # Message event, pass to message handler
         if event["type"] == "message":
@@ -25,11 +25,16 @@ class Duckbot:
                 user    = event["user"]
                 channel = event["channel"]
                 self._sendMessage(user, channel, response)
+            elif response == None:
+                channel = event["channel"]
+                self._sendMessage(None,channel,\
+                                  "Shutting down for update. Kweh! :duckbot:")
+                return 2
 
         # Unhandled event type
         else:
             # Don't do anything right now
-            return
+            return 0
 
     # Send message to designated channel, and notify user if present
     def _sendMessage(self, user, channel, text):

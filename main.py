@@ -70,6 +70,7 @@ def run():
         print("Duckbot running in debug mode")
 
     RUNNING = True
+    EVENT_RC = 0
 
     # Keep going until bot signals to stop
     while RUNNING:
@@ -78,10 +79,15 @@ def run():
             # Process all the events returned
             # EVENTUALLY: Thread each event
             for event in event_list:
-                duckbot.handleEvent(event)
+                EVENT_RC = duckbot.handleEvent(event)
+                if EVENT_RC:
+                    RUNNING = False
+
 
         time.sleep(1)
 
+    # Bot signalled to stop, exit with code
+    sys.exit(EVENT_RC)
 
 # Call main function
 if __name__ == "__main__":

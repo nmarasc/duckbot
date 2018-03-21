@@ -24,37 +24,27 @@ class MessageHandler:
             command, o_parms = self._parseMessage(event["text"])
             u_parms = list(map(str.upper,o_parms))
 
-            # Check command type
-            if command is not None:
+            # HI command
+            if command == 0:
+                return self.DEFAULT_RESPONSE
 
-                # HI command
-                if command == 0:
-                    return self.DEFAULT_RESPONSE
+            # UPDATE command
+            elif command == 1:
+                return None
 
-                # UPDATE command
-                elif command == 1:
-                    # TODO: update stuff
-                    return self.DEFAULT_RESPONSE
-
-                # ROLL command
-                elif command == 2:
-                    rolls = self.rollHandler.act(u_parms)
-                    if rolls[0]:
-                        output = "You rolled: " + ", ".join(map(str,rolls))
-                        output += "\nYour total: " + str(sum(rolls))
-                        return output
-                    else:
-                        return o_parms[0] + " is not a valid roll."
-
-
-                # Unknown command
+            # ROLL command
+            elif command == 2:
+                rolls = self.rollHandler.act(u_parms)
+                if rolls[0]:
+                    output = "You rolled: " + ", ".join(map(str,rolls))
+                    output += "\nYour total: " + str(sum(rolls))
+                    return output
                 else:
-                    return ""
+                    return o_parms[0] + " is not a valid roll."
 
-            # Regular chat message, do nothing
+            # No command or unrecognized, either way I don't care
             else:
                 return ""
-
         # Message with subtype
         else:
             return ""
@@ -63,9 +53,9 @@ class MessageHandler:
     def _parseMessage(self, text):
 
         text_arr = text.split(" ")
-
         temp = text_arr.pop(0).upper()
         _, id_str = util.matchUserId(temp)
+
         # Check for mention
         if (id_str == self.bot_id) or\
            (temp   == ":DUCKBOT:"):
