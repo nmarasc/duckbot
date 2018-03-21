@@ -3,22 +3,27 @@ from commandHandlers import RollHandler
 
 # Message handler class
 class MessageHandler:
-
+#{{{
     DEFAULT_RESPONSE = "Kweh! :DUCK:"
+    #{{{ - Commands
     COMMANDS = {\
                  'HI'     : 0, 'HELLO'      : 0,\
                  'UPDATE' : 1,\
                  'ROLL'   : 2, ':GAME_DIE:' : 2,\
                }
+    #}}}
 
     def __init__(self, bot_id):
+    #{{{
         self.bot_id = bot_id
         self.rollHandler = RollHandler()
+    #}}}
 
     def act(self, event):
-
+    #{{{
         # Standard message type
         if "subtype" not in event:
+        #{{{
 
             print(event["user"] + ": " + event["text"])
             command, o_parms = self._parseMessage(event["text"])
@@ -45,13 +50,15 @@ class MessageHandler:
             # No command or unrecognized, either way I don't care
             else:
                 return ""
+        #}}}
         # Message with subtype
         else:
             return ""
+    #}}}
 
     # Parse message for mention, command, and parms
     def _parseMessage(self, text):
-
+    #{{{
         text_arr = text.split(" ")
         temp = text_arr.pop(0).upper()
         _, id_str = util.matchUserId(temp)
@@ -65,4 +72,5 @@ class MessageHandler:
         # No mention, ignore
         else:
             return None, None
-
+    #}}}
+#}}}

@@ -14,7 +14,7 @@ from duckbot import Duckbot
 # Handles creation and deletion of bot
 # Passes slack events to bot as well
 def main():
-
+#{{{
     event_list = []
 
     # Construct commandline parser
@@ -39,6 +39,7 @@ def main():
 
     # Connect to the rtm and build bot
     if sc.rtm_connect(with_team_state=False):
+    #{{{
         global duckbot
         duckbot = Duckbot(sc, bot_id)
 
@@ -54,6 +55,7 @@ def main():
             error = event["error"]
             print(error["msg"] + "\nCode: " + str(error["code"]))
             sys.exit(EXIT_CODES["RTM_CONNECT_FAILED"])
+    #}}}
 
     # Connect failed and bot was not created
     else:
@@ -61,11 +63,12 @@ def main():
         sys.exit(EXIT_CODES["RTM_CONNECT_FAILED"])
 
     sys.exit(exit_code)
+#}}}
 
 # Running loop
 # Reads for rtm events
 def run():
-
+#{{{
     if DEBUG:
         print("Duckbot running in debug mode")
 
@@ -74,6 +77,7 @@ def run():
 
     # Keep going until bot signals to stop
     while RUNNING:
+    #{{{
         event_list = sc.rtm_read()
         if event_list:
             # Process all the events returned
@@ -83,11 +87,11 @@ def run():
                 if EVENT_RC:
                     RUNNING = False
 
-
         time.sleep(1)
-
+    #}}}
     # Bot signalled to stop, exit with code
     sys.exit(EVENT_RC)
+#}}}
 
 # Call main function
 if __name__ == "__main__":

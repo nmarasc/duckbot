@@ -6,14 +6,15 @@ class Duckbot:
 
     # Construct bot with the slack client instance
     def __init__(self, slackclient, bot_id):
+    #{{{
         self.sc = slackclient
         self.messageHandler = MessageHandler(bot_id)
+    #}}}
 
     # Handle received messages
     def handleEvent(self, event):
-
+    #{{{
         if "type" not in event:
-#             print(event)
             return 0
 
         # Message event, pass to message handler
@@ -35,13 +36,15 @@ class Duckbot:
         else:
             # Don't do anything right now
             return 0
+    #}}}
 
     # Send message to designated channel, and notify user if present
     def _sendMessage(self, user, channel, text):
-
+    #{{{
         if user:
             message = "<@" + user + "> " + text
         else:
             message = text
 
         self.sc.rtm_send_message(channel, message)
+    #}}}
