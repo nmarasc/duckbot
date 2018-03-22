@@ -41,8 +41,12 @@ class MessageHandler:
             elif command == 2:
                 rolls = self.rollHandler.act(u_parms)
                 if rolls[0]:
-                    output = "You rolled: " + ", ".join(map(str,rolls))
-                    output += "\nYour total: " + str(sum(rolls))
+                    add = rolls.pop()
+                    output = "You rolled: "
+                    if len(rolls) > 1:
+                        output += ", ".join(map(str,rolls)) + "\nYour total: " + str(add)
+                    else:
+                        output += str(rolls[0]) + " " + add
                     return output
                 else:
                     return o_parms[0] + " is not a valid roll."

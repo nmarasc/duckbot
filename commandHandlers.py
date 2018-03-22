@@ -53,8 +53,32 @@ class RollHandler:
 
         # Check range for valid rolls
         if (die_num in self.DIE_RANGE and die_size in self.DIE_RANGE):
-            return util.doRolls(die_size, die_num)
+        #{{{
+            rolls = util.doRolls(die_size, die_num)
+            if die_num == 1:
+                rolls.append(self.emojiRating(rolls[0], die_size))
+            else:
+                rolls.append(sum(rolls))
+            return rolls
+        #}}}
         else:
             return [None, roll_parms[0]]
+    #}}}
+
+    # Give emoji ratings based on roll score
+    def emojiRating(self, roll, die):
+    #{{{
+        if roll == 1:
+            return ":hyperbleh:"
+        elif roll == die:
+            return ":partyparrot:"
+        elif roll == 69:
+            return ":eggplant:"
+        elif roll == 420:
+            return ":herb:"
+        elif roll <= die/2:
+            return ":bleh:"
+        else:
+            return ":ok_hand:"
     #}}}
 #}}}
