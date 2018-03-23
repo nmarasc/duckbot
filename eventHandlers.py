@@ -1,5 +1,5 @@
 import util
-from commandHandlers import HelpHandler, RollHandler
+from commandHandlers import HelpHandler, RollHandler, CoinHandler
 
 # Message handler class
 class MessageHandler:
