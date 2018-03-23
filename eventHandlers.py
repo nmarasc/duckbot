@@ -11,6 +11,7 @@ class MessageHandler:
         self.bot_id = bot_id
         self.rollHandler = RollHandler()
         self.helpHandler = HelpHandler(bot_id)
+        self.coinHandler = CoinHandler()
     #}}}
 
     def act(self, event):
@@ -52,6 +53,10 @@ class MessageHandler:
                 else:
                     return o_parms[0] + " is not a valid roll."
             #}}}
+
+            # COIN command
+            elif command == 4:
+                return "You got: " + self.coinHandler.act()
 
             # No command or unrecognized, either way I don't care
             else:

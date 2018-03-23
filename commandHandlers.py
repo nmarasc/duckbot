@@ -39,7 +39,6 @@ class HelpHandler:
     #}}}
 #}}}
 
-
 # Roll handler class
 class RollHandler:
 #{{{
@@ -120,4 +119,16 @@ class RollHandler:
         else:
             return ":ok_hand:"
     #}}}
+#}}}
+
+# Coin handler class
+class CoinHandler:
+#{{{
+    # Return the result of the coin command
+    def act(self):
+        result = util.doRolls(2)[0]
+        if result == 1:
+            return "HEADS"
+        else:
+            return "TAILS"
 #}}}
