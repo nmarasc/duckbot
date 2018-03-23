@@ -4,26 +4,34 @@ import random
 DEBUG = False
 USER_REGEX = "<@(U[A-Z0-9]{8})>$"
 #{{{ - Exit codes
-EXIT_CODES = {\
-         "INVALID_BOT_ID"     : 10\
-        ,"RTM_CONNECT_FAILED" : 11\
+EXIT_CODES = {
+         "INVALID_BOT_ID"     : 10
+        ,"RTM_CONNECT_FAILED" : 11
         }
 #}}}
 #{{{ - Emoji rolls
 EMOJI_ROLLS={\
-         ":ONE:"        : 1\
-        ,":TWO:"        : 2\
-        ,":THREE:"      : 3\
-        ,":FOUR:"       : 4\
-        ,":FIVE:"       : 5\
-        ,":SIX:"        : 6\
-        ,":SEVEN:"      : 7\
-        ,":EIGHT:"      : 8\
-        ,":NINE:"       : 9\
-        ,":KEYCAP_TEN:" : 10\
-        ,":100:"        : 100\
-        ,":HERB:"       : 420\
+         ":ONE:"        : 1
+        ,":TWO:"        : 2
+        ,":THREE:"      : 3
+        ,":FOUR:"       : 4
+        ,":FIVE:"       : 5
+        ,":SIX:"        : 6
+        ,":SEVEN:"      : 7
+        ,":EIGHT:"      : 8
+        ,":NINE:"       : 9
+        ,":KEYCAP_TEN:" : 10
+        ,":100:"        : 100
+        ,":HERB:"       : 420
         }
+#}}}
+#{{{ - Commands
+COMMANDS = {
+             'HI'     : 0, 'HELLO'      : 0,
+             'UPDATE' : 1,
+             'HELP'   : 2,
+             'ROLL'   : 3, ':GAME_DIE:' : 3,
+           }
 #}}}
 
 # matchUserId
@@ -56,4 +64,17 @@ def doRolls(die_size, die_num = 1):
     for i in range(die_num):
         rolls.append(random.randint(1,die_size))
     return rolls
+#}}}
+
+# uniqueCommands
+# Returns only one key of each value in the commands
+def uniqueCommands(coms):
+#{{{
+    keys = []
+    values = []
+    for key in coms:
+        if coms[key] not in values:
+            keys.append(key)
+            values.append(coms[key])
+    return keys
 #}}}

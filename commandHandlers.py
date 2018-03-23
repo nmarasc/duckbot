@@ -1,10 +1,49 @@
 import re
 import util
 
+# Help handler class
+class HelpHandler:
+#{{{
+    # Initialize with help messages
+    def __init__(self, bot_id):
+    #{{{
+        self.bot_id = bot_id
+        self.HELP_MESSAGES = {
+                 0  : ("Legacy HI command\n"
+                      "Usage: <@" + bot_id + "> HI")
+                ,1  : ("Causes the bot to shutdown and signal "
+                      "the monitor script to check for updates\n"
+                      "Usage: <@" + bot_id + "> UPDATE")
+                ,2  : "Don't get smart, you know how to use this"
+                ,3  : ("Rolls dice based on parameters given\n"
+                      "Usage: <@" + bot_id + "> ROLL ( [d]X | YdX )\n"
+                      "Where X is the size of the die and Y is the number of them")
+                }
+    #}}}
+
+    # Return the appropriate help message based on parameter
+    def act(self, parms):
+    #{{{
+        if parms:
+            command = util.COMMANDS.get(parms[0],-1)
+            response = self.HELP_MESSAGES.get(command,
+                    parms[0] + " is not a recognized command")
+            return response
+        else:
+            coms = util.uniqueCommands(util.COMMANDS)
+            return ("Duckbot is a general purpose slackbot for doing various things\n"
+                    "To interact with it use <@" + self.bot_id + "> <command>\n"
+                    "Supported commands: " + ", ".join(coms) + "\n"
+                    "Use <@" + self.bot_id + "> HELP <command> for more details"
+                   )
+    #}}}
+#}}}
+
+
 # Roll handler class
 class RollHandler:
 #{{{
-    # Initialize RollHandler with range of dice allowed
+    # Initialize RollHandler with range of dice allowed and regex for a roll
     def __init__(self):
     #{{{
         # Range from 1-100 allowed
