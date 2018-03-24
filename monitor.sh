@@ -14,7 +14,7 @@ function post_msg {
 # Bot startup function
 function start_bot {
   return_code=0
-  python main.py "$bot_status" & return_code=$?;duck_pid=$!
+  python main.py & return_code=$?;duck_pid=$!
   # RC!=0 , something bad happened with bash
   if [ $return_code -ne 0 ]; then
     if [ $retry -eq 1 ]; then
