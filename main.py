@@ -78,7 +78,12 @@ def run():
     # Keep going until bot signals to stop
     while RUNNING:
     #{{{
-        event_list = sc.rtm_read()
+        try:
+            event_list = sc.rtm_read()
+        except TimeoutError:
+            RUNNING = False
+            EVENT_RC = 1
+            print("Error: TimeoutError")
         if event_list:
             # Process all the events returned
             # EVENTUALLY: Thread each event
