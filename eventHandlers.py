@@ -1,5 +1,8 @@
 import util
-from commandHandlers import HelpHandler, RollHandler, CoinHandler
+from commandHandlers import HelpHandler
+from commandHandlers import RollHandler
+from commandHandlers import CoinHandler
+from commandHandlers import EightballHandler
 
 # Message handler class
 class MessageHandler:
@@ -12,6 +15,7 @@ class MessageHandler:
         self.rollHandler = RollHandler()
         self.helpHandler = HelpHandler(bot_id)
         self.coinHandler = CoinHandler()
+        self.eightballHandler = EightballHandler()
     #}}}
 
     def act(self, event):
@@ -57,6 +61,10 @@ class MessageHandler:
             # COIN command
             elif command == 4:
                 return "You got: " + self.coinHandler.act()
+
+            # 8BALL command
+            elif command == 5:
+                return self.eightballHandler.act()
 
             # No command or unrecognized, either way I don't care
             else:

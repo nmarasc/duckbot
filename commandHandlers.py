@@ -132,3 +132,12 @@ class CoinHandler:
         else:
             return "TAILS"
 #}}}
+
+# Eightball handler class
+class EightballHandler:
+#{{{
+    # Return the 8ball response
+    def act(self):
+        roll = util.doRolls(len(util.EIGHTBALL_RESPONSES))[0]
+        return util.EIGHTBALL_RESPONSES[roll]
+#}}}
