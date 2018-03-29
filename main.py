@@ -15,7 +15,6 @@ from duckbot import Duckbot
 # Passes slack events to bot as well
 def main():
 #{{{
-    global event_list
     event_list = []
 
     # Construct commandline parser
@@ -79,7 +78,7 @@ def run():
     # Keep going until bot signals to stop
     while RUNNING:
     #{{{
-        RETURN_CODE = doRead(event_list)
+        RETURN_CODE, event_list = doRead()
         if event_list and not RETURN_CODE:
             # Process all the events returned
             # EVENTUALLY: Thread each event
@@ -96,15 +95,14 @@ def run():
 
 # Attempt an rtm_read, catching errors on failure
 # event_list populated on success, Null on failure
-def doRead(event_list):
+def doRead():
 #{{{
     try:
         event_list = sc.rtm_read()
-        return 0
+        return 0, event_list
     except TimeoutError:
-        event_list = None
         print("Error: TimeoutError")
-        return EXIT_CODES["RTM_TIMEOUT_ERROR"]
+        return EXIT_CODES["RTM_TIMEOUT_ERROR"], None
 #}}}
 
 # Call main function
