@@ -68,10 +68,14 @@ while sleep 1; do
           bot_status="`git log --name-status HEAD^..HEAD`"
         fi
 
+      # RC=20 , timeout error on rtm_read, restart bot
+      elif [ $duck_exit -eq 20]; then
+        post_msg ${msg_headers[2]} "duckbot failed with RC=$duck_exit"
+        post_msg ${msg_headers[2]} "Attempting to restart"
+
       # RC=? , unknown return code from bot, attempt to restart
       else
         post_msg ${msg_headers[2]} "Unrecognized RC=$duck_exit, attempting restart"
-        bot_status=""
       fi
     fi
 done

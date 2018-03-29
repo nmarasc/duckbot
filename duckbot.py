@@ -26,6 +26,7 @@ class Duckbot:
                 user    = event["user"]
                 channel = event["channel"]
                 self._sendMessage(user, channel, response)
+                return 0
             elif response == None:
                 channel = event["channel"]
                 self._sendMessage(None,channel,

@@ -7,6 +7,7 @@ USER_REGEX = "<@(U[A-Z0-9]{8})>$"
 EXIT_CODES = {
          "INVALID_BOT_ID"     : 10
         ,"RTM_CONNECT_FAILED" : 11
+        ,"RTM_TIMEOUT_ERROR"  : 20
         }
 #}}}
 #{{{ - Emoji rolls

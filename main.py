@@ -15,6 +15,7 @@ from duckbot import Duckbot
 # Passes slack events to bot as well
 def main():
 #{{{
+    global event_list
     event_list = []
 
     # Construct commandline parser
@@ -39,7 +40,7 @@ def main():
 
     # Connect to the rtm and build bot
     if sc.rtm_connect(with_team_state=False):
-    #{{{
+    # {{{
         global duckbot
         duckbot = Duckbot(sc, bot_id)
 
@@ -73,29 +74,37 @@ def run():
         print("Duckbot running in debug mode")
 
     RUNNING = True
-    EVENT_RC = 0
+    RETURN_CODE = 0
 
     # Keep going until bot signals to stop
     while RUNNING:
     #{{{
-        try:
-            event_list = sc.rtm_read()
-        except TimeoutError:
-            RUNNING = False
-            EVENT_RC = 1
-            print("Error: TimeoutError")
-        if event_list:
+        RETURN_CODE = doRead(event_list)
+        if event_list and not RETURN_CODE:
             # Process all the events returned
             # EVENTUALLY: Thread each event
             for event in event_list:
-                EVENT_RC = duckbot.handleEvent(event)
-                if EVENT_RC:
-                    RUNNING = False
+                RETURN_CODE = duckbot.handleEvent(event)
+        if RETURN_CODE:
+            RUNNING = False
 
         time.sleep(1)
     #}}}
     # Bot signalled to stop, exit with code
-    sys.exit(EVENT_RC)
+    sys.exit(RETURN_CODE)
+#}}}
+
+# Attempt an rtm_read, catching errors on failure
+# event_list populated on success, Null on failure
+def doRead(event_list):
+#{{{
+    try:
+        event_list = sc.rtm_read()
+        return 0
+    except TimeoutError:
+        event_list = None
+        print("Error: TimeoutError")
+        return EXIT_CODES["RTM_TIMEOUT_ERROR"]
 #}}}
 
 # Call main function
