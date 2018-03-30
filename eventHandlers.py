@@ -1,12 +1,14 @@
 import util
+#{{{ - CommandHandler imports
 from commandHandlers import HelpHandler
 from commandHandlers import RollHandler
 from commandHandlers import CoinHandler
 from commandHandlers import EightballHandler
+#}}}
 
 # Message handler class
 class MessageHandler:
-#{{{
+
     DEFAULT_RESPONSE = "Kweh! :DUCK:"
 
     def __init__(self, bot_id):
@@ -92,4 +94,4 @@ class MessageHandler:
         else:
             return None, None
     #}}}
-#}}}
+
