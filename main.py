@@ -103,6 +103,9 @@ def doRead():
     except TimeoutError:
         print("Error: TimeoutError")
         return EXIT_CODES["RTM_TIMEOUT_ERROR"], None
+    except:
+        print("Error: RTM read failed")
+        return EXIT_CODES["RTM_GENERIC_ERROR"], None
 #}}}
 
 # Call main function

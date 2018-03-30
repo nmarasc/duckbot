@@ -73,6 +73,11 @@ while sleep 1; do
         post_msg ${msg_headers[2]} "duckbot failed with RC=$duck_exit"
         post_msg ${msg_headers[2]} "Attempting to restart"
 
+      # RC=29 , rtm_read generic error , restart bot for now
+      elif [ $duck_exit -eq 29]; then
+        post_msg ${msg_headers[2]} "duckbot failed with RC=$duck_exit"
+        post_msg ${msg_headers[2]} "Attempting to restart"
+
       # RC=? , unknown return code from bot, attempt to restart
       else
         post_msg ${msg_headers[2]} "Unrecognized RC=$duck_exit, attempting restart"
