@@ -1,8 +1,10 @@
 import re
 import random
+import datetime
 
 DEBUG = False
 USER_REGEX = "<@(U[A-Z0-9]{8})>$"
+DEFAULT_FN = "log.txt"
 #{{{ - Exit codes
 EXIT_CODES = {
          "INVALID_BOT_ID"     : 10
@@ -12,7 +14,7 @@ EXIT_CODES = {
         }
 #}}}
 #{{{ - Emoji rolls
-EMOJI_ROLLS={\
+EMOJI_ROLLS={
          ":ONE:"        : 1
         ,":TWO:"        : 2
         ,":THREE:"      : 3
@@ -105,4 +107,41 @@ def uniqueCommands(coms):
             keys.append(key)
             values.append(coms[key])
     return keys
+#}}}
+
+# Logger class
+# Buffers and writes messages to a file
+class Logger:
+#{{{
+    # Initialize Logger with output file name or use default
+    def __init__(self, fn = DEFAULT_FN):
+    #{{{
+        self.fn = fn
+        self.LOG_BUFFER = []
+        with open(self.fn,'w') as logfile:
+            logfile.write("Starting new log file...\n")
+    #}}}
+
+    # Append line to internal log buffer
+    def buffer(self, text):
+        self.LOG_BUFFER.append(text)
+
+    # Write contents of buffer out to file with timestamp
+    def write(self, text = ""):
+    #{{{
+        with open(self.fn,'a') as logfile:
+            if text:
+                logfile.write(text + "\n")
+            else:
+                for line in self.LOG_BUFFER:
+                    try:
+                        logfile.write(str(datetime.datetime.now())+": " + line)
+                    except TypeError:
+                        logfile.write(str(datetime.datetime.now())+": LOG ERR")
+                    except UnicodeEncodeError:
+                        logfile.write(str(datetime.datetime.now())+": " +\
+                                      str(x.encode("utf-8","replace")))
+                    logfile.write("\n")
+                del self.LOG_STREAM[:]
+    #}}}
 #}}}
