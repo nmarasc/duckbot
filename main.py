@@ -8,6 +8,7 @@ from slackclient import SlackClient
 
 # Project imports
 import util
+from util import EXIT_CODES
 from duckbot import Duckbot
 
 # Mainline code
