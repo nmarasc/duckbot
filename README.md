@@ -18,4 +18,5 @@ Bot return codes:</br>
 </br>&nbsp;&nbsp;&nbsp;&nbsp;RC=11 , failed to connect to RTM, possible network hiccup, should restart
 </br>
 </br>RC=2x exit codes signify an error during rtm use
-</br>&nbsp;&nbsp;&nbsp;&nbsp;RC=20 , timeout error during RTM read, should restart
+</br>&nbsp;&nbsp;&nbsp;&nbsp;RC=20 , generic error during RTM read, should restart
+</br>&nbsp;&nbsp;&nbsp;&nbsp;RC=21 , timeout error during RTM read, should restart
