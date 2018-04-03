@@ -3,7 +3,6 @@
 msg_headers=("MONITOR" "UPDATE" "ERROR")
 return_code=0
 retry=0
-bot_status="`git log --name-status HEAD^..HEAD`"
 
 # Messaging function
 function post_msg {
@@ -47,8 +46,7 @@ while sleep 1; do
         post_msg ${msg_headers[0]} "Script terminating"
         exit 0
 
-      # RC=1 , Uncaught python error, python doesn't give good return codes, so
-      # give up, don't even try again, just quit, end it
+      # RC=1 , Uncaught python error, python doesn't give good return codes
       elif [ $duck_exit -eq 1 ]; then
         post_msg ${msg_headers[2]} "duckbot failed with RC=$duck_exit"
         post_msg ${msg_headers[2]} "Some uncaught error slipped through"
@@ -62,21 +60,19 @@ while sleep 1; do
 
         if [ $return_code -eq 0 ]; then
           post_msg ${msg_headers[1]} "Pull successful, restarting bot with new code"
-          bot_status="`git log --name-status HEAD^..HEAD`"
         else
           post_msg ${msg_headers[2]} "Pull unsuccessful, restarting bot with old code"
-          bot_status="`git log --name-status HEAD^..HEAD`"
         fi
 
-      # RC=20 , timeout error on rtm_read, restart bot
+      # RC=20 , rtm_read generic error , restart bot for now
       elif [ $duck_exit -eq 20]; then
         post_msg ${msg_headers[2]} "duckbot failed with RC=$duck_exit"
-        post_msg ${msg_headers[2]} "Attempting to restart"
+        post_msg ${msg_headers[2]} "rtm_read generic error, restarting bot"
 
-      # RC=29 , rtm_read generic error , restart bot for now
-      elif [ $duck_exit -eq 29]; then
+      # RC=21 , timeout error on rtm_read, restart bot
+      elif [ $duck_exit -eq 21]; then
         post_msg ${msg_headers[2]} "duckbot failed with RC=$duck_exit"
-        post_msg ${msg_headers[2]} "Attempting to restart"
+        post_msg ${msg_headers[2]} "rmt_read timeout error, restarting bot"
 
       # RC=? , unknown return code from bot, attempt to restart
       else

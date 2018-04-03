@@ -8,7 +8,6 @@ from slackclient import SlackClient
 
 # Project imports
 import util
-from util import EXIT_CODES
 from duckbot import Duckbot
 
 # Mainline code
@@ -36,7 +35,7 @@ def main():
     bot_id, bot_channels = util.getBotInfo(sc, bot_token)
     if not util.matchUserId(bot_id):
         print("Invalid bot id: " + bot_id)
-        sys.exit(EXIT_CODES["INVALID_BOT_ID"])
+        sys.exit(util.EXIT_CODES["INVALID_BOT_ID"])
 
     # Connect to the rtm and build bot
     if sc.rtm_connect(with_team_state=False):
@@ -55,13 +54,13 @@ def main():
             # Error in connection
             error = event["error"]
             print(error["msg"] + "\nCode: " + str(error["code"]))
-            sys.exit(EXIT_CODES["RTM_CONNECT_FAILED"])
+            sys.exit(util.EXIT_CODES["RTM_CONNECT_FAILED"])
     #}}}
 
     # Connect failed and bot was not created
     else:
         print("Failed to connect to RTM")
-        sys.exit(EXIT_CODES["RTM_CONNECT_FAILED"])
+        sys.exit(util.EXIT_CODES["RTM_CONNECT_FAILED"])
 
     sys.exit(exit_code)
 #}}}
@@ -103,10 +102,10 @@ def doRead():
         return 0, event_list
     except TimeoutError:
         print("Error: TimeoutError")
-        return EXIT_CODES["RTM_TIMEOUT_ERROR"], None
+        return util.EXIT_CODES["RTM_TIMEOUT_ERROR"], None
     except:
         print("Error: RTM read failed")
-        return EXIT_CODES["RTM_GENERIC_ERROR"], None
+        return util.EXIT_CODES["RTM_GENERIC_ERROR"], None
 #}}}
 
 # Call main function

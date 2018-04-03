@@ -9,8 +9,8 @@ DEFAULT_FN = "log.txt"
 EXIT_CODES = {
          "INVALID_BOT_ID"     : 10
         ,"RTM_CONNECT_FAILED" : 11
-        ,"RTM_TIMEOUT_ERROR"  : 20
-        ,"RTM_GENERIC_ERROR"  : 29
+        ,"RTM_GENERIC_ERROR"  : 20
+        ,"RTM_TIMEOUT_ERROR"  : 21
         }
 #}}}
 #{{{ - Emoji rolls
