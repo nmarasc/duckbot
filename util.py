@@ -31,7 +31,7 @@ EMOJI_ROLLS={
 #}}}
 #{{{ - Commands
 COMMANDS = {
-             'HI'      : 0, 'HELLO'      : 0,
+             'HI'      : 0, 'HELLO'      : 0, 'KWEH'       : 0,
              'UPDATE'  : 1,
              'HELP'    : 2, '?'          : 2, ':QUESTION:' : 2,
              'ROLL'    : 3, ':GAME_DIE:' : 3,
@@ -103,10 +103,10 @@ def uniqueKeys(p_dict):
 #{{{
     keys = []
     values = []
-    for key in p_dict:
+    for key in p_dict.keys():
         if p_dict[key] not in values:
             keys.append(key)
-            values.append(coms[key])
+            values.append(p_dict[key])
     return keys
 #}}}
 
