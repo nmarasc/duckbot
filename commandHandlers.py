@@ -18,6 +18,10 @@ class HelpHandler:
                 ,3  : ("Rolls dice based on parameters given\n"
                       "Usage: <@" + bot_id + "> ROLL ( [d]X | YdX )\n"
                       "Where X is the size of the die and Y is the number of them")
+                ,4  : ("Flip a coin\n"
+                      "Usage: <@" + bot_id + "> COIN")
+                ,5  : ("Shake the magic 8ball\n"
+                      "Usage: <@" + bot_id + "> 8BALL")
                 }
     #}}}
 
@@ -30,7 +34,7 @@ class HelpHandler:
                     parms[0] + " is not a recognized command")
             return response
         else:
-            coms = util.uniqueCommands(util.COMMANDS)
+            coms = util.uniqueKeys(util.COMMANDS)
             return ("Duckbot is a general purpose slackbot for doing various things\n"
                     "To interact with it use <@" + self.bot_id + "> <command>\n"
                     "Supported commands: " + ", ".join(coms) + "\n"
@@ -53,6 +57,10 @@ class RollHandler:
     # Parse roll command parms and return values
     def act(self, roll_parms):
     #{{{
+        # Check for character roll
+        if roll_parms[0] == ":DRAGON:":
+            return 1, self.characterRoll()
+
         results = re.search(self.ROLL_REGEX, roll_parms[0])
 
         # If we matched a dX or YdX case
@@ -97,10 +105,10 @@ class RollHandler:
                 rolls.append(self.emojiRating(rolls[0], die_size))
             else:
                 rolls.append(sum(rolls))
-            return rolls
+            return 0, rolls
         #}}}
         else:
-            return [None, roll_parms[0]]
+            return -1, None
     #}}}
 
     # Give emoji ratings based on roll score
@@ -118,6 +126,15 @@ class RollHandler:
             return ":bleh:"
         else:
             return ":ok_hand:"
+    #}}}
+
+    # Roll for dnd character stats
+    def characterRoll(self):
+    #{{{
+        rolls = []
+        for i in range(0,6):
+            rolls.append(util.doRolls(6,4))
+        return rolls
     #}}}
 #}}}
 

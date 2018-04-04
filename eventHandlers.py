@@ -47,8 +47,9 @@ class MessageHandler:
             # ROLL command
             elif command == 3:
             #{{{
-                rolls = self.rollHandler.act(u_parms)
-                if rolls[0]:
+                rc, rolls = self.rollHandler.act(u_parms)
+                if rc == 0:
+                #{{{
                     add = rolls.pop()
                     output = "You rolled: "
                     if len(rolls) > 1:
@@ -56,6 +57,21 @@ class MessageHandler:
                     else:
                         output += str(rolls[0]) + " " + add
                     return output
+                #}}}
+                elif rc == 1:
+                #{{{
+                    output = ""
+                    stats = []
+                    for group in rolls:
+                        output += "\n\nYou rolled: " + ", ".join(map(str,group))
+                        output += "\nDropping " + str(min(group)) + ", "
+                        group.remove(min(group))
+                        stat = sum(group)
+                        stats.append(stat)
+                        output += "Total: " + str(stat)
+                    output += "\n\nYour stats are: " + ", ".join(map(str,stats))
+                    return output
+                #}}}
                 else:
                     return o_parms[0] + " is not a valid roll."
             #}}}

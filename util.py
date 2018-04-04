@@ -96,14 +96,14 @@ def doRolls(die_size, die_num = 1):
     return rolls
 #}}}
 
-# uniqueCommands
-# Returns only one key of each value in the commands
-def uniqueCommands(coms):
+# uniqueKeys
+# Returns list of one keys per value in dict
+def uniqueKeys(p_dict):
 #{{{
     keys = []
     values = []
-    for key in coms:
-        if coms[key] not in values:
+    for key in p_dict:
+        if p_dict[key] not in values:
             keys.append(key)
             values.append(coms[key])
     return keys
