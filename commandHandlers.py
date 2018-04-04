@@ -158,3 +158,10 @@ class EightballHandler:
         roll = util.doRolls(len(util.EIGHTBALL_RESPONSES))[0]
         return util.EIGHTBALL_RESPONSES[roll]
 #}}}
+
+# Factoid handler class
+class FactoidHandler:
+#{{{
+    def act(self):
+        return "Not yet. Kweh :duck:"
+#}}}

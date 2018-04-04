@@ -31,12 +31,13 @@ EMOJI_ROLLS={
 #}}}
 #{{{ - Commands
 COMMANDS = {
-             'HI'     : 0, 'HELLO'      : 0,
-             'UPDATE' : 1,
-             'HELP'   : 2, '?'          : 2, ':QUESTION:' : 2,
-             'ROLL'   : 3, ':GAME_DIE:' : 3,
-             'COIN'   : 4,
-             '8BALL'  : 5, ':8BALL:'    : 5,
+             'HI'      : 0, 'HELLO'      : 0,
+             'UPDATE'  : 1,
+             'HELP'    : 2, '?'          : 2, ':QUESTION:' : 2,
+             'ROLL'    : 3, ':GAME_DIE:' : 3,
+             'COIN'    : 4,
+             '8BALL'   : 5, ':8BALL:'    : 5,
+             'FACTOID' : 6,
            }
 #}}}
 #{{{ - Eightball Responses
