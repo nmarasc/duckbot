@@ -141,8 +141,8 @@ class Logger:
                         logfile.write(str(datetime.datetime.now())+": LOG ERR")
                     except UnicodeEncodeError:
                         logfile.write(str(datetime.datetime.now())+": " +\
-                                      str(x.encode("utf-8","replace")))
+                                      str(line.encode("utf-8","replace")))
                     logfile.write("\n")
-                del self.LOG_STREAM[:]
+                del self.LOG_BUFFER[:]
     #}}}
 #}}}

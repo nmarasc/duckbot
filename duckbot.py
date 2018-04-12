@@ -29,7 +29,7 @@ class Duckbot:
                 return 0
             elif response == None:
                 channel = event["channel"]
-                self._sendMessage(None,channel,
+                self._sendMessage(None, channel,
                                   "Shutting down for update. Kweh! :duckbot:")
                 return 2
 

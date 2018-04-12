@@ -22,6 +22,8 @@ class HelpHandler:
                       "Usage: <@" + bot_id + "> COIN")
                 ,5  : ("Shake the magic 8ball\n"
                       "Usage: <@" + bot_id + "> 8BALL")
+                ,6  : ("Pull out a random and totally true fact\n"
+                       "Usage: <@" + bot_id + "> FACTOID")
                 }
     #}}}
 

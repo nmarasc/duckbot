@@ -20,6 +20,7 @@ def main():
     # Construct commandline parser
     cl_parser = argparse.ArgumentParser(description='Start up Duckbot')
     cl_parser.add_argument('--debug', action='store_true')
+    cl_parser.add_argument('--nolog', action='store_true')
     args = cl_parser.parse_args()
     global DEBUG
     DEBUG = args.debug
@@ -40,7 +41,6 @@ def main():
     # Connect to the rtm and build bot
     if sc.rtm_connect(with_team_state=False):
     # {{{
-        global duckbot
         duckbot = Duckbot(sc, bot_id)
 
         # Wait for the connection event
@@ -49,7 +49,7 @@ def main():
         event = event_list.pop(0)
         if event["type"] == "hello":
             # Connection was good
-            exit_code = run()
+            exit_code = run(duckbot)
         else:
             # Error in connection
             error = event["error"]
@@ -67,7 +67,7 @@ def main():
 
 # Running loop
 # Reads for rtm events
-def run():
+def run(duckbot):
 #{{{
     if DEBUG:
         print("Duckbot running in debug mode")
