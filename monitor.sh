@@ -13,7 +13,7 @@ function post_msg {
 # Bot startup function
 function start_bot {
   return_code=0
-  python main.py & return_code=$?;duck_pid=$!
+  python bot/main.py & return_code=$?;duck_pid=$!
   # RC!=0 , something bad happened with bash
   if [ $return_code -ne 0 ]; then
     if [ $retry -eq 1 ]; then
@@ -26,8 +26,21 @@ function start_bot {
   fi
 }
 
+# Check for compile time syntax errors,
+# not to be confused with runtime syntax errors
+function syntax_check {
+  return_code=0
+  python syntax_check.py; return_code=$?
+  if [ $return_code -ne 0 ]; then
+    post_msg ${msg_headers[2]} "Code failed syntax check"
+    # Possibly put git restore here later
+    exit 2
+  # Else clean up compiled files?
+  fi
+}
 
 # Mainline
+syntax_check
 while sleep 1; do
 
     # Attempt to start bot
@@ -59,7 +72,8 @@ while sleep 1; do
         git pull; return_code=$?
 
         if [ $return_code -eq 0 ]; then
-          post_msg ${msg_headers[1]} "Pull successful, restarting bot with new code"
+          post_msg ${msg_headers[1]} "Pull successful, checking new code"
+          syntax_check
         else
           post_msg ${msg_headers[2]} "Pull unsuccessful, restarting bot with old code"
         fi
