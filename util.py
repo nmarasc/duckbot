@@ -77,7 +77,8 @@ def matchUserId(id_str):
 # Obtain bot id, workspace channels and which bot is a member of
 def getBotInfo(sc, bot_token):
 #{{{
-    channels = []
+    channels = {}
+    channels['memberOf'] = []
     bot_id = sc.api_call("auth.test")["user_id"]
     response = sc.api_call("channels.list", token=bot_token, exclude_members=True)
     for channel in response["channels"]:

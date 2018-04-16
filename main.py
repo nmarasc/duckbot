@@ -76,8 +76,9 @@ def run(duckbot):
     RETURN_CODE = 0
 
     # Keep going until bot signals to stop
-    while RUNNING and time.sleep(1):
+    while RUNNING:
     #{{{
+        time.sleep(1)
         RETURN_CODE, event_list = doRead()
         if event_list and not RETURN_CODE:
             # Process all the events returned

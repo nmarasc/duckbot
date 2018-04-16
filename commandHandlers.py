@@ -74,7 +74,7 @@ class RollHandler:
     def act(self, roll_parms):
     #{{{
         # Check for character roll
-        if roll_parms[0] in CHARACTER_ROLLS:
+        if roll_parms[0] in self.CHARACTER_ROLLS:
             return 1, self.characterRoll()
 
         results = re.search(self.ROLL_REGEX, roll_parms[0])
