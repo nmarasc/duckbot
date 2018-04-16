@@ -14,6 +14,8 @@ class Duckbot:
     # Handle received messages
     def handleEvent(self, event):
     #{{{
+        #FIXME : Create event object
+
         if "type" not in event:
             return 0
 

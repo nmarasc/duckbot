@@ -9,7 +9,7 @@ from commandHandlers import FactoidHandler
 
 # Message handler class
 class MessageHandler:
-
+#{{{
     DEFAULT_RESPONSE = "Kweh! :DUCK:"
 
     def __init__(self, bot_id):
@@ -24,6 +24,8 @@ class MessageHandler:
 
     def act(self, event):
     #{{{
+        #FIXME : Finish Event class and use it
+
         # Standard message type
         if "subtype" not in event:
         #{{{
@@ -94,7 +96,12 @@ class MessageHandler:
             else:
                 return ""
         #}}}
-        # Message with subtype
+
+        # Message changed subtype
+        elif event["subtype"] == "message_changed":
+            return self.act(event["message"])
+
+        # Unhandled subtype
         else:
             return ""
     #}}}
@@ -116,4 +123,61 @@ class MessageHandler:
         else:
             return None, None
     #}}}
+#}}}
 
+# Event class
+# Standardize event information, hopefully
+class Event:
+#{{{
+    #{{{ - EVENT_PARSERS
+    EVENT_PARSERS = {
+         "message"        : self.parseMessageEvent
+        ,"reaction_added" : self.parseReactionAddedEvent
+        ,"team_join"      : self.parseTeamJoinEvent
+    }
+    #}}}
+
+    def __init__(self, event):
+    #{{{
+        self.type     = event["type"]
+        self.user     = None
+        self.channel  = None
+        self.text     = None
+        self.reaction = None
+        self.ts       = None
+        self.file     = None
+        self.EVENT_PARSERS[self.type](event)
+    #}}}
+
+    def parseMessageEvent(self, event):
+    #{{{
+        self.channel = event["channel"]
+        if "subtype" in event and event["subtype"] == "message_changed":
+            self.user = event["message"]["user"]
+            self.text = event["message"]["text"]
+            self.ts   = event["message"]["ts"]
+        else:
+            self.user = event["user"]
+            self.text = event["text"]
+            self.ts   = event["ts"]
+    #}}}
+
+    def parseReactionAddedEvent(self, event):
+    #{{{
+        self.user     = event["user"]
+        self.reaction = {
+             "emoji" : event["reaction"]
+            ,"type"  : event["item"]["type"]
+        }
+        if self.reaction["type"] == "message":
+            self.channel = event["item"]["channel"]
+            self.ts      = event["item"]["ts"]
+
+        elif (self.reaction["type"] == "file" or
+              self.reaction["type"] == "file_comment"):
+            self.file = event["item"]["file"]
+    #}}}
+
+    def parseTeamJoinEvent(self, event):
+        self.user = event["user"]["id"]
+#}}}
