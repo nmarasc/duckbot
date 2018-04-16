@@ -32,6 +32,8 @@ class Duckbot:
                 self._sendMessage(None, channel,
                                   "Shutting down for update. Kweh! :duckbot:")
                 return 2
+            else:
+                return 0
 
         # Unhandled event type
         else:

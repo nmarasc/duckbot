@@ -9,20 +9,27 @@ class HelpHandler:
     #{{{
         self.bot_id = bot_id
         self.HELP_MESSAGES = {
-                 0  : ("Legacy HI command\n"
+                 util.COMMANDS["HI"] :\
+                      ("Legacy HI command\n"
                       "Usage: <@" + bot_id + "> HI")
-                ,1  : ("Causes the bot to shutdown and signal "
+                ,util.COMMANDS["UPDATE"] :\
+                      ("Causes the bot to shutdown and signal "
                       "the monitor script to check for updates\n"
                       "Usage: <@" + bot_id + "> UPDATE")
-                ,2  : "Don't get smart, you know how to use this"
-                ,3  : ("Rolls dice based on parameters given\n"
+                ,util.COMMANDS["HELP"] :\
+                      "Don't get smart, you know how to use this"
+                ,util.COMMANDS["ROLL"] :\
+                      ("Rolls dice based on parameters given\n"
                       "Usage: <@" + bot_id + "> ROLL ( [d]X | YdX )\n"
                       "Where X is the size of the die and Y is the number of them")
-                ,4  : ("Flip a coin\n"
+                ,util.COMMANDS["COIN"] :\
+                      ("Flip a coin\n"
                       "Usage: <@" + bot_id + "> COIN")
-                ,5  : ("Shake the magic 8ball\n"
+                ,util.COMMANDS["8BALL"] :\
+                      ("Shake the magic 8ball\n"
                       "Usage: <@" + bot_id + "> 8BALL")
-                ,6  : ("Pull out a random and totally true fact\n"
+                ,util.COMMANDS["FACTOID"] :\
+                      ("Pull out a random and totally true fact\n"
                        "Usage: <@" + bot_id + "> FACTOID")
                 }
     #}}}
@@ -48,6 +55,13 @@ class HelpHandler:
 # Roll handler class
 class RollHandler:
 #{{{
+    #{{{ - CHARACTER_ROLLS
+    CHARACTER_ROLLS = [
+         ":DRAGON:"
+        ,"CHARACTER"
+    ]
+    #}}}
+
     # Initialize RollHandler with range of dice allowed and regex for a roll
     def __init__(self):
     #{{{
@@ -60,7 +74,7 @@ class RollHandler:
     def act(self, roll_parms):
     #{{{
         # Check for character roll
-        if roll_parms[0] == ":DRAGON:":
+        if roll_parms[0] in CHARACTER_ROLLS:
             return 1, self.characterRoll()
 
         results = re.search(self.ROLL_REGEX, roll_parms[0])

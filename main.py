@@ -76,7 +76,7 @@ def run(duckbot):
     RETURN_CODE = 0
 
     # Keep going until bot signals to stop
-    while RUNNING:
+    while RUNNING and time.sleep(1):
     #{{{
         RETURN_CODE, event_list = doRead()
         if event_list and not RETURN_CODE:
@@ -86,15 +86,13 @@ def run(duckbot):
                 RETURN_CODE = duckbot.handleEvent(event)
         if RETURN_CODE:
             RUNNING = False
-
-        time.sleep(1)
     #}}}
-    # Bot signalled to stop, exit with code
-    sys.exit(RETURN_CODE)
+    # Bot signalled to stop, return to mainline
+    return RETURN_CODE
 #}}}
 
 # Attempt an rtm_read, catching errors on failure
-# event_list populated on success, Null on failure
+# event_list populated on success, None on failure
 def doRead():
 #{{{
     try:

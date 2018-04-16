@@ -35,19 +35,19 @@ class MessageHandler:
                 u_parms = list(map(str.upper,o_parms))
 
             # HI command
-            if command == 0:
+            if command == util.COMMANDS["HI"]:
                 return self.DEFAULT_RESPONSE
 
             # UPDATE command
-            elif command == 1:
+            elif command == util.COMMANDS["UPDATE"]:
                 return None
 
             # HELP command
-            elif command == 2:
+            elif command == util.COMMANDS["HELP"]:
                 return self.helpHandler.act(u_parms)
 
             # ROLL command
-            elif command == 3:
+            elif command == util.COMMANDS["ROLL"]:
             #{{{
                 rc, rolls = self.rollHandler.act(u_parms)
                 if rc == 0:
@@ -79,15 +79,15 @@ class MessageHandler:
             #}}}
 
             # COIN command
-            elif command == 4:
+            elif command == util.COMMANDS["COIN"]:
                 return "You got: " + self.coinHandler.act()
 
             # 8BALL command
-            elif command == 5:
+            elif command == util.COMMANDS["8BALL"]:
                 return self.eightballHandler.act()
 
             # Factoid command
-            elif command == 6:
+            elif command == util.COMMANDS["FACTOID"]:
                 return self.factoidHandler.act()
 
             # No command or unrecognized, either way I don't care
