@@ -27,7 +27,7 @@ def main():
     # Get bot token from the env file
     with open(".env") as env_file:
         bot_token = env_file.readline().rstrip().split("=")[1]
-    print("Token: " + bot_token)
+    print("Token    : " + bot_token)
 
     # Create the slack client
     global sc
