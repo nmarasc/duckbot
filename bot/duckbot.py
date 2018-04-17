@@ -1,5 +1,6 @@
 # Event handler imports
 from eventHandlers import MessageHandler
+from eventHandlers import Event
 
 # Duckbot class
 class Duckbot:
@@ -12,26 +13,23 @@ class Duckbot:
     #}}}
 
     # Handle received messages
-    def handleEvent(self, event):
+    def handleEvent(self, event_in):
     #{{{
-        #FIXME : Create event object
+        event = Event(event_in)
 
-        if "type" not in event:
+        if event.type == None:
             return 0
 
         # Message event, pass to message handler
-        if event["type"] == "message":
+        if event.type == "message":
 
             response = self.messageHandler.act(event)
 
             if response:
-                user    = event["user"]
-                channel = event["channel"]
-                self._sendMessage(user, channel, response)
+                self._sendMessage(event.user, event.channel, response)
                 return 0
             elif response == None:
-                channel = event["channel"]
-                self._sendMessage(None, channel,
+                self._sendMessage(None, event.channel,
                                   "Shutting down for update. Kweh! :duckbot:")
                 return 2
             else:
