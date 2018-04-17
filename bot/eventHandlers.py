@@ -134,7 +134,7 @@ class Event:
 
     def parseMessageEvent(event, old):
     #{{{
-        print("BOT: Parsing Message event")
+        print("BOT      : Parsing Message event")
         event.channel = old["channel"]
         if "subtype" not in old:
             event.user = old["user"]
@@ -148,7 +148,7 @@ class Event:
 
     def parseReactionAddedEvent(event, old):
     #{{{
-        print("BOT: Parsing Reaction event")
+        print("BOT      : Parsing Reaction event")
         event.user     = old["user"]
         event.reaction = {
              "emoji" : old["reaction"]
@@ -164,7 +164,7 @@ class Event:
     #}}}
 
     def parseTeamJoinEvent(event, old):
-        print("BOT: Parsing Join event")
+        print("BOT      : Parsing Join event")
         event.user = old["user"]["id"]
 #}}}
 

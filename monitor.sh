@@ -6,7 +6,7 @@ retry=0
 
 # Messaging function
 function post_msg {
-  printf "%-8s" $1
+  printf "%-9s" $1
   echo ": $2"
 }
 
