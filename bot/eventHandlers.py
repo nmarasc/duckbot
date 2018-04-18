@@ -29,6 +29,7 @@ class MessageHandler:
         print(event.user + ": " + event.text)
         u_parms = ""
         command, o_parms = self._getCommand(event.text)
+        # Save old params for nicer messages if needed
         if o_parms:
             u_parms = list(map(str.upper,o_parms))
 
@@ -62,6 +63,7 @@ class MessageHandler:
             #{{{
                 output = ""
                 stats = []
+                # Go through each set of rolls, drop the lowest and total
                 for group in rolls:
                     output += "\n\nYou rolled: " + ", ".join(map(str,group))
                     output += "\nDropping " + str(min(group)) + ", "

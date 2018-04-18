@@ -15,16 +15,18 @@ class Duckbot:
     # Handle received messages
     def handleEvent(self, event_in):
     #{{{
+        # Create standardized event
         event = Event(event_in)
-
+        # No event type, run away
         if event.type == None:
             return 0
 
         # Message event, pass to message handler
         if event.type == "message":
-
+        #{{{
             response = self.messageHandler.act(event)
 
+            # Send message if needed, update if told to, ignore otherwise
             if response:
                 self._sendMessage(event.user, event.channel, response)
                 return 0
@@ -34,6 +36,7 @@ class Duckbot:
                 return 2
             else:
                 return 0
+        #}}}
 
         # Unhandled event type
         else:

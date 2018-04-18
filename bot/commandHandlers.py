@@ -199,6 +199,8 @@ class PickitHandler:
     def act(self, pick_parms):
     #{{{
         try:
+            # Split on spaces while preserving quoted strings,
+            # then remove empty strings because people suck
             pick_parms = shlex.split(" ".join(pick_parms))
             pick_parms = [val for val in pick_parms if val != ""]
         except ValueError:
