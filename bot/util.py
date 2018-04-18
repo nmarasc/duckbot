@@ -38,6 +38,7 @@ COMMANDS = {
              'COIN'    : 4,
              '8BALL'   : 5, ':8BALL:'    : 5,
              'FACTOID' : 6,
+             'PICKIT'  : 7,
            }
 #}}}
 #{{{ - Eightball Responses

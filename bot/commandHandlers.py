@@ -1,5 +1,6 @@
 import re
 import util
+import shlex
 
 # Help handler class
 class HelpHandler:
@@ -180,4 +181,23 @@ class FactoidHandler:
 #{{{
     def act(self):
         return "Not yet. Kweh :duck:"
+#}}}
+
+# Pickit handler class
+class PickitHandler:
+#{{{
+    def __init__(self):
+        # Can pick from 2-20 things
+        self.PICK_RANGE=range(2,21)
+
+    def act(self, pick_parms):
+        try:
+            pick_parms = shlex.split(" ".join(pick_parms))
+            pick_parms = [val for val in pick_parms if val != ""]
+        except ValueError:
+            return 2, None
+        if len(pick_parms) in self.PICK_RANGE:
+            return 0, pick_parms[util.doRolls(len(pick_parms))[0]-1]
+        else:
+            return 1, self.PICK_RANGE
 #}}}

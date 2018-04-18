@@ -5,6 +5,7 @@ from commandHandlers import RollHandler
 from commandHandlers import CoinHandler
 from commandHandlers import EightballHandler
 from commandHandlers import FactoidHandler
+from commandHandlers import PickitHandler
 #}}}
 
 # Message handler class
@@ -20,6 +21,7 @@ class MessageHandler:
         self.coinHandler = CoinHandler()
         self.eightballHandler = EightballHandler()
         self.factoidHandler = FactoidHandler()
+        self.pickitHandler = PickitHandler()
     #}}}
 
     def act(self, event):
@@ -85,6 +87,18 @@ class MessageHandler:
         # Factoid command
         elif command == util.COMMANDS["FACTOID"]:
             return self.factoidHandler.act()
+
+        elif command == util.COMMANDS["PICKIT"]:
+        #{{{
+            rc, response = self.pickitHandler.act(o_parms)
+            if rc == 1:
+                return ("Must pick between " + str(min(response)) + " "
+                        "and " + str(max(response)) + " things")
+            elif rc == 2:
+                return "Unmatched quotes! Kweh :duck:"
+            else:
+                return "I choose: " + response
+        #}}}
 
         # No command or unrecognized, either way I don't care
         else:
