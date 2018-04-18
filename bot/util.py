@@ -31,15 +31,21 @@ EMOJI_ROLLS={
 #}}}
 #{{{ - Commands
 COMMANDS = {
-             'HI'      : 0, 'HELLO'      : 0, 'KWEH'       : 0,
-             'UPDATE'  : 1,
-             'HELP'    : 2, '?'          : 2, ':QUESTION:' : 2,
-             'ROLL'    : 3, ':GAME_DIE:' : 3,
-             'COIN'    : 4,
-             '8BALL'   : 5, ':8BALL:'    : 5,
-             'FACTOID' : 6,
-             'PICKIT'  : 7,
+    'HI'      : 1,
+    'UPDATE'  : 2,
+    'HELP'    : 3,
+    'ROLL'    : 4,
+    'COIN'    : 5,
+    '8BALL'   : 6,
+    'FACTOID' : 7,
+    'PICKIT'  : 8,
            }
+COMMANDS_ALT = {
+    'HELLO'      : 1, 'KWEH'       : 1,
+    '?'          : 3, ':QUESTION:' : 3,
+    ':GAME_DIE:' : 4,
+    ':8BALL:'    : 6,
+}
 #}}}
 #{{{ - Eightball Responses
 EIGHTBALL_RESPONSES = [
@@ -106,7 +112,7 @@ def uniqueKeys(p_dict):
 #{{{
     keys = []
     values = []
-    for key in p_dict.keys():
+    for key in p_dict:
         if p_dict[key] not in values:
             keys.append(key)
             values.append(p_dict[key])

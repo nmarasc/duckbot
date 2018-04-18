@@ -28,7 +28,7 @@ class MessageHandler:
     #{{{
         print(event.user + ": " + event.text)
         u_parms = ""
-        command, o_parms = self._parseMessage(event.text)
+        command, o_parms = self._getCommand(event.text)
         if o_parms:
             u_parms = list(map(str.upper,o_parms))
 
@@ -106,8 +106,13 @@ class MessageHandler:
     #}}}
 
     # Parse message for mention, command, and parms
-    def _parseMessage(self, text):
+    def _getCommand(self, text):
     #{{{
+        # Message event with no text? Don't even know if it's possible
+        # But I'll stop it if it is
+        if not text:
+            return None, None
+
         text_arr = text.split(" ")
         temp = text_arr.pop(0).upper()
         _, id_str = util.matchUserId(temp)
@@ -115,10 +120,12 @@ class MessageHandler:
         # Check for mention
         if ((id_str == self.bot_id) or
            (temp   == ":DUCKBOT:")) and text_arr:
-            command = util.COMMANDS.get(text_arr.pop(0).upper(),-1)
+            c_word = text_arr.pop(0).upper()
+            command = util.COMMANDS.get(c_word,0)
+            command = util.COMMANDS_ALT.get(c_word,0) if not command else command
             return command, text_arr
 
-        # No mention, ignore
+        # No mention or no command word, ignore
         else:
             return None, None
     #}}}
@@ -148,7 +155,7 @@ class Event:
 
     def parseMessageEvent(event, old):
     #{{{
-        print("BOT      : Parsing Message event")
+        print("DUCKBOT  : Parsing Message event")
         event.channel = old["channel"]
         if "subtype" not in old:
             event.user = old["user"]

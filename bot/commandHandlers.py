@@ -11,27 +11,31 @@ class HelpHandler:
         self.bot_id = bot_id
         self.HELP_MESSAGES = {
                  util.COMMANDS["HI"] :\
-                      ("Legacy HI command\n"
-                      "Usage: <@" + bot_id + "> HI")
+                    ("Legacy HI command\n"
+                    "Usage: <@" + bot_id + "> HI")
                 ,util.COMMANDS["UPDATE"] :\
-                      ("Causes the bot to shutdown and signal "
-                      "the monitor script to check for updates\n"
-                      "Usage: <@" + bot_id + "> UPDATE")
+                    ("Causes the bot to shutdown and signal "
+                    "the monitor script to check for updates\n"
+                    "Usage: <@" + bot_id + "> UPDATE")
                 ,util.COMMANDS["HELP"] :\
-                      "Don't get smart, you know how to use this"
+                    "Don't get smart, you know how to use this"
                 ,util.COMMANDS["ROLL"] :\
-                      ("Rolls dice based on parameters given\n"
-                      "Usage: <@" + bot_id + "> ROLL ( [d]X | YdX )\n"
-                      "Where X is the size of the die and Y is the number of them")
+                    ("Rolls dice based on parameters given\n"
+                    "Usage: <@" + bot_id + "> ROLL ( [d]X | YdX )\n"
+                    "Where X is the size of the die and Y is the number of them")
                 ,util.COMMANDS["COIN"] :\
-                      ("Flip a coin\n"
-                      "Usage: <@" + bot_id + "> COIN")
+                    ("Flip a coin\n"
+                    "Usage: <@" + bot_id + "> COIN")
                 ,util.COMMANDS["8BALL"] :\
-                      ("Shake the magic 8ball\n"
-                      "Usage: <@" + bot_id + "> 8BALL")
+                    ("Shake the magic 8ball\n"
+                    "Usage: <@" + bot_id + "> 8BALL")
                 ,util.COMMANDS["FACTOID"] :\
-                      ("Pull out a random and totally true fact\n"
-                       "Usage: <@" + bot_id + "> FACTOID")
+                    ("Pull out a random and totally true fact\n"
+                    "Usage: <@" + bot_id + "> FACTOID")
+                ,util.COMMANDS["PICKIT"] :\
+                    ("Pick from a number of things\n"
+                    "Usage: <@" + bot_id + "> PICKIT <item1> <item2> ...\n"
+                    "Use quotes to have items with spaces in them :duck:")
                 }
     #}}}
 
@@ -39,7 +43,8 @@ class HelpHandler:
     def act(self, parms):
     #{{{
         if parms:
-            command = util.COMMANDS.get(parms[0],-1)
+            command = util.COMMANDS.get(parms[0],0)
+            command = util.COMMANDS_ALT.get(parms[0],0) if not command else command
             response = self.HELP_MESSAGES.get(command,
                     parms[0] + " is not a recognized command")
             return response
@@ -60,6 +65,7 @@ class RollHandler:
     CHARACTER_ROLLS = [
          ":DRAGON:"
         ,"CHARACTER"
+        ,"CHAR"
     ]
     #}}}
 
@@ -191,6 +197,7 @@ class PickitHandler:
         self.PICK_RANGE=range(2,21)
 
     def act(self, pick_parms):
+    #{{{
         try:
             pick_parms = shlex.split(" ".join(pick_parms))
             pick_parms = [val for val in pick_parms if val != ""]
@@ -200,4 +207,5 @@ class PickitHandler:
             return 0, pick_parms[util.doRolls(len(pick_parms))[0]-1]
         else:
             return 1, self.PICK_RANGE
+    #}}}
 #}}}
