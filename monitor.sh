@@ -3,6 +3,7 @@
 msg_headers=("MONITOR" "UPDATE" "ERROR")
 return_code=0
 retry=0
+duck_parm=$1
 
 # Messaging function
 function post_msg {
@@ -13,7 +14,7 @@ function post_msg {
 # Bot startup function
 function start_bot {
   return_code=0
-  python bot/main.py & return_code=$?;duck_pid=$!
+  python bot/main.py $duck_parm & return_code=$?;duck_pid=$!
   # RC!=0 , something bad happened with bash
   if [ $return_code -ne 0 ]; then
     if [ $retry -eq 1 ]; then
@@ -50,6 +51,7 @@ while sleep 1; do
       retry=0
       # Wait for finish and grab return code
       post_msg ${msg_headers[0]} "duckbot started with pid: $duck_pid"
+      export set DUCK_PID=$duck_pid
       wait "$duck_pid"; duck_exit=$?
 
       # Check return code
