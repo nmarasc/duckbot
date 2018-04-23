@@ -26,7 +26,6 @@ class MessageHandler:
 
     def act(self, event):
     #{{{
-        print(event.user + ": " + event.text)
         u_parms = ""
         command, o_parms = self._getCommand(event.text)
         # Save old params for nicer messages if needed
@@ -157,7 +156,6 @@ class Event:
 
     def parseMessageEvent(event, old):
     #{{{
-        print("DUCKBOT  : Parsing Message event")
         event.channel = old["channel"]
         if "subtype" not in old:
             event.user = old["user"]
@@ -171,7 +169,6 @@ class Event:
 
     def parseReactionAddedEvent(event, old):
     #{{{
-        print("BOT      : Parsing Reaction event")
         event.user     = old["user"]
         event.reaction = {
              "emoji" : old["reaction"]
@@ -187,7 +184,6 @@ class Event:
     #}}}
 
     def parseTeamJoinEvent(event, old):
-        print("BOT      : Parsing Join event")
         event.user = old["user"]["id"]
 #}}}
 
