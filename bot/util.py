@@ -1,6 +1,6 @@
 import re
 import random
-import datetime
+from datetime import datetime
 
 DEBUG = False
 USER_REGEX = "<@(U[A-Z0-9]{8})>$"
@@ -124,34 +124,45 @@ def uniqueKeys(p_dict):
 class Logger:
 #{{{
     # Initialize Logger with output file name or use default
-    def __init__(self, fn = DEFAULT_FN):
+    def __init__(self, fn = DEFAULT_FN, log = True):
     #{{{
+        self.BUFFER_MAX = 5
+        self.LOG_TIME = 3600 # 60 minutes
+        self._log = log
         self.fn = fn
-        self.LOG_BUFFER = []
-        with open(self.fn,'w') as logfile:
-            logfile.write("Starting new log file...\n")
+        self.log_buffer = []
+        if self._log:
+            with open(self.fn,'w') as logfile:
+                logfile.write("Starting new log file...\n")
+        self.last_log = datetime.now()
     #}}}
 
-    # Append line to internal log buffer
-    def buffer(self, text):
-        self.LOG_BUFFER.append(text)
+    # Append line to internal log buffer, flush if needed
+    def log(self, text, flush=False):
+    #{{{
+        if self._log:
+            self.log_buffer.append(str(datetime.now()) + ": " + text)
+            timeDiff = (datetime.now() - self.last_log)
+            if len(self.log_buffer) >= self.BUFFER_MAX or flush:
+                print("Writing log")
+                self._write()
+                self.last_log = datetime.now()
+        elif not flush:
+            print(text)
+    #}}}
 
     # Write contents of buffer out to file with timestamp
-    def write(self, text = ""):
+    def _write(self):
     #{{{
         with open(self.fn,'a') as logfile:
-            if text:
-                logfile.write(text + "\n")
-            else:
-                for line in self.LOG_BUFFER:
-                    try:
-                        logfile.write(str(datetime.datetime.now())+": " + line)
-                    except TypeError:
-                        logfile.write(str(datetime.datetime.now())+": LOG ERR")
-                    except UnicodeEncodeError:
-                        logfile.write(str(datetime.datetime.now())+": " +\
-                                      str(line.encode("utf-8","replace")))
-                    logfile.write("\n")
-                del self.LOG_BUFFER[:]
+            for line in self.log_buffer:
+                try:
+                    logfile.write(line)
+                except TypeError:
+                    logfile.write(str(datetime.now())+": LOG ERR")
+                except UnicodeEncodeError:
+                    logfile.write(str(line.encode("utf-8","replace")))
+                logfile.write("\n")
+            del self.log_buffer[:]
     #}}}
 #}}}

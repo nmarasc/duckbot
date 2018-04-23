@@ -20,14 +20,16 @@ def main():
     # Construct commandline parser
     cl_parser = argparse.ArgumentParser(description='Start up Duckbot')
     cl_parser.add_argument('--debug', action='store_true')
-    cl_parser.add_argument('--nolog', action='store_true')
+    cl_parser.add_argument('--nolog', dest='log', action='store_false', default=True)
     args = cl_parser.parse_args()
     global DEBUG
     DEBUG = args.debug
+
+    logger = util.Logger(log=args.log)
     # Get bot token from the env file
     with open(".env") as env_file:
         bot_token = env_file.readline().rstrip().split("=")[1]
-    print("Token    : " + bot_token)
+    logger.log("Token    : " + bot_token)
 
     # Create the slack client
     global sc
@@ -41,7 +43,7 @@ def main():
     # Connect to the rtm and build bot
     if sc.rtm_connect(with_team_state=False):
     # {{{
-        duckbot = Duckbot(sc, bot_id)
+        duckbot = Duckbot(sc, bot_id, logger)
 
         # Wait for the connection event
         while not event_list:
@@ -77,7 +79,7 @@ def run(duckbot):
 
     # Keep going until bot signals to stop
     while RUNNING:
-    #{{{
+    # {{{
         time.sleep(1)
         RETURN_CODE, event_list = doRead()
         if event_list and not RETURN_CODE:
@@ -85,6 +87,7 @@ def run(duckbot):
             # EVENTUALLY: Thread each event
             for event in event_list:
                 RETURN_CODE = duckbot.handleEvent(event)
+        duckbot.tick()
         if RETURN_CODE:
             RUNNING = False
     #}}}

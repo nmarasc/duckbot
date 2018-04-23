@@ -10,6 +10,8 @@ class Duckbot:
     #{{{
         self.sc = slackclient
         self.messageHandler = MessageHandler(bot_id)
+        self.logger = logger
+        self.ticks = 0
     #}}}
 
     # Handle received messages
@@ -24,6 +26,8 @@ class Duckbot:
         # Message event, pass to message handler
         if event.type == "message":
         #{{{
+            if event.text:
+                self.logger.log(event.user + ": " + event.text)
             response = self.messageHandler.act(event)
 
             # Send message if needed, update if told to, ignore otherwise
@@ -43,6 +47,11 @@ class Duckbot:
             # Don't do anything right now
             return 0
     #}}}
+
+    def tick(self):
+        self.ticks = (self.ticks + 1) % 3600
+        if self.ticks % self.logger.LOG_TIME == 0:
+            self.logger.log("AUTO     : Flushing buffer", flush=True)
 
     # Send message to designated channel, and notify user if present
     def _sendMessage(self, user, channel, text):

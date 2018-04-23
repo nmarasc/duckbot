@@ -165,6 +165,7 @@ $RECYCLE.BIN/
 
 # End of https://www.gitignore.io/api/vim,venv,linux,python,windows
 
+log.txt
 test.py
 test.sh
 error.txt
