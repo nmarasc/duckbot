@@ -53,10 +53,9 @@ class HelpHandler:
                     parms[0] + " is not a recognized command")
             return response
         else:
-            coms = util.uniqueKeys(util.COMMANDS)
             return ("Duckbot is a general purpose slackbot for doing various things\n"
                     "To interact with it use <@" + self.bot_id + "> <command>\n"
-                    "Supported commands: " + ", ".join(coms) + "\n"
+                    "Supported commands: " + ", ".join(util.COMMANDS) + "\n"
                     "Use <@" + self.bot_id + "> HELP <command> for more details"
                    )
     #}}}
@@ -199,20 +198,24 @@ class RollHandler:
             return 1, self.PICK_RANGE
     #}}}
 
-#}}}
-
-# Factoid handler class
-class FactoidHandler:
-#{{{
-    def act(self):
+    # Roll for factoid response
+    def factoidRoll(self):
         return "Not yet. Kweh :duck:"
+
 #}}}
 
 # Gambling handler class
 class GambleHandler:
-
+#{{{
     def __init__(self, channels):
         self.approved_channels = self.getApproved(channels)
 
     def getApproved(self, channels):
-        return None
+    #{{{
+        approved = []
+        for key, channel in channels.items():
+            if channel["labels"]["gamble"]:
+                approved.append(channel["name"])
+        return approved
+    #}}}
+#}}}

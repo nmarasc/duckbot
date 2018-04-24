@@ -72,6 +72,11 @@ EIGHTBALL_RESPONSES = [
     ,"Very doubtful"
     ]
 #}}}
+#{{{ - Channel labels
+LABELS = {
+    'GAMBLE' : ':SLOT_MACHINE:'
+}
+#}}}
 
 # matchUserId
 # Returns True if id is valid and matching id, False otherwise
@@ -89,6 +94,7 @@ def getBotInfo(sc, bot_token):
     channels['memberOf'] = []
     bot_id = sc.api_call("auth.test")["user_id"]
     response = sc.api_call("channels.list", token=bot_token, exclude_members=True)
+    #FIXME: Check for and set labels on channel gather
     for channel in response["channels"]:
         if channel["is_member"]:
             channels['memberOf'].append(channel["id"])
@@ -105,19 +111,6 @@ def doRolls(die_size, die_num = 1):
     for i in range(die_num):
         rolls.append(random.randint(1,die_size))
     return rolls
-#}}}
-
-# uniqueKeys
-# Returns list of one keys per value in dict
-def uniqueKeys(p_dict):
-#{{{
-    keys = []
-    values = []
-    for key in p_dict:
-        if p_dict[key] not in values:
-            keys.append(key)
-            values.append(p_dict[key])
-    return keys
 #}}}
 
 # Logger class
