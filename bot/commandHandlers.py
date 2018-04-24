@@ -36,6 +36,10 @@ class HelpHandler:
                     ("Pick from a number of things\n"
                     "Usage: <@" + bot_id + "> PICKIT <item1> <item2> ...\n"
                     "Use quotes to have items with spaces in them :duck:")
+                ,util.COMMANDS["JOIN"] :\
+                    ("Add yourself to the gambler's bank\n"
+                    "Usage: <@" + bot_id + "> JOIN\n"
+                    "Can only be used in gambling approved channels :duck:")
                 }
     #}}}
 
@@ -211,3 +215,9 @@ class PickitHandler:
             return 1, self.PICK_RANGE
     #}}}
 #}}}
+
+# Gambling handler class
+class GamblingHandler:
+
+    def __init__(self, channels):
+        self.approved_channels = None

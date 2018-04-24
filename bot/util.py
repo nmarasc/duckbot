@@ -39,6 +39,7 @@ COMMANDS = {
     '8BALL'   : 6,
     'FACTOID' : 7,
     'PICKIT'  : 8,
+    'JOIN'    : 9,
            }
 COMMANDS_ALT = {
     'HELLO'      : 1, 'KWEH'       : 1,
@@ -92,7 +93,7 @@ def getBotInfo(sc, bot_token):
         if channel["is_member"]:
             channels['memberOf'].append(channel["id"])
             print("Member of: " + channel["name"])
-        channels[channel["name"]] = channel["id"]
+        channels[channel["name"]] = channel
     return bot_id, channels
 #}}}
 

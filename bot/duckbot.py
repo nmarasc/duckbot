@@ -6,10 +6,10 @@ from eventHandlers import Event
 class Duckbot:
 
     # Construct bot with the slack client instance
-    def __init__(self, slackclient, bot_id, logger = None):
+    def __init__(self, slackclient, bot_id, bot_channels, logger = None):
     #{{{
         self.sc = slackclient
-        self.messageHandler = MessageHandler(bot_id)
+        self.messageHandler = MessageHandler(bot_id, bot_channels)
         self.logger = logger
         self.ticks = 0
     #}}}

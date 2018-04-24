@@ -6,6 +6,7 @@ from commandHandlers import CoinHandler
 from commandHandlers import EightballHandler
 from commandHandlers import FactoidHandler
 from commandHandlers import PickitHandler
+from commandHandlers import GamblingHandler
 #}}}
 
 # Message handler class
@@ -13,7 +14,7 @@ class MessageHandler:
 #{{{
     DEFAULT_RESPONSE = "Kweh! :DUCK:"
 
-    def __init__(self, bot_id):
+    def __init__(self, bot_id, bot_channels):
     #{{{
         self.bot_id = bot_id
         self.rollHandler = RollHandler()
@@ -85,10 +86,11 @@ class MessageHandler:
         elif command == util.COMMANDS["8BALL"]:
             return self.eightballHandler.act()
 
-        # Factoid command
+        # FACTOID command
         elif command == util.COMMANDS["FACTOID"]:
             return self.factoidHandler.act()
 
+        # PICKIT command
         elif command == util.COMMANDS["PICKIT"]:
         #{{{
             rc, response = self.pickitHandler.act(o_parms)

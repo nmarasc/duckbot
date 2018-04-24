@@ -43,7 +43,7 @@ def main():
     # Connect to the rtm and build bot
     if sc.rtm_connect(with_team_state=False):
     # {{{
-        duckbot = Duckbot(sc, bot_id, logger)
+        duckbot = Duckbot(sc, bot_id, bot_channels, logger)
 
         # Wait for the connection event
         while not event_list:
