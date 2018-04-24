@@ -2,11 +2,8 @@ import util
 #{{{ - CommandHandler imports
 from commandHandlers import HelpHandler
 from commandHandlers import RollHandler
-from commandHandlers import CoinHandler
-from commandHandlers import EightballHandler
 from commandHandlers import FactoidHandler
-from commandHandlers import PickitHandler
-from commandHandlers import GamblingHandler
+from commandHandlers import GambleHandler
 #}}}
 
 # Message handler class
@@ -19,10 +16,8 @@ class MessageHandler:
         self.bot_id = bot_id
         self.rollHandler = RollHandler()
         self.helpHandler = HelpHandler(bot_id)
-        self.coinHandler = CoinHandler()
-        self.eightballHandler = EightballHandler()
         self.factoidHandler = FactoidHandler()
-        self.pickitHandler = PickitHandler()
+        self.gambleHandler = GambleHandler(bot_channels)
     #}}}
 
     def act(self, event):
@@ -48,7 +43,7 @@ class MessageHandler:
         # ROLL command
         elif command == util.COMMANDS["ROLL"]:
         #{{{
-            rc, rolls = self.rollHandler.act(u_parms)
+            rc, rolls = self.rollHandler.roll(u_parms)
             if rc == 0:
             #{{{
                 add = rolls.pop()
@@ -80,11 +75,11 @@ class MessageHandler:
 
         # COIN command
         elif command == util.COMMANDS["COIN"]:
-            return "You got: " + self.coinHandler.act()
+            return "You got: " + self.rollHandler.coinRoll()
 
         # 8BALL command
         elif command == util.COMMANDS["8BALL"]:
-            return self.eightballHandler.act()
+            return self.rollHandler.eightballRoll()
 
         # FACTOID command
         elif command == util.COMMANDS["FACTOID"]:
@@ -93,7 +88,7 @@ class MessageHandler:
         # PICKIT command
         elif command == util.COMMANDS["PICKIT"]:
         #{{{
-            rc, response = self.pickitHandler.act(o_parms)
+            rc, response = self.rollHandler.pickitRoll(o_parms)
             if rc == 1:
                 return ("Must pick between " + str(min(response)) + " "
                         "and " + str(max(response)) + " things")

@@ -49,9 +49,11 @@ class Duckbot:
     #}}}
 
     def tick(self):
+    #{{{
         self.ticks = (self.ticks + 1) % 3600
         if self.ticks % self.logger.LOG_TIME == 0:
             self.logger.log("AUTO     : Flushing buffer", flush=True)
+    #}}}
 
     # Send message to designated channel, and notify user if present
     def _sendMessage(self, user, channel, text):

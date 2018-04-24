@@ -79,10 +79,12 @@ class RollHandler:
         # Range from 1-100 allowed
         self.DIE_RANGE=range(1,101)
         self.ROLL_REGEX="^(:[a-z0-9_-]+:|\d+)?D(:[a-z0-9_-]+:|\d+)$"
+        # Can pick from 2-20 things
+        self.PICK_RANGE=range(2,21)
     #}}}
 
     # Parse roll command parms and return values
-    def act(self, roll_parms):
+    def roll(self, roll_parms):
     #{{{
         # Check for character roll
         if roll_parms[0] in self.CHARACTER_ROLLS:
@@ -163,44 +165,26 @@ class RollHandler:
             rolls.append(util.doRolls(6,4))
         return rolls
     #}}}
-#}}}
 
-# Coin handler class
-class CoinHandler:
-#{{{
-    # Return the result of the coin command
-    def act(self):
+    # Roll for coin flip
+    def coinRoll(self):
+    #{{{
         result = util.doRolls(2)[0]
         if result == 1:
             return "HEADS"
         else:
             return "TAILS"
-#}}}
+    #}}}
 
-# Eightball handler class
-class EightballHandler:
-#{{{
-    # Return the 8ball response
-    def act(self):
+    # Roll for 8ball response
+    def eightballRoll(self):
+    #{{{
         roll = util.doRolls(len(util.EIGHTBALL_RESPONSES))[0]
         return util.EIGHTBALL_RESPONSES[roll]
-#}}}
+    #}}}
 
-# Factoid handler class
-class FactoidHandler:
-#{{{
-    def act(self):
-        return "Not yet. Kweh :duck:"
-#}}}
-
-# Pickit handler class
-class PickitHandler:
-#{{{
-    def __init__(self):
-        # Can pick from 2-20 things
-        self.PICK_RANGE=range(2,21)
-
-    def act(self, pick_parms):
+    # Roll for pickit response
+    def pickitRoll(self, pick_parms):
     #{{{
         try:
             # Split on spaces while preserving quoted strings,
@@ -214,10 +198,21 @@ class PickitHandler:
         else:
             return 1, self.PICK_RANGE
     #}}}
+
+#}}}
+
+# Factoid handler class
+class FactoidHandler:
+#{{{
+    def act(self):
+        return "Not yet. Kweh :duck:"
 #}}}
 
 # Gambling handler class
-class GamblingHandler:
+class GambleHandler:
 
     def __init__(self, channels):
-        self.approved_channels = None
+        self.approved_channels = self.getApproved(channels)
+
+    def getApproved(self, channels):
+        return None
