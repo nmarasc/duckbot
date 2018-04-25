@@ -9,6 +9,8 @@ class Duckbot:
     def __init__(self, slackclient, bot_id, bot_channels, logger = None):
     #{{{
         self.sc = slackclient
+        self.id = bot_id
+        self.channels = bot_channels
         self.messageHandler = MessageHandler(bot_id, bot_channels)
         self.logger = logger
         self.ticks = 0
@@ -19,9 +21,12 @@ class Duckbot:
     #{{{
         # Create standardized event
         event = Event(event_in)
+
         # No event type, run away
         if event.type == None:
             return 0
+        if event.channel:
+            event.channel = self.channels[event.channel]
 
         # Message event, pass to message handler
         if event.type == "message":
@@ -41,6 +46,15 @@ class Duckbot:
             else:
                 return 0
         #}}}
+
+        elif event.type == "update":
+            if event.subtype == "channel_purpose":
+                print("Channel purpose update")
+                if self.messageHandler.gambleHandler.checkChannel(event.channel):
+                    self.logger.log("Adding channel: " + event.channel["name"])
+                else:
+                    self.logger.log("Not Adding: " + event.channel["name"])
+            return 0
 
         # Unhandled event type
         else:

@@ -209,13 +209,25 @@ class GambleHandler:
 #{{{
     def __init__(self, channels):
         self.approved_channels = self.getApproved(channels)
+        print("Approved channels: " + ",".join(self.approved_channels))
 
     def getApproved(self, channels):
     #{{{
         approved = []
         for key, channel in channels.items():
-            if channel["labels"]["gamble"]:
-                approved.append(channel["name"])
+            if key != 'memberOf':
+                print(channel["name"] + " ,".join(channel["labels"]))
+                if util.LABELS["GAMBLE"] in channel["labels"]:
+                    approved.append(channel["id"])
         return approved
+
+    def checkChannel(self, channel):
+        labels = util.parseLabels(channel["purpose"]["value"])
+        print(labels)
+        if util.LABELS["GAMBLE"] in labels:
+            self.approved_channels.append(channel["id"])
+            return True
+        else:
+            return False
     #}}}
 #}}}

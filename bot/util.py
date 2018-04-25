@@ -4,6 +4,8 @@ from datetime import datetime
 
 DEBUG = False
 USER_REGEX = "<@(U[A-Z0-9]{8})>$"
+LABEL_REGEX = "\[:LABEL:(:.+:)+\]"
+EMOJI_REGEX = ":.+?:"
 DEFAULT_FN = "log.txt"
 #{{{ - Exit codes
 EXIT_CODES = {
@@ -74,11 +76,12 @@ EIGHTBALL_RESPONSES = [
 #}}}
 #{{{ - Channel labels
 LABELS = {
-    'GAMBLE' : ':SLOT_MACHINE:'
+     'DUCKBOT' : ':DUCKBOT:'
+    ,'GAMBLE'  : ':SLOT_MACHINE:'
 }
 #}}}
 
-# matchUserId
+# matchUserId:
 # Returns True if id is valid and matching id, False otherwise
 def matchUserId(id_str):
 #{{{
@@ -86,7 +89,7 @@ def matchUserId(id_str):
     return (True, matches.group(1)) if matches else (False, None)
 #}}}
 
-# getBotInfo
+# getBotInfo:
 # Obtain bot id, workspace channels and which bot is a member of
 def getBotInfo(sc, bot_token):
 #{{{
@@ -99,11 +102,28 @@ def getBotInfo(sc, bot_token):
         if channel["is_member"]:
             channels['memberOf'].append(channel["id"])
             print("Member of: " + channel["name"])
-        channels[channel["name"]] = channel
+        channels[channel["id"]] = channel
+        channels[channel["id"]]["labels"] = parseLabels(channel["purpose"]["value"])
     return bot_id, channels
 #}}}
 
-# doRolls
+# parseLabels:
+def parseLabels(text):
+#{{{
+    labels = []
+    text = "".join(text.split()).upper()
+    match = re.search(LABEL_REGEX, text, flags=re.IGNORECASE)
+    if match:
+        text = match.group(1)
+        match = re.match(EMOJI_REGEX, text)
+        while match:
+            labels.append(match.group(0))
+            text = text[match.span(0)[1]:]
+            match = re.match(EMOJI_REGEX, text)
+    return labels
+#}}}
+
+# doRolls:
 # Rolls randomly with the parameters given and returns numbers in a list
 def doRolls(die_size, die_num = 1):
 #{{{

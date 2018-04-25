@@ -2,7 +2,6 @@ import util
 #{{{ - CommandHandler imports
 from commandHandlers import HelpHandler
 from commandHandlers import RollHandler
-from commandHandlers import FactoidHandler
 from commandHandlers import GambleHandler
 #}}}
 
@@ -16,7 +15,6 @@ class MessageHandler:
         self.bot_id = bot_id
         self.rollHandler = RollHandler()
         self.helpHandler = HelpHandler(bot_id)
-        self.factoidHandler = FactoidHandler()
         self.gambleHandler = GambleHandler(bot_channels)
     #}}}
 
@@ -83,7 +81,7 @@ class MessageHandler:
 
         # FACTOID command
         elif command == util.COMMANDS["FACTOID"]:
-            return self.factoidHandler.act()
+            return self.rollHandler.factoidRoll()
 
         # PICKIT command
         elif command == util.COMMANDS["PICKIT"]:
@@ -141,6 +139,7 @@ class Event:
             self.type = event["type"]
         else:
             self.type = None
+        self.subtype  = None
         self.user     = None
         self.channel  = None
         self.text     = None
@@ -162,6 +161,12 @@ class Event:
             event.user = old["message"]["user"]
             event.text = old["message"]["text"]
             event.ts   = old["message"]["ts"]
+        elif old["subtype"] == "channel_purpose":
+            event.user = old["user"]
+            event.text = old["purpose"]
+            event.ts   = old["ts"]
+            event.type = "update"
+            event.subtype = "channel_purpose"
     #}}}
 
     def parseReactionAddedEvent(event, old):
