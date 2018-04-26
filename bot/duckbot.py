@@ -1,3 +1,4 @@
+import util
 # Event handler imports
 from eventHandlers import MessageHandler
 from eventHandlers import Event
@@ -21,12 +22,11 @@ class Duckbot:
     #{{{
         # Create standardized event
         event = Event(event_in)
+#         print(event_in)
 
         # No event type, run away
         if event.type == None:
             return 0
-        if event.channel:
-            event.channel = self.channels[event.channel]
 
         # Message event, pass to message handler
         if event.type == "message":
@@ -50,6 +50,8 @@ class Duckbot:
         elif event.type == "update":
             if event.subtype == "channel_purpose":
                 print("Channel purpose update")
+                self.channels = util.updateChannels(self.channels, event)
+                event.channel = self.channels[event.channel]
                 if self.messageHandler.gambleHandler.checkChannel(event.channel):
                     self.logger.log("Adding channel: " + event.channel["name"])
                 else:

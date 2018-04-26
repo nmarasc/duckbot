@@ -33,15 +33,15 @@ EMOJI_ROLLS={
 #}}}
 #{{{ - Commands
 COMMANDS = {
-    'HI'      : 1,
-    'UPDATE'  : 2,
-    'HELP'    : 3,
-    'ROLL'    : 4,
-    'COIN'    : 5,
-    '8BALL'   : 6,
-    'FACTOID' : 7,
-    'PICKIT'  : 8,
-    'JOIN'    : 9,
+    'HI'        : 1,
+    'UPDATE'    : 2,
+    'HELP'      : 3,
+    'ROLL'      : 4,
+    'COIN'      : 5,
+    'EIGHTBALL' : 6,
+    'FACTOID'   : 7,
+    'PICKIT'    : 8,
+    'JOIN'      : 9,
            }
 COMMANDS_ALT = {
     'HELLO'      : 1, 'KWEH'       : 1,
@@ -93,18 +93,35 @@ def matchUserId(id_str):
 # Obtain bot id, workspace channels and which bot is a member of
 def getBotInfo(sc, bot_token):
 #{{{
-    channels = {}
-    channels['memberOf'] = []
     bot_id = sc.api_call("auth.test")["user_id"]
+    channels = getChannelData(sc, bot_token)
+    return bot_id, channels
+#}}}
+
+# getChannelData:
+# Request channel list and build channel map
+def getChannelData(sc, bot_token):
+#{{{
+    channels = {}
+    channels["memberOf"] = []
     response = sc.api_call("channels.list", token=bot_token, exclude_members=True)
-    #FIXME: Check for and set labels on channel gather
     for channel in response["channels"]:
         if channel["is_member"]:
-            channels['memberOf'].append(channel["id"])
+            channels["memberOf"].append(channel["id"])
             print("Member of: " + channel["name"])
         channels[channel["id"]] = channel
         channels[channel["id"]]["labels"] = parseLabels(channel["purpose"]["value"])
-    return bot_id, channels
+    return channels
+#}}}
+
+# updateChannels:
+# Make changes to channels list
+def updateChannels(channels, event):
+#{{{
+    channel = event.channel
+    if event.subtype == 'channel_purpose':
+        channels[channel].purpose.value = event.text
+    return channels
 #}}}
 
 # parseLabels:

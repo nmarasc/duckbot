@@ -26,7 +26,7 @@ class HelpHandler:
                 ,util.COMMANDS["COIN"] :\
                     ("Flip a coin\n"
                     "Usage: <@" + bot_id + "> COIN")
-                ,util.COMMANDS["8BALL"] :\
+                ,util.COMMANDS["EIGHTBALL"] :\
                     ("Shake the magic 8ball\n"
                     "Usage: <@" + bot_id + "> 8BALL")
                 ,util.COMMANDS["FACTOID"] :\
@@ -216,12 +216,14 @@ class GambleHandler:
         approved = []
         for key, channel in channels.items():
             if key != 'memberOf':
-                print(channel["name"] + " ,".join(channel["labels"]))
+                print(channel["name"] + " " +  ", ".join(channel["labels"]))
                 if util.LABELS["GAMBLE"] in channel["labels"]:
                     approved.append(channel["id"])
         return approved
+    #}}}
 
     def checkChannel(self, channel):
+    #{{{
         labels = util.parseLabels(channel["purpose"]["value"])
         print(labels)
         if util.LABELS["GAMBLE"] in labels:
