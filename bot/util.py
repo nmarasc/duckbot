@@ -120,7 +120,7 @@ def updateChannels(channels, event):
 #{{{
     channel = event.channel
     if event.subtype == 'channel_purpose':
-        channels[channel].purpose.value = event.text
+        channels[channel]["purpose"]["value"] = event.text
     return channels
 #}}}
 
