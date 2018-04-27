@@ -7,13 +7,14 @@ from eventHandlers import Event
 class Duckbot:
 
     # Construct bot with the slack client instance
-    def __init__(self, slackclient, bot_id, bot_channels, logger = None):
+    def __init__(self, slackclient, bot_id, bot_channels, logger = None, debug = False):
     #{{{
         self.sc = slackclient
         self.id = bot_id
         self.channels = bot_channels
-        self.messageHandler = MessageHandler(bot_id, bot_channels)
         self.logger = logger
+        self.debug = debug
+        self.messageHandler = MessageHandler(bot_id, bot_channels)
         self.ticks = 0
     #}}}
 
@@ -49,13 +50,7 @@ class Duckbot:
 
         elif event.type == "update":
             if event.subtype == "channel_purpose":
-                print("Channel purpose update")
-                self.channels = util.updateChannels(self.channels, event)
-                event.channel = self.channels[event.channel]
-                if self.messageHandler.gambleHandler.checkChannel(event.channel):
-                    self.logger.log("Adding channel: " + event.channel["name"])
-                else:
-                    self.logger.log("Not Adding: " + event.channel["name"])
+                self._purposeUpdate(event)
             return 0
 
         # Unhandled event type
@@ -80,4 +75,22 @@ class Duckbot:
             message = text
 
         self.sc.rtm_send_message(channel, message)
+    #}}}
+
+    # Do the necessary updates when a purpose changes
+    def _purposeUpdate(self, event):
+    #{{{
+        self.channels = util.updateChannels(self.channels, event)
+        event.channel = self.channels[event.channel]
+        labels = util.parseLabels(event.channel["purpose"]["value"])
+        gambleHandler = self.messageHandler.gambleHandler
+        result = gambleHandler.checkChannel(event.channel["id"], labels)
+        if self.debug:
+            if result == 1:
+                self.logger.log("GC INSERT: " + event.channel["name"])
+            elif result == -1:
+                self.logger.log("GC REMOVE: " + event.channel["name"])
+            elif not result:
+                self.logger.log("GC STATIC: No change to gamble channels made")
+
     #}}}

@@ -222,14 +222,17 @@ class GambleHandler:
         return approved
     #}}}
 
-    def checkChannel(self, channel):
+    def checkChannel(self, ch_id, labels):
     #{{{
-        labels = util.parseLabels(channel["purpose"]["value"])
-        print(labels)
-        if util.LABELS["GAMBLE"] in labels:
-            self.approved_channels.append(channel["id"])
-            return True
+        if (util.LABELS["GAMBLE"] in labels and
+            ch_id not in self.approved_channels):
+            self.approved_channels.append(ch_id)
+            return 1
+        elif (util.LABELS["GAMBLE"] not in labels and
+              ch_id in self.approved_channels):
+            self.approved_channels.remove(ch_id)
+            return -1
         else:
-            return False
+            return 0
     #}}}
 #}}}
