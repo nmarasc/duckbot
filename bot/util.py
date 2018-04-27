@@ -6,7 +6,7 @@ DEBUG = False
 USER_REGEX = "<@(U[A-Z0-9]{8})>$"
 LABEL_REGEX = "\[:LABEL:(:.+:)+\]"
 EMOJI_REGEX = ":.+?:"
-DEFAULT_FN = "log.txt"
+DEFAULT_FN = "../log.txt"
 #{{{ - Exit codes
 EXIT_CODES = {
          "INVALID_BOT_ID"     : 10
@@ -47,7 +47,7 @@ COMMANDS_ALT = {
     'HELLO'      : 1, 'KWEH'       : 1,
     '?'          : 3, ':QUESTION:' : 3,
     ':GAME_DIE:' : 4,
-    ':8BALL:'    : 6,
+    ':8BALL:'    : 6, '8BALL'      : 6,
 }
 #}}}
 #{{{ - Eightball Responses
@@ -175,7 +175,6 @@ class Logger:
             self.log_buffer.append(str(datetime.now()) + ": " + text)
             timeDiff = (datetime.now() - self.last_log)
             if len(self.log_buffer) >= self.BUFFER_MAX or flush:
-                print("Writing log")
                 self._write()
                 self.last_log = datetime.now()
         elif not flush:

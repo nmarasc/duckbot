@@ -10,6 +10,7 @@ class HelpHandler:
     #{{{
         self.bot_id = bot_id
         self.HELP_MESSAGES = {
+        #{{{
                  util.COMMANDS["HI"] :\
                     ("Legacy HI command\n"
                     "Usage: <@" + bot_id + "> HI")
@@ -40,7 +41,8 @@ class HelpHandler:
                     ("Add yourself to the gambler's bank\n"
                     "Usage: <@" + bot_id + "> JOIN\n"
                     "Can only be used in gambling approved channels :duck:")
-                }
+        #}}}
+        }
     #}}}
 
     # Return the appropriate help message based on parameter
@@ -209,14 +211,12 @@ class GambleHandler:
 #{{{
     def __init__(self, channels):
         self.approved_channels = self.getApproved(channels)
-        print("Approved channels: " + ",".join(self.approved_channels))
 
     def getApproved(self, channels):
     #{{{
         approved = []
         for key, channel in channels.items():
             if key != 'memberOf':
-                print(channel["name"] + " " +  ", ".join(channel["labels"]))
                 if util.LABELS["GAMBLE"] in channel["labels"]:
                     approved.append(channel["id"])
         return approved

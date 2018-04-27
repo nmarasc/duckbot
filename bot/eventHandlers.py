@@ -157,11 +157,11 @@ class Event:
             event.user = old["user"]
             event.text = old["text"]
             event.ts   = old["ts"]
-        elif old.subtype == "message_changed":
+        elif old["subtype"] == "message_changed":
             event.user = old["message"]["user"]
             event.text = old["message"]["text"]
             event.ts   = old["message"]["ts"]
-        elif old.subtype == "channel_purpose":
+        elif old["subtype"] == "channel_purpose":
             event.user = old["user"]
             event.text = old["purpose"]
             event.ts   = old["ts"]

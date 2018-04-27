@@ -40,7 +40,7 @@ def main():
     bot_id, bot_channels = util.getBotInfo(sc, bot_token)
     if not util.matchUserId(bot_id):
         print("Invalid bot id: " + bot_id)
-        sys.exit(util.EXIT_CODES.INVALID_BOT_ID)
+        sys.exit(util.EXIT_CODES["INVALID_BOT_ID"])
 
     # Connect to the rtm and build bot
     if sc.rtm_connect(with_team_state=False):
@@ -51,20 +51,20 @@ def main():
         while not event_list:
             event_list = sc.rtm_read()
         event = event_list.pop(0)
-        if event.type == "hello":
+        if event["type"] == "hello":
             # Connection was good
             exit_code = run(duckbot)
         else:
             # Error in connection
-            error = event.error
-            print(error.msg + "\nCode: " + str(error.code))
-            sys.exit(util.EXIT_CODES.RTM_CONNECT_FAILED)
+            error = event["error"]
+            print(error["msg"] + "\nCode: " + str(error["code"]))
+            sys.exit(util.EXIT_CODES["RTM_CONNECT_FAILED"])
     #}}}
 
     # Connect failed and bot was not created
     else:
         print("Failed to connect to RTM")
-        sys.exit(util.EXIT_CODES.RTM_CONNECT_FAILED)
+        sys.exit(util.EXIT_CODES["RTM_CONNECT_FAILED"])
 
     sys.exit(exit_code)
 #}}}
@@ -106,10 +106,10 @@ def doRead():
         return 0, event_list
     except TimeoutError:
         print("Error: TimeoutError")
-        return util.EXIT_CODES.RTM_TIMEOUT_ERROR, None
+        return util.EXIT_CODES["RTM_TIMEOUT_ERROR"], None
     except:
         print("Error: RTM read failed")
-        return util.EXIT_CODES.RTM_GENERIC_ERROR, None
+        return util.EXIT_CODES["RTM_GENERIC_ERROR"], None
 #}}}
 
 # Call main function
