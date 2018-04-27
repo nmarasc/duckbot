@@ -49,8 +49,9 @@ class Duckbot:
         #}}}
 
         elif event.type == "update":
-            if event.subtype == "channel_purpose":
-                self._purposeUpdate(event)
+            if (event.subtype == "channel_purpose" or
+                event.subtype == "channel_joined"):
+                self._channelListUpdate(event)
             return 0
 
         # Unhandled event type
@@ -77,8 +78,8 @@ class Duckbot:
         self.sc.rtm_send_message(channel, message)
     #}}}
 
-    # Do the necessary updates when a purpose changes
-    def _purposeUpdate(self, event):
+    # Do the necessary updates to internal channel list
+    def _channelListUpdate(self, event):
     #{{{
         self.channels = util.updateChannels(self.channels, event)
         event.channel = self.channels[event.channel]

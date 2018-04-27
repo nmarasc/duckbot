@@ -121,6 +121,10 @@ def updateChannels(channels, event):
     channel = event.channel
     if event.subtype == 'channel_purpose':
         channels[channel]["purpose"]["value"] = event.text
+    elif event.subtype == 'channel_joined':
+        if channel not in channels:
+            channels[channel] = event.ch_data
+        channels["memberOf"].append(channel)
     return channels
 #}}}
 

@@ -146,6 +146,7 @@ class Event:
         self.reaction = None
         self.ts       = None
         self.file     = None
+        self.ch_data  = None
         if self.type in EVENT_PARSERS:
             EVENT_PARSERS[self.type](self, event)
     #}}}
@@ -187,6 +188,14 @@ class Event:
 
     def parseTeamJoinEvent(event, old):
         event.user = old["user"]["id"]
+
+    def parseChannelJoinedEvent(event, old):
+    #{{{
+        event.type    = "update"
+        event.subtype = "channel_joined"
+        event.channel = old["channel"]["id"]
+        event.ch_data = old["channel"]
+    #}}}
 #}}}
 
 #{{{ - EVENT_PARSERS
@@ -194,5 +203,6 @@ EVENT_PARSERS = {
      "message"        : Event.parseMessageEvent
     ,"reaction_added" : Event.parseReactionAddedEvent
     ,"team_join"      : Event.parseTeamJoinEvent
+    ,"channel_joined" : Event.parseChannelJoinedEvent
 }
 #}}}
