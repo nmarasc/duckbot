@@ -177,12 +177,12 @@ class Event:
              "emoji" : old["reaction"]
             ,"type"  : old["item"]["type"]
         }
-        if event.reaction.type == "message":
+        if event.reaction["type"] == "message":
             event.channel = old["item"]["channel"]
             event.ts      = old["item"]["ts"]
 
-        elif (event.reaction.type == "file" or
-              event.reaction.type == "file_comment"):
+        elif (event.reaction["type"] == "file" or
+              event.reaction["type"] == "file_comment"):
             event.file = old["item"]["file"]
     #}}}
 
