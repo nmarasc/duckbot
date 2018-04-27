@@ -2,10 +2,7 @@ import util
 #{{{ - CommandHandler imports
 from commandHandlers import HelpHandler
 from commandHandlers import RollHandler
-from commandHandlers import CoinHandler
-from commandHandlers import EightballHandler
-from commandHandlers import FactoidHandler
-from commandHandlers import PickitHandler
+from commandHandlers import GambleHandler
 #}}}
 
 # Message handler class
@@ -13,15 +10,12 @@ class MessageHandler:
 #{{{
     DEFAULT_RESPONSE = "Kweh! :DUCK:"
 
-    def __init__(self, bot_id):
+    def __init__(self, bot_id, bot_channels):
     #{{{
         self.bot_id = bot_id
         self.rollHandler = RollHandler()
         self.helpHandler = HelpHandler(bot_id)
-        self.coinHandler = CoinHandler()
-        self.eightballHandler = EightballHandler()
-        self.factoidHandler = FactoidHandler()
-        self.pickitHandler = PickitHandler()
+        self.gambleHandler = GambleHandler(bot_channels)
     #}}}
 
     def act(self, event):
@@ -47,7 +41,7 @@ class MessageHandler:
         # ROLL command
         elif command == util.COMMANDS["ROLL"]:
         #{{{
-            rc, rolls = self.rollHandler.act(u_parms)
+            rc, rolls = self.rollHandler.roll(u_parms)
             if rc == 0:
             #{{{
                 add = rolls.pop()
@@ -79,19 +73,20 @@ class MessageHandler:
 
         # COIN command
         elif command == util.COMMANDS["COIN"]:
-            return "You got: " + self.coinHandler.act()
+            return "You got: " + self.rollHandler.coinRoll()
 
         # 8BALL command
-        elif command == util.COMMANDS["8BALL"]:
-            return self.eightballHandler.act()
+        elif command == util.COMMANDS["EIGHTBALL"]:
+            return self.rollHandler.eightballRoll()
 
-        # Factoid command
+        # FACTOID command
         elif command == util.COMMANDS["FACTOID"]:
-            return self.factoidHandler.act()
+            return self.rollHandler.factoidRoll()
 
+        # PICKIT command
         elif command == util.COMMANDS["PICKIT"]:
         #{{{
-            rc, response = self.pickitHandler.act(o_parms)
+            rc, response = self.rollHandler.pickitRoll(o_parms)
             if rc == 1:
                 return ("Must pick between " + str(min(response)) + " "
                         "and " + str(max(response)) + " things")
@@ -144,12 +139,14 @@ class Event:
             self.type = event["type"]
         else:
             self.type = None
+        self.subtype  = None
         self.user     = None
         self.channel  = None
         self.text     = None
         self.reaction = None
         self.ts       = None
         self.file     = None
+        self.ch_data  = None
         if self.type in EVENT_PARSERS:
             EVENT_PARSERS[self.type](self, event)
     #}}}
@@ -165,6 +162,12 @@ class Event:
             event.user = old["message"]["user"]
             event.text = old["message"]["text"]
             event.ts   = old["message"]["ts"]
+        elif old["subtype"] == "channel_purpose":
+            event.user = old["user"]
+            event.text = old["purpose"]
+            event.ts   = old["ts"]
+            event.type = "update"
+            event.subtype = "channel_purpose"
     #}}}
 
     def parseReactionAddedEvent(event, old):
@@ -185,6 +188,14 @@ class Event:
 
     def parseTeamJoinEvent(event, old):
         event.user = old["user"]["id"]
+
+    def parseChannelJoinedEvent(event, old):
+    #{{{
+        event.type    = "update"
+        event.subtype = "channel_joined"
+        event.channel = old["channel"]["id"]
+        event.ch_data = old["channel"]
+    #}}}
 #}}}
 
 #{{{ - EVENT_PARSERS
@@ -192,5 +203,6 @@ EVENT_PARSERS = {
      "message"        : Event.parseMessageEvent
     ,"reaction_added" : Event.parseReactionAddedEvent
     ,"team_join"      : Event.parseTeamJoinEvent
+    ,"channel_joined" : Event.parseChannelJoinedEvent
 }
 #}}}

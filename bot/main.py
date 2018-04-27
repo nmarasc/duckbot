@@ -1,5 +1,6 @@
 # Python imports
 import sys
+import os
 import time
 import argparse
 
@@ -15,6 +16,7 @@ from duckbot import Duckbot
 # Passes slack events to bot as well
 def main():
 #{{{
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
     event_list = []
 
     # Construct commandline parser
@@ -27,7 +29,7 @@ def main():
 
     logger = util.Logger(log=args.log)
     # Get bot token from the env file
-    with open(".env") as env_file:
+    with open("../.env") as env_file:
         bot_token = env_file.readline().rstrip().split("=")[1]
     logger.log("Token    : " + bot_token)
 
@@ -43,7 +45,7 @@ def main():
     # Connect to the rtm and build bot
     if sc.rtm_connect(with_team_state=False):
     # {{{
-        duckbot = Duckbot(sc, bot_id, logger)
+        duckbot = Duckbot(sc, bot_id, bot_channels, logger, DEBUG)
 
         # Wait for the connection event
         while not event_list:

@@ -4,7 +4,9 @@ from datetime import datetime
 
 DEBUG = False
 USER_REGEX = "<@(U[A-Z0-9]{8})>$"
-DEFAULT_FN = "log.txt"
+LABEL_REGEX = "\[:LABEL:(:.+:)+\]"
+EMOJI_REGEX = ":.+?:"
+DEFAULT_FN = "../log.txt"
 #{{{ - Exit codes
 EXIT_CODES = {
          "INVALID_BOT_ID"     : 10
@@ -31,20 +33,21 @@ EMOJI_ROLLS={
 #}}}
 #{{{ - Commands
 COMMANDS = {
-    'HI'      : 1,
-    'UPDATE'  : 2,
-    'HELP'    : 3,
-    'ROLL'    : 4,
-    'COIN'    : 5,
-    '8BALL'   : 6,
-    'FACTOID' : 7,
-    'PICKIT'  : 8,
+    'HI'        : 1,
+    'UPDATE'    : 2,
+    'HELP'      : 3,
+    'ROLL'      : 4,
+    'COIN'      : 5,
+    'EIGHTBALL' : 6,
+    'FACTOID'   : 7,
+    'PICKIT'    : 8,
+    'JOIN'      : 9,
            }
 COMMANDS_ALT = {
     'HELLO'      : 1, 'KWEH'       : 1,
     '?'          : 3, ':QUESTION:' : 3,
     ':GAME_DIE:' : 4,
-    ':8BALL:'    : 6,
+    ':8BALL:'    : 6, '8BALL'      : 6,
 }
 #}}}
 #{{{ - Eightball Responses
@@ -71,8 +74,14 @@ EIGHTBALL_RESPONSES = [
     ,"Very doubtful"
     ]
 #}}}
+#{{{ - Channel labels
+LABELS = {
+     'DUCKBOT' : ':DUCKBOT:'
+    ,'GAMBLE'  : ':SLOT_MACHINE:'
+}
+#}}}
 
-# matchUserId
+# matchUserId:
 # Returns True if id is valid and matching id, False otherwise
 def matchUserId(id_str):
 #{{{
@@ -80,23 +89,62 @@ def matchUserId(id_str):
     return (True, matches.group(1)) if matches else (False, None)
 #}}}
 
-# getBotInfo
+# getBotInfo:
 # Obtain bot id, workspace channels and which bot is a member of
 def getBotInfo(sc, bot_token):
 #{{{
-    channels = {}
-    channels['memberOf'] = []
     bot_id = sc.api_call("auth.test")["user_id"]
-    response = sc.api_call("channels.list", token=bot_token, exclude_members=True)
-    for channel in response["channels"]:
-        if channel["is_member"]:
-            channels['memberOf'].append(channel["id"])
-            print("Member of: " + channel["name"])
-        channels[channel["name"]] = channel["id"]
+    channels = getChannelData(sc, bot_token)
     return bot_id, channels
 #}}}
 
-# doRolls
+# getChannelData:
+# Request channel list and build channel map
+def getChannelData(sc, bot_token):
+#{{{
+    channels = {}
+    channels["memberOf"] = []
+    response = sc.api_call("channels.list", token=bot_token, exclude_members=True)
+    for channel in response["channels"]:
+        if channel["is_member"]:
+            channels["memberOf"].append(channel["id"])
+            print("Member of: " + channel["name"])
+        channels[channel["id"]] = channel
+        channels[channel["id"]]["labels"] = parseLabels(channel["purpose"]["value"])
+    return channels
+#}}}
+
+# updateChannels:
+# Make changes to channels list
+def updateChannels(channels, event):
+#{{{
+    channel = event.channel
+    if event.subtype == 'channel_purpose':
+        channels[channel]["purpose"]["value"] = event.text
+    elif event.subtype == 'channel_joined':
+        if channel not in channels:
+            channels[channel] = event.ch_data
+        channels["memberOf"].append(channel)
+    return channels
+#}}}
+
+# parseLabels:
+def parseLabels(text):
+#{{{
+    labels = []
+    text = "".join(text.split()).upper()
+    match = re.search(LABEL_REGEX, text, flags=re.IGNORECASE)
+    if match:
+        text = match.group(1)
+        match = re.match(EMOJI_REGEX, text)
+        while match:
+            labels.append(match.group(0))
+            text = text[match.span(0)[1]:]
+            match = re.match(EMOJI_REGEX, text)
+    return labels
+#}}}
+
+# doRolls:
 # Rolls randomly with the parameters given and returns numbers in a list
 def doRolls(die_size, die_num = 1):
 #{{{
@@ -104,19 +152,6 @@ def doRolls(die_size, die_num = 1):
     for i in range(die_num):
         rolls.append(random.randint(1,die_size))
     return rolls
-#}}}
-
-# uniqueKeys
-# Returns list of one keys per value in dict
-def uniqueKeys(p_dict):
-#{{{
-    keys = []
-    values = []
-    for key in p_dict:
-        if p_dict[key] not in values:
-            keys.append(key)
-            values.append(p_dict[key])
-    return keys
 #}}}
 
 # Logger class
@@ -144,7 +179,6 @@ class Logger:
             self.log_buffer.append(str(datetime.now()) + ": " + text)
             timeDiff = (datetime.now() - self.last_log)
             if len(self.log_buffer) >= self.BUFFER_MAX or flush:
-                print("Writing log")
                 self._write()
                 self.last_log = datetime.now()
         elif not flush:

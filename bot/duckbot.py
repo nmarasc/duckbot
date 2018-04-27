@@ -1,3 +1,4 @@
+import util
 # Event handler imports
 from eventHandlers import MessageHandler
 from eventHandlers import Event
@@ -6,11 +7,14 @@ from eventHandlers import Event
 class Duckbot:
 
     # Construct bot with the slack client instance
-    def __init__(self, slackclient, bot_id, logger = None):
+    def __init__(self, slackclient, bot_id, bot_channels, logger = None, debug = False):
     #{{{
         self.sc = slackclient
-        self.messageHandler = MessageHandler(bot_id)
+        self.id = bot_id
+        self.channels = bot_channels
         self.logger = logger
+        self.debug = debug
+        self.messageHandler = MessageHandler(bot_id, bot_channels)
         self.ticks = 0
     #}}}
 
@@ -19,6 +23,8 @@ class Duckbot:
     #{{{
         # Create standardized event
         event = Event(event_in)
+#         print(event_in)
+
         # No event type, run away
         if event.type == None:
             return 0
@@ -42,6 +48,12 @@ class Duckbot:
                 return 0
         #}}}
 
+        elif event.type == "update":
+            if (event.subtype == "channel_purpose" or
+                event.subtype == "channel_joined"):
+                self._channelListUpdate(event)
+            return 0
+
         # Unhandled event type
         else:
             # Don't do anything right now
@@ -49,9 +61,11 @@ class Duckbot:
     #}}}
 
     def tick(self):
+    #{{{
         self.ticks = (self.ticks + 1) % 3600
         if self.ticks % self.logger.LOG_TIME == 0:
             self.logger.log("AUTO     : Flushing buffer", flush=True)
+    #}}}
 
     # Send message to designated channel, and notify user if present
     def _sendMessage(self, user, channel, text):
@@ -62,4 +76,22 @@ class Duckbot:
             message = text
 
         self.sc.rtm_send_message(channel, message)
+    #}}}
+
+    # Do the necessary updates to internal channel list
+    def _channelListUpdate(self, event):
+    #{{{
+        self.channels = util.updateChannels(self.channels, event)
+        event.channel = self.channels[event.channel]
+        labels = util.parseLabels(event.channel["purpose"]["value"])
+        gambleHandler = self.messageHandler.gambleHandler
+        result = gambleHandler.checkChannel(event.channel["id"], labels)
+        if self.debug:
+            if result == 1:
+                self.logger.log("GC INSERT: " + event.channel["name"])
+            elif result == -1:
+                self.logger.log("GC REMOVE: " + event.channel["name"])
+            elif not result:
+                self.logger.log("GC STATIC: No change to gamble channels made")
+
     #}}}

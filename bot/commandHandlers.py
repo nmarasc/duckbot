@@ -10,6 +10,7 @@ class HelpHandler:
     #{{{
         self.bot_id = bot_id
         self.HELP_MESSAGES = {
+        #{{{
                  util.COMMANDS["HI"] :\
                     ("Legacy HI command\n"
                     "Usage: <@" + bot_id + "> HI")
@@ -26,7 +27,7 @@ class HelpHandler:
                 ,util.COMMANDS["COIN"] :\
                     ("Flip a coin\n"
                     "Usage: <@" + bot_id + "> COIN")
-                ,util.COMMANDS["8BALL"] :\
+                ,util.COMMANDS["EIGHTBALL"] :\
                     ("Shake the magic 8ball\n"
                     "Usage: <@" + bot_id + "> 8BALL")
                 ,util.COMMANDS["FACTOID"] :\
@@ -36,7 +37,12 @@ class HelpHandler:
                     ("Pick from a number of things\n"
                     "Usage: <@" + bot_id + "> PICKIT <item1> <item2> ...\n"
                     "Use quotes to have items with spaces in them :duck:")
-                }
+                ,util.COMMANDS["JOIN"] :\
+                    ("Add yourself to the gambler's bank\n"
+                    "Usage: <@" + bot_id + "> JOIN\n"
+                    "Can only be used in gambling approved channels :duck:")
+        #}}}
+        }
     #}}}
 
     # Return the appropriate help message based on parameter
@@ -49,10 +55,9 @@ class HelpHandler:
                     parms[0] + " is not a recognized command")
             return response
         else:
-            coms = util.uniqueKeys(util.COMMANDS)
             return ("Duckbot is a general purpose slackbot for doing various things\n"
                     "To interact with it use <@" + self.bot_id + "> <command>\n"
-                    "Supported commands: " + ", ".join(coms) + "\n"
+                    "Supported commands: " + ", ".join(util.COMMANDS) + "\n"
                     "Use <@" + self.bot_id + "> HELP <command> for more details"
                    )
     #}}}
@@ -75,10 +80,12 @@ class RollHandler:
         # Range from 1-100 allowed
         self.DIE_RANGE=range(1,101)
         self.ROLL_REGEX="^(:[a-z0-9_-]+:|\d+)?D(:[a-z0-9_-]+:|\d+)$"
+        # Can pick from 2-20 things
+        self.PICK_RANGE=range(2,21)
     #}}}
 
     # Parse roll command parms and return values
-    def act(self, roll_parms):
+    def roll(self, roll_parms):
     #{{{
         # Check for character roll
         if roll_parms[0] in self.CHARACTER_ROLLS:
@@ -159,44 +166,26 @@ class RollHandler:
             rolls.append(util.doRolls(6,4))
         return rolls
     #}}}
-#}}}
 
-# Coin handler class
-class CoinHandler:
-#{{{
-    # Return the result of the coin command
-    def act(self):
+    # Roll for coin flip
+    def coinRoll(self):
+    #{{{
         result = util.doRolls(2)[0]
         if result == 1:
             return "HEADS"
         else:
             return "TAILS"
-#}}}
+    #}}}
 
-# Eightball handler class
-class EightballHandler:
-#{{{
-    # Return the 8ball response
-    def act(self):
+    # Roll for 8ball response
+    def eightballRoll(self):
+    #{{{
         roll = util.doRolls(len(util.EIGHTBALL_RESPONSES))[0]
         return util.EIGHTBALL_RESPONSES[roll]
-#}}}
+    #}}}
 
-# Factoid handler class
-class FactoidHandler:
-#{{{
-    def act(self):
-        return "Not yet. Kweh :duck:"
-#}}}
-
-# Pickit handler class
-class PickitHandler:
-#{{{
-    def __init__(self):
-        # Can pick from 2-20 things
-        self.PICK_RANGE=range(2,21)
-
-    def act(self, pick_parms):
+    # Roll for pickit response
+    def pickitRoll(self, pick_parms):
     #{{{
         try:
             # Split on spaces while preserving quoted strings,
@@ -209,5 +198,41 @@ class PickitHandler:
             return 0, pick_parms[util.doRolls(len(pick_parms))[0]-1]
         else:
             return 1, self.PICK_RANGE
+    #}}}
+
+    # Roll for factoid response
+    def factoidRoll(self):
+        return "Not yet. Kweh :duck:"
+
+#}}}
+
+# Gambling handler class
+class GambleHandler:
+#{{{
+    def __init__(self, channels):
+        self.approved_channels = self.getApproved(channels)
+
+    def getApproved(self, channels):
+    #{{{
+        approved = []
+        for key, channel in channels.items():
+            if key != 'memberOf':
+                if util.LABELS["GAMBLE"] in channel["labels"]:
+                    approved.append(channel["id"])
+        return approved
+    #}}}
+
+    def checkChannel(self, ch_id, labels):
+    #{{{
+        if (util.LABELS["GAMBLE"] in labels and
+            ch_id not in self.approved_channels):
+            self.approved_channels.append(ch_id)
+            return 1
+        elif (util.LABELS["GAMBLE"] not in labels and
+              ch_id in self.approved_channels):
+            self.approved_channels.remove(ch_id)
+            return -1
+        else:
+            return 0
     #}}}
 #}}}
