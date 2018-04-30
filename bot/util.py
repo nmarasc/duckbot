@@ -33,15 +33,16 @@ EMOJI_ROLLS={
 #}}}
 #{{{ - Commands
 COMMANDS = {
-    'HI'        : 1,
-    'UPDATE'    : 2,
-    'HELP'      : 3,
-    'ROLL'      : 4,
-    'COIN'      : 5,
-    'EIGHTBALL' : 6,
-    'FACTOID'   : 7,
-    'PICKIT'    : 8,
-    'JOIN'      : 9,
+    'HI'        :  1,
+    'UPDATE'    :  2,
+    'HELP'      :  3,
+    'ROLL'      :  4,
+    'COIN'      :  5,
+    'EIGHTBALL' :  6,
+    'FACTOID'   :  7,
+    'PICKIT'    :  8,
+    'JOIN'      :  9,
+    'CHECKBUX'  : 10,
            }
 COMMANDS_ALT = {
     'HELLO'      : 1, 'KWEH'       : 1,

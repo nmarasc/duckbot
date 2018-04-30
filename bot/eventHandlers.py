@@ -100,6 +100,10 @@ class MessageHandler:
         elif command == util.COMMANDS["JOIN"]:
             return self.gambleHandler.join(event.user, event.channel)
 
+        # CHECKBUX command
+        elif command == util.COMMANDS["CHECKBUX"]:
+            return self.gambleHandler.checkbux(event.user)
+
         # No command or unrecognized, either way I don't care
         else:
             return ""

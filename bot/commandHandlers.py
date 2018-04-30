@@ -270,7 +270,16 @@ class GambleHandler:
     def checkbux(self, user, target = None):
     #{{{
         if not target:
-            return ("You currently have " + str(self.bank[user]["bux"]) + ""
-                    " " + self.currency)
+            if user not in self.bank:
+                return "You are not currently registered for this bank :duck:"
+            else:
+                return ("You currently have"
+                        " " + str(self.bank[user]["bux"]) + " " + self.currency)
+        else:
+            if target not in self.bank:
+                return "<@" + target + "> is not currently registered for this bank :duck:"
+            else:
+                return ("<@" + target + "> currently has"
+                        " " + str(self.bank[target]["bux"]) + " " + self.currency)
     #}}}
 #}}}
