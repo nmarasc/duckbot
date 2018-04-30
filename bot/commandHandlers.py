@@ -209,6 +209,11 @@ class RollHandler:
 # Gambling handler class
 class GambleHandler:
 #{{{
+    REQUIRED_LABELS = set([
+        util.LABELS["GAMBLE"],
+        util.LABELS["DUCKBOT"]
+    ])
+
     def __init__(self, channels):
         self.approved_channels = self.getApproved(channels)
 
@@ -217,18 +222,18 @@ class GambleHandler:
         approved = []
         for key, channel in channels.items():
             if key != 'memberOf':
-                if util.LABELS["GAMBLE"] in channel["labels"]:
+                if self.REQUIRED_LABELS.issubset(channel["labels"]):
                     approved.append(channel["id"])
         return approved
     #}}}
 
     def checkChannel(self, ch_id, labels):
     #{{{
-        if (util.LABELS["GAMBLE"] in labels and
+        if (self.REQUIRED_LABELS.issubset(labels) and
             ch_id not in self.approved_channels):
             self.approved_channels.append(ch_id)
             return 1
-        elif (util.LABELS["GAMBLE"] not in labels and
+        elif (not self.REQUIRED_LABELS.issubset(labels) and
               ch_id in self.approved_channels):
             self.approved_channels.remove(ch_id)
             return -1
