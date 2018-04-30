@@ -96,6 +96,10 @@ class MessageHandler:
                 return "I choose: " + response
         #}}}
 
+        # JOIN command
+        elif command == util.COMMANDS["JOIN"]:
+            return self.gambleHandler.join(event.user, event.channel)
+
         # No command or unrecognized, either way I don't care
         else:
             return ""
