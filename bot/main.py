@@ -37,7 +37,7 @@ def main():
     global sc
     sc = SlackClient(bot_token)
     # Get bot info
-    bot_id, bot_channels, bots = util.getBotInfo(sc, bot_token)
+    bot_id, bot_channels = util.getBotInfo(sc, bot_token)
     if not util.matchUserId(bot_id):
         print("Invalid bot id: " + bot_id)
         sys.exit(util.EXIT_CODES["INVALID_BOT_ID"])
@@ -45,7 +45,7 @@ def main():
     # Connect to the rtm and build bot
     if sc.rtm_connect(with_team_state=False):
     # {{{
-        duckbot = Duckbot(sc, bot_id, bot_channels, bots, logger, DEBUG)
+        duckbot = Duckbot(sc, bot_id, bot_channels, logger, DEBUG)
 
         # Wait for the connection event
         while not event_list:
