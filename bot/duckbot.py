@@ -24,7 +24,7 @@ class Duckbot:
     #{{{
         # Create standardized event
         event = Event(event_in)
-        print(event_in)
+#         print(event_in)
 
         # No event type, run away
         if event.type == None:
