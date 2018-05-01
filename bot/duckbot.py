@@ -11,11 +11,13 @@ class Duckbot:
     #{{{
         self.sc = slackclient
         self.id = bot_id
+        self.bots = {}
         self.channels = bot_channels
         self.logger = logger
         self.debug = debug
         self.messageHandler = MessageHandler(bot_id, bot_channels)
         self.ticks = 0
+        self.globalCooldown = 0
     #}}}
 
     # Handle received messages
@@ -49,9 +51,18 @@ class Duckbot:
         #}}}
 
         elif event.type == "bot_message":
-            self._sendMessage(None, event.channel,
-                              (event.user + ", hello. Nice to see a fellow bot. "
-                               "Shall we take over the world? Kweh? :duck:"))
+            if event.user in self.bots:
+                if not self.globalCooldown:
+                    self.globalCooldown = 120
+                    self._sendMessage(None, event.channel,
+                        "Check this out, kweh :duck:")
+                    self._sendMessage(self.bots[event.user], event.channel, "Hello")
+            else:
+                response = self.sc.api_call("bots.info", token=self.sc.token, bot=event.user)
+                if response["ok"]:
+                    self.bots[event.user] = response["bot"]["user_id"]
+                # else error
+            return 0
 
         elif event.type == "update":
             if (event.subtype == "channel_purpose" or
@@ -70,6 +81,8 @@ class Duckbot:
         self.ticks = (self.ticks + 1) % 3600
         if self.ticks % self.logger.LOG_TIME == 0:
             self.logger.log("AUTO     : Flushing buffer", flush=True)
+        if self.globalCooldown:
+            self.globalCooldown -= 1
     #}}}
 
     # Send message to designated channel, and notify user if present

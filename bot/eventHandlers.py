@@ -147,14 +147,7 @@ class Event:
             self.type = event["type"]
         else:
             self.type = None
-        self.subtype  = None
-        self.user     = None
-        self.channel  = None
-        self.text     = None
-        self.reaction = None
-        self.ts       = None
-        self.file     = None
-        self.ch_data  = None
+
         if self.type in EVENT_PARSERS:
             EVENT_PARSERS[self.type](self, event)
     #}}}
@@ -179,7 +172,8 @@ class Event:
         elif old["subtype"] == "bot_message":
             event.type = "bot_message"
             event.text = old["text"]
-            event.user = old["username"]
+            event.user = old["bot_id"]
+            event.name = old["username"]
             event.ts   = old["ts"]
     #}}}
 
