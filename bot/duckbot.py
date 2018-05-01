@@ -7,11 +7,12 @@ from eventHandlers import Event
 class Duckbot:
 
     # Construct bot with the slack client instance
-    def __init__(self, slackclient, bot_id, bot_channels, logger = None, debug = False):
+    def __init__(self, slackclient, bot_id, bot_channels, bots, logger = None, debug = False):
     #{{{
         self.sc = slackclient
         self.id = bot_id
         self.channels = bot_channels
+        self.bots = bots
         self.logger = logger
         self.debug = debug
         self.messageHandler = MessageHandler(bot_id, bot_channels)
@@ -27,6 +28,10 @@ class Duckbot:
 
         # No event type, run away
         if event.type == None:
+            return 0
+        if event.user in self.bots:
+            self._sendMessage(event.user, event.channel,
+                              "Why hello fellow bot. Shall we take over the world? Kweh! :duck:")
             return 0
 
         # Message event, pass to message handler
@@ -47,6 +52,10 @@ class Duckbot:
             else:
                 return 0
         #}}}
+
+        elif event.type == "bot_message":
+            self._sendMessage(event.user, event.channel,
+                              "Hello fellow bot. Shall we take over the world? Kweh! :duck:")
 
         elif event.type == "update":
             if (event.subtype == "channel_purpose" or

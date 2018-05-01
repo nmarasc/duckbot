@@ -96,6 +96,14 @@ class MessageHandler:
                 return "I choose: " + response
         #}}}
 
+        # JOIN command
+        elif command == util.COMMANDS["JOIN"]:
+            return self.gambleHandler.join(event.user, event.channel)
+
+        # CHECKBUX command
+        elif command == util.COMMANDS["CHECKBUX"]:
+            return self.gambleHandler.checkbux(event.user)
+
         # No command or unrecognized, either way I don't care
         else:
             return ""
@@ -168,6 +176,11 @@ class Event:
             event.ts   = old["ts"]
             event.type = "update"
             event.subtype = "channel_purpose"
+        elif old["subtype"] == "bot_message":
+            event.type = "bot_message"
+            event.text = old["text"]
+            event.user = old["bot_id"]
+            event.ts   = old["ts"]
     #}}}
 
     def parseReactionAddedEvent(event, old):

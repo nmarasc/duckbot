@@ -209,30 +209,77 @@ class RollHandler:
 # Gambling handler class
 class GambleHandler:
 #{{{
+
     def __init__(self, channels):
+    #{{{
+        #{{{ - Required labels
+        self.requiredLabels = set([
+            util.LABELS["GAMBLE"],
+            util.LABELS["DUCKBOT"]
+        ])
+        #}}}
+        self.badChannelMsg = ("Sorry, this is not an approved "
+            "channel for gambling content\n Please keep it to "
+            "channels with the :slot_machine: label :duck:")
+        self.currency = "duckbux"
+        self.startingBux = 100
+
         self.approved_channels = self.getApproved(channels)
+        self.bank = {}
+    #}}}
 
     def getApproved(self, channels):
     #{{{
         approved = []
         for key, channel in channels.items():
             if key != 'memberOf':
-                if util.LABELS["GAMBLE"] in channel["labels"]:
+                if self.requiredLabels.issubset(channel["labels"]):
                     approved.append(channel["id"])
         return approved
     #}}}
 
     def checkChannel(self, ch_id, labels):
     #{{{
-        if (util.LABELS["GAMBLE"] in labels and
+        if (self.requiredLabels.issubset(labels) and
             ch_id not in self.approved_channels):
             self.approved_channels.append(ch_id)
             return 1
-        elif (util.LABELS["GAMBLE"] not in labels and
+        elif (not self.requiredLabels.issubset(labels) and
               ch_id in self.approved_channels):
             self.approved_channels.remove(ch_id)
             return -1
         else:
             return 0
+    #}}}
+
+    def join(self, user, channel):
+    #{{{
+        if channel not in self.approved_channels:
+            return self.badChannelMsg
+        elif user in self.bank:
+            return ("You are already a member of this bank :duck:"
+                    "\n" + self.checkbux(user))
+        else:
+            self.bank[user] = {
+                 "bux" : self.startingBux
+            }
+            return ("You have been added to the bank :duck:"
+                    "\n" + self.checkbux(user))
+    #}}}
+
+    def checkbux(self, user, target = None):
+    #{{{
+        if not target:
+            if user not in self.bank:
+                return "You are not currently registered for this bank :duck:"
+            else:
+                return ("You currently have"
+                        " " + str(self.bank[user]["bux"]) + " " + self.currency)
+        else:
+            if target not in self.bank:
+                return "<@" + target + "> is not currently registered for this bank :duck:"
+            else:
+                return ("<@" + target + "> currently has"
+                        " " + str(self.bank[target]["bux"]) + " " + self.currency)
     #}}}
 #}}}
