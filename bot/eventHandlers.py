@@ -176,6 +176,11 @@ class Event:
             event.ts   = old["ts"]
             event.type = "update"
             event.subtype = "channel_purpose"
+        elif old["subtype"] == "bot_message":
+            event.type = "bot_message"
+            event.text = old["text"]
+            event.user = old["bot_id"]
+            event.ts   = old["ts"]
     #}}}
 
     def parseReactionAddedEvent(event, old):
