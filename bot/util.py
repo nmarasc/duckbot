@@ -96,18 +96,7 @@ def getBotInfo(sc, bot_token):
 #{{{
     bot_id = sc.api_call("auth.test")["user_id"]
     channels = getChannelData(sc, bot_token)
-    bots = getBots(sc, bot_token)
-    return bot_id, channels, bots
-#}}}
-
-def getBots(sc, bot_token):
-#{{{
-    bots = []
-    response = sc.api_call("users.list", token=bot_token)
-    for m in response["members"]:
-        if m["is_bot"]:
-            bots.append(m["id"])
-    return bots
+    return bot_id, channels
 #}}}
 
 # getChannelData:

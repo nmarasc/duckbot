@@ -179,7 +179,7 @@ class Event:
         elif old["subtype"] == "bot_message":
             event.type = "bot_message"
             event.text = old["text"]
-            event.user = old["bot_id"]
+            event.user = old["username"]
             event.ts   = old["ts"]
     #}}}
 
