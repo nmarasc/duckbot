@@ -168,7 +168,7 @@ class Logger:
         self.fn = fn
         self.log_buffer = []
         if self._log:
-            with open(self.fn,'w') as logfile:
+            with open(self.fn,'a') as logfile:
                 logfile.write("Starting new log file...\n")
         self.last_log = datetime.now()
     #}}}

@@ -12,26 +12,53 @@ import util
 from duckbot import Duckbot
 
 # Mainline code
-# Handles creation and deletion of bot
-# Passes slack events to bot as well
+# Create a Duckbot and start running it
+# Params: None
+# Return: Bot exit code (documented in util.py)
 def main():
 #{{{
-    os.chdir(os.path.dirname(os.path.realpath(__file__)))
-    event_list = []
+    initProgram()
+    rc, duckbot = duckboot()
+    if not rc:
+        rc = run(duckbot)
+    logger.log("FLUSH    : Clearing buffer before exit", flush=True)
+    return rc
+#}}}
 
-    # Construct commandline parser
+# Initial program set up
+#   - Command line parsing and directory changing
+# Params: None
+# Return: None
+def initProgram():
+#{{{
+    # Change context directory to the running one
+    os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
+    # Construct command line parser and get arguements
     cl_parser = argparse.ArgumentParser(description='Start up Duckbot')
     cl_parser.add_argument('--debug', action='store_true')
     cl_parser.add_argument('--nolog', dest='log', action='store_false', default=True)
     args = cl_parser.parse_args()
-    global DEBUG
-    DEBUG = args.debug
+    global gDEBUG, gLOG
+    gDEBUG = args.debug
+    gLOG = args.log
+#}}}
 
-    logger = util.Logger(log=args.log)
+# Set up and start the bot
+# Params: None
+# Return: 0 return code and Duckbot instance on success
+#         Non 0 return code and None on failure
+# Credit: Name courtesy of Katie. What a thinker, what a genius, wow
+def duckboot():
+#{{{
     # Get bot token from the env file
     with open("../.env") as env_file:
         bot_token = env_file.readline().rstrip().split("=")[1]
-    logger.log("Token    : " + bot_token)
+
+    # Start the logger with logging mode
+    global logger
+    logger = util.Logger(log=gLOG)
+    logger.log("BOT TOKEN: " + bot_token)
 
     # Create the slack client
     global sc
@@ -39,76 +66,94 @@ def main():
     # Get bot info
     bot_id, bot_channels = util.getBotInfo(sc, bot_token)
     if not util.matchUserId(bot_id):
-        print("Invalid bot id: " + bot_id)
-        sys.exit(util.EXIT_CODES["INVALID_BOT_ID"])
+        logger.log("BAD ID   : " + bot_id)
+        return util.EXIT_CODES["INVALID_BOT_ID"], None
 
-    # Connect to the rtm and build bot
+    # Connect to rtm and create bot if successful
+    rc = connect()
+    if rc:
+        return rc, None
+    else:
+        return rc, Duckbot(sc, bot_id, bot_channels, logger, gDEBUG)
+#}}}
+
+# Connect to the rtm and test connection
+# Params: None
+# Return: 0 if connection went okay
+#         Non zero if there was an error
+def connect():
+#{{{
+    # Connect to the rtm
     if sc.rtm_connect(with_team_state=False):
     # {{{
-        duckbot = Duckbot(sc, bot_id, bot_channels, logger, DEBUG)
-
+        event_list = []
         # Wait for the connection event
         while not event_list:
             event_list = sc.rtm_read()
         event = event_list.pop(0)
         if event["type"] == "hello":
             # Connection was good
-            exit_code = run(duckbot)
+            return 0
         else:
             # Error in connection
             error = event["error"]
-            print(error["msg"] + "\nCode: " + str(error["code"]))
-            sys.exit(util.EXIT_CODES["RTM_CONNECT_FAILED"])
+            logger.log("CON ERROR: " + error["msg"])
+            logger.log(" --  CODE: " + str(error["code"]))
+            return util.EXIT_CODES["RTM_CONNECT_FAILED"]
     #}}}
-
-    # Connect failed and bot was not created
+    # RTM connect failed
     else:
-        print("Failed to connect to RTM")
-        sys.exit(util.EXIT_CODES["RTM_CONNECT_FAILED"])
-
-    sys.exit(exit_code)
+        logger.log("CON ERROR: Failed to connect to RTM")
+        return util.EXIT_CODES["RTM_CONNECT_FAILED"]
 #}}}
 
-# Running loop
-# Reads for rtm events
+# Running loop, polls for events and hands them to the bot, then ticks the bot
+# Params: duckbot - Duckbot instance
+# Return: Bot exit code (documented in util.py)
 def run(duckbot):
 #{{{
-    if DEBUG:
-        print("Duckbot running in debug mode")
+    if gDEBUG:
+        logger.log("DEBUG    : Duckbot running in debug mode")
 
     RUNNING = True
     RETURN_CODE = 0
-
     # Keep going until bot signals to stop
     while RUNNING:
     # {{{
+        # Pause between reads to reduce the cycles spent spinning
+        # May adjust later if bot feels too sluggish to respond
         time.sleep(1)
+
         RETURN_CODE, event_list = doRead()
         if event_list and not RETURN_CODE:
             # Process all the events returned
-            # EVENTUALLY: Thread each event
             for event in event_list:
                 RETURN_CODE = duckbot.handleEvent(event)
+        # Tick bot's internal counter
         duckbot.tick()
         if RETURN_CODE:
             RUNNING = False
-    #}}}
+    # }}}
     # Bot signalled to stop, return to mainline
     return RETURN_CODE
 #}}}
 
 # Attempt an rtm_read, catching errors on failure
-# event_list populated on success, None on failure
+# Params: None
+# Return: 0 return code and populated event list on success
+#         Non 0 return code and None on failure
 def doRead():
 #{{{
+    # Attempt to do rtm read, except errors
+    # When new errors are experienced, they will be added specifically
     try:
         event_list = sc.rtm_read()
         return 0, event_list
     except TimeoutError:
-        print("Error: TimeoutError")
+        logger.log("RTM ERROR: TimeoutError")
         return util.EXIT_CODES["RTM_TIMEOUT_ERROR"], None
     except:
-        print("Error: RTM read failed")
+        logger.log("RTM ERROR: RTM read failed")
         return util.EXIT_CODES["RTM_GENERIC_ERROR"], None
 #}}}
 
