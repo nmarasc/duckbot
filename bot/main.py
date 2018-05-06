@@ -1,4 +1,4 @@
-# Python imports
+# Pytho imports
 import sys
 import os
 import time
@@ -107,8 +107,9 @@ def doRead():
     except TimeoutError:
         print("Error: TimeoutError")
         return util.EXIT_CODES["RTM_TIMEOUT_ERROR"], None
-    except:
+    except _ as err:
         print("Error: RTM read failed")
+        print(err,file=sys.stderr)
         return util.EXIT_CODES["RTM_GENERIC_ERROR"], None
 #}}}
 
