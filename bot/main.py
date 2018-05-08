@@ -18,11 +18,11 @@ from duckbot import Duckbot
 def main():
 #{{{
     initProgram()
-    rc, duckbot = duckboot()
-    if not rc:
-        rc = run(duckbot)
+    return_code, duckbot = duckboot()
+    if not return_code:
+        return_code = run(duckbot)
     logger.log("FLUSH    : Clearing buffer before exit", flush=True)
-    return rc
+    return return_code
 #}}}
 
 # Initial program set up
@@ -39,9 +39,9 @@ def initProgram():
     cl_parser.add_argument('--debug', action='store_true')
     cl_parser.add_argument('--nolog', dest='log', action='store_false', default=True)
     args = cl_parser.parse_args()
-    global gDEBUG, gLOG
-    gDEBUG = args.debug
-    gLOG = args.log
+    global debug_g, log_g
+    debug_g = args.debug
+    log_g = args.log
 #}}}
 
 # Set up and start the bot
@@ -57,7 +57,7 @@ def duckboot():
 
     # Start the logger with logging mode
     global logger
-    logger = util.Logger(log=gLOG)
+    logger = util.Logger(log=log_g)
     logger.log("BOT TOKEN: " + bot_token)
 
     # Create the slack client
@@ -67,14 +67,14 @@ def duckboot():
     bot_id, bot_channels = util.getBotInfo(sc, bot_token)
     if not util.matchUserId(bot_id):
         logger.log("BAD ID   : " + bot_id)
-        return util.EXIT_CODES["INVALID_BOT_ID"], None
+        return util.EXIT_CODES["INVALID_bot_id"], None
 
     # Connect to rtm and create bot if successful
-    rc = connect()
-    if rc:
-        return rc, None
+    return_code = connect()
+    if return_code:
+        return return_code, None
     else:
-        return rc, Duckbot(sc, bot_id, bot_channels, logger, gDEBUG)
+        return return_code, Duckbot(sc, bot_id, bot_channels, logger, debug_g)
 #}}}
 
 # Connect to the rtm and test connection
@@ -112,30 +112,30 @@ def connect():
 # Return: Bot exit code (documented in util.py)
 def run(duckbot):
 #{{{
-    if gDEBUG:
+    if debug_g:
         logger.log("DEBUG    : Duckbot running in debug mode")
 
-    RUNNING = True
-    RETURN_CODE = 0
+    running = True
+    return_code = 0
     # Keep going until bot signals to stop
-    while RUNNING:
+    while running:
     # {{{
         # Pause between reads to reduce the cycles spent spinning
         # May adjust later if bot feels too sluggish to respond
         time.sleep(1)
 
-        RETURN_CODE, event_list = doRead()
-        if event_list and not RETURN_CODE:
+        return_code, event_list = doRead()
+        if event_list and not return_code:
             # Process all the events returned
             for event in event_list:
-                RETURN_CODE = duckbot.handleEvent(event)
+                return_code = duckbot.handleEvent(event)
         # Tick bot's internal counter
         duckbot.tick()
-        if RETURN_CODE:
-            RUNNING = False
+        if return_code:
+            running = False
     # }}}
     # Bot signalled to stop, return to mainline
-    return RETURN_CODE
+    return return_code
 #}}}
 
 # Attempt an rtm_read, catching errors on failure

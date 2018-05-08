@@ -10,17 +10,25 @@ class MessageHandler:
 #{{{
     DEFAULT_RESPONSE = "Kweh! :DUCK:"
 
+    # Constructor for message handler
+    # Params: bot_id       - bot user id
+    #         bot_channels - dict of channel ids to channel data
+    # Return: MessageHandler instance
     def __init__(self, bot_id, bot_channels):
     #{{{
         self.bot_id = bot_id
-        self.rollHandler = RollHandler()
-        self.helpHandler = HelpHandler(bot_id)
-        self.gambleHandler = GambleHandler(bot_channels)
+        self.roll_handler = RollHandler()
+        self.help_handler = HelpHandler(bot_id)
+        self.gamble_handler = GambleHandler(bot_channels)
     #}}}
 
+    # Call handler functions based on extracted command word
+    # Params: event - Event instance with necessary data
+    # Return: string message to send to slack
     def act(self, event):
     #{{{
         u_parms = ""
+        # Split text into command word and params
         command, o_parms = self._getCommand(event.text)
         # Save old params for nicer messages if needed
         if o_parms:
@@ -36,23 +44,28 @@ class MessageHandler:
 
         # HELP command
         elif command == util.COMMANDS["HELP"]:
-            return self.helpHandler.act(u_parms)
+            return self.help_handler.act(u_parms)
 
         # ROLL command
         elif command == util.COMMANDS["ROLL"]:
         #{{{
-            rc, rolls = self.rollHandler.roll(u_parms)
-            if rc == 0:
+            return_code, rolls = self.roll_handler.roll(u_parms)
+            # Regular dice roll
+            if return_code == 0:
             #{{{
-                add = rolls.pop()
+                # Grab what will be added to the end of the message
+                tail = rolls.pop()
                 output = "You rolled: "
+                # Join all the values if there's more than one
                 if len(rolls) > 1:
-                    output += ", ".join(map(str,rolls)) + "\nYour total: " + str(add)
+                    output += ", ".join(map(str,rolls)) + "\nYour total: " + str(tail)
+                # Otherwise grab the one and slap the tail on
                 else:
-                    output += str(rolls[0]) + " " + add
+                    output += str(rolls[0]) + " " + tail
                 return output
             # }}}
-            elif rc == 1:
+            # Character roll
+            elif return_code == 1:
             #{{{
                 output = ""
                 stats = []
@@ -73,24 +86,26 @@ class MessageHandler:
 
         # COIN command
         elif command == util.COMMANDS["COIN"]:
-            return "You got: " + self.rollHandler.coinRoll()
+            return "You got: " + self.roll_handler.coinRoll()
 
         # 8BALL command
         elif command == util.COMMANDS["EIGHTBALL"]:
-            return self.rollHandler.eightballRoll()
+            return self.roll_handler.eightballRoll()
 
         # FACTOID command
         elif command == util.COMMANDS["FACTOID"]:
-            return self.rollHandler.factoidRoll()
+            return self.roll_handler.factoidRoll()
 
         # PICKIT command
         elif command == util.COMMANDS["PICKIT"]:
         #{{{
-            rc, response = self.rollHandler.pickitRoll(o_parms)
-            if rc == 1:
+            return_code, response = self.roll_handler.pickitRoll(o_parms)
+            # Number of choices out of range
+            if return_code == 1:
                 return ("Must pick between " + str(min(response)) + " "
                         "and " + str(max(response)) + " things")
-            elif rc == 2:
+            # Parsing error
+            elif return_code == 2:
                 return "Unmatched quotes! Kweh :duck:"
             else:
                 return "I choose: " + response
@@ -98,11 +113,11 @@ class MessageHandler:
 
         # JOIN command
         elif command == util.COMMANDS["JOIN"]:
-            return self.gambleHandler.join(event.user, event.channel)
+            return self.gamble_handler.join(event.user, event.channel)
 
         # CHECKBUX command
         elif command == util.COMMANDS["CHECKBUX"]:
-            return self.gambleHandler.checkbux(event.user)
+            return self.gamble_handler.checkbux(event.user)
 
         # No command or unrecognized, either way I don't care
         else:
@@ -110,6 +125,8 @@ class MessageHandler:
     #}}}
 
     # Parse message for mention, command, and parms
+    # Params: text - message text to parse
+    # Return: command word and params or None,None if no command
     def _getCommand(self, text):
     #{{{
         # Message event with no text? Don't even know if it's possible
@@ -117,11 +134,12 @@ class MessageHandler:
         if not text:
             return None, None
 
+        # Break up the text and try to match the trigger with the bot_id
         text_arr = text.split(" ")
-        temp = text_arr.pop(0).upper()
-        _, id_str = util.matchUserId(temp)
+        trigger = text_arr.pop(0).upper()
+        _, id_str = util.matchUserId(trigger)
 
-        # Check for mention
+        # Check for mention from id or trigger, then get command
         if ((id_str == self.bot_id) or
            (temp   == ":DUCKBOT:")) and text_arr:
             c_word = text_arr.pop(0).upper()
