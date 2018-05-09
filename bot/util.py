@@ -104,12 +104,8 @@ def getBotInfo(sc, bot_token):
 def getChannelData(sc, bot_token):
 #{{{
     channels = {}
-    channels["memberOf"] = []
     response = sc.api_call("channels.list", token=bot_token, exclude_members=True)
     for channel in response["channels"]:
-        if channel["is_member"]:
-            channels["memberOf"].append(channel["id"])
-            print("Member of: " + channel["name"])
         channels[channel["id"]] = channel
         channels[channel["id"]]["labels"] = parseLabels(channel["purpose"]["value"])
     return channels
@@ -124,7 +120,7 @@ def updateChannels(channels, event):
         channels[channel]["purpose"]["value"] = event.text
     elif event.subtype == 'channel_joined':
         if channel not in channels:
-            channels[channel] = event.ch_data
+            channels[channel] = event.channel_data
         channels["memberOf"].append(channel)
     return channels
 #}}}

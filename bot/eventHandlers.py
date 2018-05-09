@@ -154,72 +154,90 @@ class MessageHandler:
 #}}}
 
 # Event class
-# Standardize event information, hopefully
-# Might be a bad idea now that I think about it
-# I'll see if this affects performance much
+# This may affect response time negatively, see how it goes
 class Event:
 #{{{
-    def __init__(self, event):
+    # Constructor for Event
+    # Params: event_p - incoming slack event to parse
+    # Return: Event instance
+    def __init__(self, event_p):
     #{{{
-        if "type" in event:
-            self.type = event["type"]
+        if "type" in event_p:
+            self.type = event_p["type"]
         else:
             self.type = None
 
+        # Call the parser based on the event type
         if self.type in EVENT_PARSERS:
-            EVENT_PARSERS[self.type](self, event)
+            EVENT_PARSERS[self.type](self, event_p)
     #}}}
 
-    def parseMessageEvent(event, old):
+    # Parser for message type events
+    # Params: event_new - Event instance to add field data to
+    #         event_old - slack event to extract data from
+    # Return: None
+    def parseMessageEvent(event_new, event_old):
     #{{{
-        event.channel = old["channel"]
-        if "subtype" not in old:
-            event.user = old["user"]
-            event.text = old["text"]
-            event.ts   = old["ts"]
-        elif old["subtype"] == "message_changed":
-            event.user = old["message"]["user"]
-            event.text = old["message"]["text"]
-            event.ts   = old["message"]["ts"]
-        elif old["subtype"] == "channel_purpose":
-            event.user = old["user"]
-            event.text = old["purpose"]
-            event.ts   = old["ts"]
-            event.type = "update"
-            event.subtype = "channel_purpose"
-        elif old["subtype"] == "bot_message":
-            event.type = "bot_message"
-            event.text = old["text"]
-            event.user = old["bot_id"]
-            event.name = old["username"]
-            event.ts   = old["ts"]
+        event_new.channel = event_old["channel"]
+        if "subtype" not in event_old:
+            event_new.user = event_old["user"]
+            event_new.text = event_old["text"]
+            event_new.ts   = event_old["ts"]
+        elif event_old["subtype"] == "message_changed":
+            event_new.user = event_old["message"]["user"]
+            event_new.text = event_old["message"]["text"]
+            event_new.ts   = event_old["message"]["ts"]
+        elif event_old["subtype"] == "channel_purpose":
+            event_new.user = event_old["user"]
+            event_new.text = event_old["purpose"]
+            event_new.ts   = event_old["ts"]
+            event_new.type = "update"
+            event_new.subtype = "channel_purpose"
+        elif event_old["subtype"] == "bot_message":
+            event_new.type = "bot_message"
+            event_new.text = event_old["text"]
+            event_new.user = event_old["bot_id"]
+            event_new.name = event_old["username"]
+            event_new.ts   = event_old["ts"]
     #}}}
 
-    def parseReactionAddedEvent(event, old):
+    # Parser for reaction added events
+    # Params: event_new - Event instance to add field data to
+    #         event_old - slack event to extract data from
+    # Return: None
+    def parseReactionAddedEvent(event_new, event_old):
     #{{{
-        event.user     = old["user"]
-        event.reaction = {
-             "emoji" : old["reaction"]
-            ,"type"  : old["item"]["type"]
+        event_new.user     = event_old["user"]
+        event_new.reaction = {
+             "emoji" : event_old["reaction"]
+            ,"type"  : event_old["item"]["type"]
         }
-        if event.reaction["type"] == "message":
-            event.channel = old["item"]["channel"]
-            event.ts      = old["item"]["ts"]
+        if event_new.reaction["type"] == "message":
+            event_new.channel = event_old["item"]["channel"]
+            event_new.ts      = event_old["item"]["ts"]
 
-        elif (event.reaction["type"] == "file" or
-              event.reaction["type"] == "file_comment"):
-            event.file = old["item"]["file"]
+        elif (event_new.reaction["type"] == "file" or
+              event_new.reaction["type"] == "file_comment"):
+            event_new.file = event_old["item"]["file"]
     #}}}
 
-    def parseTeamJoinEvent(event, old):
-        event.user = old["user"]["id"]
+    # Parser for team join events
+    # Params: event_new - Event instance to add field data to
+    #         event_old - slack event to extract data from
+    # Return: None
+    def parseTeamJoinEvent(event_new, event_old):
+        event_new.user = event_old["user"]["id"]
 
-    def parseChannelJoinedEvent(event, old):
+    # Parser for channel joined events
+    # Params: event_new - Event instance to add field data to
+    #         event_old - slack event to extract data from
+    # Return: None
+    def parseChannelJoinedEvent(event_new, event_old):
     #{{{
-        event.type    = "update"
-        event.subtype = "channel_joined"
-        event.channel = old["channel"]["id"]
-        event.ch_data = old["channel"]
+        event_new.type    = "update"
+        event_new.subtype = "channel_joined"
+        event_new.channel = event_old["channel"]["id"]
+        event_new.channel_data = event_old["channel"]
     #}}}
 #}}}
 
