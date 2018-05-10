@@ -260,20 +260,30 @@ class GambleHandler:
         return approved
     #}}}
 
-    def checkChannel(self, ch_id, labels):
+    # Check for required labels and add channel id if good
+    # Params: channel_id - channel id to potentially add
+    #         lables - label list to check
+    # Return:  1, if channel added
+    #         -1, if channel removed
+    #          0, if no change
+    def checkChannel(self, channel_id, labels):
     #{{{
-        if (self.REQUIRED_LABELS.issubset(labels) and
-            ch_id not in self.approved_channels):
-            self.approved_channels.append(ch_id)
+        if (util.LABELS["GAMBLE"] in labels and
+            channel_id not in self.approved_channels):
+            self.approved_channels.append(channel_id)
             return 1
-        elif (not self.REQUIRED_LABELS.issubset(labels) and
-              ch_id in self.approved_channels):
-            self.approved_channels.remove(ch_id)
+        elif (util.LABELS["GAMBLE"] not in labels and
+              channel_id in self.approved_channels):
+            self.approved_channels.remove(channel_id)
             return -1
         else:
             return 0
     #}}}
 
+    # Add user to bank if not in already
+    # Params: user - user id to check for bank entry
+    #         channel - channel trying to add from
+    # Return: Message to send to channel
     def join(self, user, channel):
     #{{{
         if channel not in self.approved_channels:
@@ -289,6 +299,10 @@ class GambleHandler:
                     "\n" + self.checkbux(user))
     #}}}
 
+    # Check a user's bank balance
+    # Params: user - user id requesting balance
+    #         target - user id to get balance of, default None gets own balance
+    # Return: Message contains users balance
     def checkbux(self, user, target = None):
     #{{{
         if not target:

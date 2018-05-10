@@ -1,8 +1,9 @@
+# Python imports
 import re
 import random
 from datetime import datetime
 
-DEBUG = False
+# Util constants
 USER_REGEX = "<@(U[A-Z0-9]{8})>$"
 LABEL_REGEX = "\[:LABEL:(:.+:)+\]"
 EMOJI_REGEX = ":.+?:"
@@ -82,16 +83,20 @@ LABELS = {
 }
 #}}}
 
-# matchUserId:
-# Returns True if id is valid and matching id, False otherwise
+# Search for a user id in a string
+# Params: id_str - string to search for id
+# Return: True and matching user id if found
+#         False and None otherwise
 def matchUserId(id_str):
 #{{{
     matches = re.search(USER_REGEX,id_str)
     return (True, matches.group(1)) if matches else (False, None)
 #}}}
 
-# getBotInfo:
-# Obtain bot id, workspace channels and which bot is a member of
+# Obtain bot id and workspace channels
+# Params: sc        - slackclient instance to make api calls
+#         bot_token - connection token for the bot
+# Return: bot user id and channel dict
 def getBotInfo(sc, bot_token):
 #{{{
     bot_id = sc.api_call("auth.test")["user_id"]
@@ -99,8 +104,10 @@ def getBotInfo(sc, bot_token):
     return bot_id, channels
 #}}}
 
-# getChannelData:
 # Request channel list and build channel map
+# Params: sc        - slackclient instance to make api calls
+#         bot_token - connection token for the bot
+# Return: dict of channel ids to channel data
 def getChannelData(sc, bot_token):
 #{{{
     channels = {}
@@ -111,8 +118,10 @@ def getChannelData(sc, bot_token):
     return channels
 #}}}
 
-# updateChannels:
-# Make changes to channels list
+# Make changes to channels list based on event data
+# Params: channels - dict of channels to update
+#         event    - event to update from
+# Return: updated channel dict
 def updateChannels(channels, event):
 #{{{
     channel = event.channel
@@ -125,7 +134,9 @@ def updateChannels(channels, event):
     return channels
 #}}}
 
-# parseLabels:
+# Split text into a list of labels
+# Params: text - string to split up
+# Return: list of labels
 def parseLabels(text):
 #{{{
     labels = []
@@ -141,8 +152,10 @@ def parseLabels(text):
     return labels
 #}}}
 
-# doRolls:
 # Rolls randomly with the parameters given and returns numbers in a list
+# Params: die_size - number of sides on the dice rolling
+#         die_num  - number of times to roll the dice
+# Return: list of rolls
 def doRolls(die_size, die_num = 1):
 #{{{
     rolls = []
@@ -155,7 +168,10 @@ def doRolls(die_size, die_num = 1):
 # Buffers and writes messages to a file
 class Logger:
 #{{{
-    # Initialize Logger with output file name or use default
+    # Constructor for logger class
+    # Params: fn  - file name to use or leave default
+    #         log - flag to keep a log file or not
+    # Return: Logger instance
     def __init__(self, fn = DEFAULT_FN, log = True):
     #{{{
         self.BUFFER_MAX = 5
