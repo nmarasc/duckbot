@@ -1,3 +1,4 @@
+import re
 import util
 #{{{ - CommandHandler imports
 from commandHandlers import HelpHandler
@@ -135,7 +136,7 @@ class MessageHandler:
             return None, None
 
         # Break up the text and try to match the trigger with the bot_id
-        text_arr = text.split(" ")
+        text_arr = re.split(r'\s+',text.strip())
         trigger = text_arr.pop(0).upper()
         _, id_str = util.matchUserId(trigger)
 
@@ -151,6 +152,16 @@ class MessageHandler:
         else:
             return None, None
     #}}}
+#}}}
+
+# Bot handler class
+class BotHandler:
+#{{{
+    # Constructor for bot handler
+    # Params: None
+    # Return: BotHandler instance
+    def __init__(self):
+        self.bot_list = []
 #}}}
 
 # Event class

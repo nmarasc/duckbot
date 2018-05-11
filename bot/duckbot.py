@@ -2,6 +2,7 @@
 import util
 # Event handler imports
 from eventHandlers import MessageHandler
+# from eventHandlers import BotHandler
 from eventHandlers import Event
 
 # Duckbot class delegates event handlers and keeps track of time
@@ -27,7 +28,9 @@ class Duckbot:
         self.ticks = 0
         self.cooldown_g = 0
 
+        # Create main event handlers
         self.msg_handler = MessageHandler(bot_id, bot_channels)
+#         self.bot_handler = BotHandler()
     #}}}
 
     # Handles incoming events, calling event specific handlers as needed
@@ -53,14 +56,16 @@ class Duckbot:
                 self.logger.log(event.user + ": " + event.text)
             response = self.msg_handler.act(event)
 
-            # Send message if needed, update if told to, ignore otherwise
+            # Send message if one was returned
             if response:
                 self._sendMessage(event.user, event.channel, response)
                 return 0
+            # None response signals an update needed
             elif response == None:
                 self._sendMessage(None, event.channel,
                                   "Shutting down for update. Kweh! :duckbot:")
                 return 2
+            # Otherwise do nothing
             else:
                 return 0
         #}}}
@@ -73,7 +78,9 @@ class Duckbot:
                 response = self.sc.api_call("bots.info", token=self.sc.token, bot=event.user)
                 if response["ok"]:
                     self.bots[event.user] = response["bot"]["user_id"]
-                # else error
+                else:
+                    self.logger.log("API ERROR: Bot info request failed")
+                    self.logger.log(" --  TEXT: " + response["error"])
             # Do something sassy with the bot
             if not self.cooldown_g:
                 self.cooldown_g = 120

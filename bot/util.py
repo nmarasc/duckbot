@@ -4,6 +4,7 @@ import random
 from datetime import datetime
 
 # Util constants
+RTM_READ_DELAY = 1
 USER_REGEX = "<@(U[A-Z0-9]{8})>$"
 LABEL_REGEX = "\[:LABEL:(:.+:)+\]"
 EMOJI_REGEX = ":.+?:"
@@ -168,29 +169,31 @@ def doRolls(die_size, die_num = 1):
 # Buffers and writes messages to a file
 class Logger:
 #{{{
+    BUFFER_MAX = 5
+    LOG_TIME = 3600 # 60 minutes
+
     # Constructor for logger class
     # Params: fn  - file name to use or leave default
     #         log - flag to keep a log file or not
     # Return: Logger instance
     def __init__(self, fn = DEFAULT_FN, log = True):
     #{{{
-        self.BUFFER_MAX = 5
-        self.LOG_TIME = 3600 # 60 minutes
-        self._log = log
+        self.keep_log = log
         self.fn = fn
         self.log_buffer = []
-        if self._log:
+        if self.keep_log:
             with open(self.fn,'a') as logfile:
-                logfile.write("Starting new log file...\n")
-        self.last_log = datetime.now()
+                logfile.write("Starting new log...\n")
     #}}}
 
     # Append line to internal log buffer, flush if needed
+    # Params: text  - string to log
+    #         flush - bool flag for flushing buffer early
+    # Return: None
     def log(self, text, flush=False):
     #{{{
-        if self._log:
+        if self.keep_log:
             self.log_buffer.append(str(datetime.now()) + ": " + text)
-            timeDiff = (datetime.now() - self.last_log)
             if len(self.log_buffer) >= self.BUFFER_MAX or flush:
                 self._write()
                 self.last_log = datetime.now()
@@ -198,7 +201,9 @@ class Logger:
             print(text)
     #}}}
 
-    # Write contents of buffer out to file with timestamp
+    # Write contents of buffer out to file
+    # Params: None
+    # Return: None
     def _write(self):
     #{{{
         with open(self.fn,'a') as logfile:

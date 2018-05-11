@@ -121,15 +121,15 @@ def run(duckbot):
     while running:
     # {{{
         # Pause between reads to reduce the cycles spent spinning
-        # May adjust later if bot feels too sluggish to respond
-        time.sleep(1)
+        # Delay may need to be adjusted if bot feels sluggish to respond
+        time.sleep(util.RTM_READ_DELAY)
 
         return_code, event_list = doRead()
         if event_list and not return_code:
             # Process all the events returned
             for event in event_list:
                 return_code = duckbot.handleEvent(event)
-        # Tick bot's internal counter
+        # Tick bot internal counter
         duckbot.tick()
         if return_code:
             running = False
