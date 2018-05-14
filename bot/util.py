@@ -84,6 +84,22 @@ LABELS = {
 }
 #}}}
 
+# Slackclient and Logger
+global sc, logger
+
+# Send message to designated channel, and notify user if present
+# Params: channel - channel id to send message to
+#         message - string message to send
+#         user    - user id to notify, not required
+# Return: None
+def sendMessage(channel, message, user = None):
+#{{{
+    # Prepend user notification if specified
+    if user:
+        message = "<@" + user + "> " + message
+    sc.rtm_send_message(channel, message)
+#}}}
+
 # Search for a user id in a string
 # Params: id_str - string to search for id
 # Return: True and matching user id if found
@@ -98,10 +114,10 @@ def matchUserId(id_str):
 # Params: sc        - slackclient instance to make api calls
 #         bot_token - connection token for the bot
 # Return: bot user id and channel dict
-def getBotInfo(sc, bot_token):
+def getBotInfo(bot_token):
 #{{{
     bot_id = sc.api_call("auth.test")["user_id"]
-    channels = getChannelData(sc, bot_token)
+    channels = getChannelData(bot_token)
     return bot_id, channels
 #}}}
 
@@ -109,7 +125,7 @@ def getBotInfo(sc, bot_token):
 # Params: sc        - slackclient instance to make api calls
 #         bot_token - connection token for the bot
 # Return: dict of channel ids to channel data
-def getChannelData(sc, bot_token):
+def getChannelData(bot_token):
 #{{{
     channels = {}
     response = sc.api_call("channels.list", token=bot_token, exclude_members=True)
@@ -187,18 +203,17 @@ class Logger:
     #}}}
 
     # Append line to internal log buffer, flush if needed
-    # Params: text  - string to log
+    # Params: diag  - DiagMessage to log
     #         flush - bool flag for flushing buffer early
     # Return: None
-    def log(self, text, flush=False):
+    def log(self, diag, flush=False):
     #{{{
         if self.keep_log:
-            self.log_buffer.append(str(datetime.now()) + ": " + text)
+            self.log_buffer.append(str(datetime.now()) + "- " + diag.msg)
             if len(self.log_buffer) >= self.BUFFER_MAX or flush:
                 self._write()
-                self.last_log = datetime.now()
         elif not flush:
-            print(text)
+            print(diag.msg)
     #}}}
 
     # Write contents of buffer out to file
@@ -211,10 +226,25 @@ class Logger:
                 try:
                     logfile.write(line)
                 except TypeError:
-                    logfile.write(str(datetime.now())+": LOG ERR")
+                    logfile.write(str(datetime.now())+"- LOG ERR")
                 except UnicodeEncodeError:
                     logfile.write(str(line.encode("utf-8","replace")))
                 logfile.write("\n")
             del self.log_buffer[:]
+    #}}}
+#}}}
+
+# Diag Message class
+class DiagMessage:
+#{{{
+    # Constructor for diag message
+    # Params: code - diag code for message
+    #         text - message text
+    # Return: DiagMessage instance
+    def __init__(self, code, text):
+    #{{{
+        self.code = code
+        self.text = text
+        self.msg  = self.code + ": " + self.text
     #}}}
 #}}}

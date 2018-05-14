@@ -1,5 +1,6 @@
 import re
 import util
+from util import DiagMessage
 #{{{ - CommandHandler imports
 from commandHandlers import HelpHandler
 from commandHandlers import RollHandler
@@ -81,8 +82,10 @@ class MessageHandler:
                 output += "\n\nYour stats are: " + ", ".join(map(str,stats))
                 return output
             #}}}
-            else:
+            elif return_code == -1:
                 return o_parms[0] + " is not a valid roll."
+            else:
+                return "Can't roll without parameters, kweh! :duck:"
         #}}}
 
         # COIN command
@@ -142,7 +145,7 @@ class MessageHandler:
 
         # Check for mention from id or trigger, then get command
         if ((id_str == self.bot_id) or
-           (temp   == ":DUCKBOT:")) and text_arr:
+           (trigger   == ":DUCKBOT:")) and text_arr:
             c_word = text_arr.pop(0).upper()
             command = util.COMMANDS.get(c_word,0)
             command = util.COMMANDS_ALT.get(c_word,0) if not command else command
@@ -161,7 +164,43 @@ class BotHandler:
     # Params: None
     # Return: BotHandler instance
     def __init__(self):
-        self.bot_list = []
+    #{{{
+        self.logger = util.logger
+        self.bots   = {}
+    #}}}
+
+    # Handle bot interaction
+    # Params: event - bot message event
+    # Return: list of response parameters
+    def act(self, event):
+    #{{{
+        msgs = []
+        msgs.append([event.channel, "Check this out, kweh :duck:", None])
+        msgs.append([event.channel, "Hello", self.bots[event.user]])
+        return msgs
+    #}}}
+
+    # Check if bot id is known and add it if not
+    # Params: bot_id - bot id to check
+    # Return: True when added
+    #         False otherwise
+    def checkBotId(self, bot_id):
+    #{{{
+        # Add the bot to the list if it's not in there
+        if bot_id not in self.bots:
+            response = util.sc.api_call("bots.info", token=util.sc.token, bot=bot_id)
+            if response["ok"]:
+                self.bots[bot_id] = response["bot"]["user_id"]
+                return True
+            else:
+                self.logger.log(DiagMessage("API ERROR",
+                    "Bot info request failed"))
+                self.logger.log(DiagMessage(" --  TEXT",
+                    response["error"]))
+                return False
+        else:
+            return False
+    #}}}
 #}}}
 
 # Event class

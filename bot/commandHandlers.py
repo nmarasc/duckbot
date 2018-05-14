@@ -6,46 +6,46 @@ import shlex
 # Help handler class
 class HelpHandler:
 #{{{
-    #{{{ - HELP_MESSAGES
-    HELP_MESSAGES = {
-         util.COMMANDS["HI"] :\
-            ("Legacy HI command\n"
-            "Usage: <@" + bot_id + "> HI")
-        ,util.COMMANDS["UPDATE"] :\
-            ("Causes the bot to shutdown and signal "
-            "the monitor script to check for updates\n"
-            "Usage: <@" + bot_id + "> UPDATE")
-        ,util.COMMANDS["HELP"] :\
-            "Don't get smart, you know how to use this"
-        ,util.COMMANDS["ROLL"] :\
-            ("Rolls dice based on parameters given\n"
-            "Usage: <@" + bot_id + "> ROLL ( [d]X | YdX )\n"
-            "Where X is the size of the die and Y is the number of them")
-        ,util.COMMANDS["COIN"] :\
-            ("Flip a coin\n"
-            "Usage: <@" + bot_id + "> COIN")
-        ,util.COMMANDS["EIGHTBALL"] :\
-            ("Shake the magic 8ball\n"
-            "Usage: <@" + bot_id + "> 8BALL")
-        ,util.COMMANDS["FACTOID"] :\
-            ("Pull out a random and totally true fact\n"
-            "Usage: <@" + bot_id + "> FACTOID")
-        ,util.COMMANDS["PICKIT"] :\
-            ("Pick from a number of things\n"
-            "Usage: <@" + bot_id + "> PICKIT <item1> <item2> ...\n"
-            "Use quotes to have items with spaces in them :duck:")
-        ,util.COMMANDS["JOIN"] :\
-            ("Add yourself to the gambler's bank\n"
-            "Usage: <@" + bot_id + "> JOIN\n"
-            "Can only be used in gambling approved channels :duck:")
-    }
-    #}}}
 
     # Constructor for Help handler
     # Params: bot_id - user id for the bot
     # Return: HelpHandler instance
     def __init__(self, bot_id):
         self.bot_id = bot_id
+        #{{{ - Help messages
+        self.help_messages = {
+             util.COMMANDS["HI"] :\
+                ("Legacy HI command\n"
+                "Usage: <@" + bot_id + "> HI")
+            ,util.COMMANDS["UPDATE"] :\
+                ("Causes the bot to shutdown and signal "
+                "the monitor script to check for updates\n"
+                "Usage: <@" + bot_id + "> UPDATE")
+            ,util.COMMANDS["HELP"] :\
+                "Don't get smart, you know how to use this"
+            ,util.COMMANDS["ROLL"] :\
+                ("Rolls dice based on parameters given\n"
+                "Usage: <@" + bot_id + "> ROLL ( [d]X | YdX )\n"
+                "Where X is the size of the die and Y is the number of them")
+            ,util.COMMANDS["COIN"] :\
+                ("Flip a coin\n"
+                "Usage: <@" + bot_id + "> COIN")
+            ,util.COMMANDS["EIGHTBALL"] :\
+                ("Shake the magic 8ball\n"
+                "Usage: <@" + bot_id + "> 8BALL")
+            ,util.COMMANDS["FACTOID"] :\
+                ("Pull out a random and totally true fact\n"
+                "Usage: <@" + bot_id + "> FACTOID")
+            ,util.COMMANDS["PICKIT"] :\
+                ("Pick from a number of things\n"
+                "Usage: <@" + bot_id + "> PICKIT <item1> <item2> ...\n"
+                "Use quotes to have items with spaces in them :duck:")
+            ,util.COMMANDS["JOIN"] :\
+                ("Add yourself to the gambler's bank\n"
+                "Usage: <@" + bot_id + "> JOIN\n"
+                "Can only be used in gambling approved channels :duck:")
+        }
+        #}}}
 
     # Retrieve help message based on passed values
     # Params: parms - list of strings to check for help commands
@@ -55,7 +55,7 @@ class HelpHandler:
         if parms:
             command = util.COMMANDS.get(parms[0],0)
             command = util.COMMANDS_ALT.get(parms[0],0) if not command else command
-            response = self.HELP_MESSAGES.get(command,
+            response = self.help_messages.get(command,
                     parms[0] + " is not a recognized command")
             return response
         else:
@@ -93,11 +93,14 @@ class RollHandler:
     # Params: roll_parms - list of potential
     # Return:  0, list of rolls
     #          1, list of stats
-    #         -1, None for error
+    #         -1, None for bad param
+    #         -2, None for no param
     def roll(self, roll_parms):
     #{{{
+        if not roll_parms:
+            return -2, None
         # Check for character roll
-        if roll_parms[0] in self.CHARACTER_ROLLS:
+        elif roll_parms[0] in self.CHARACTER_ROLLS:
             return 1, self.characterRoll()
 
         results = re.search(self.ROLL_REGEX, roll_parms[0])

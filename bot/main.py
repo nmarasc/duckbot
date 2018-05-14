@@ -9,6 +9,7 @@ from slackclient import SlackClient
 
 # Project imports
 import util
+from util import DiagMessage
 from duckbot import Duckbot
 
 # Mainline code
@@ -21,7 +22,8 @@ def main():
     return_code, duckbot = duckboot()
     if not return_code:
         return_code = run(duckbot)
-    logger.log("FLUSH    : Clearing buffer before exit", flush=True)
+    util.logger.log(DiagMessage("FLUSH    ",
+        "Clearing buffer before exit", flush=True))
     return return_code
 #}}}
 
@@ -56,17 +58,15 @@ def duckboot():
         bot_token = env_file.readline().rstrip().split("=")[1]
 
     # Start the logger with logging mode
-    global logger
-    logger = util.Logger(log=log_g)
-    logger.log("BOT TOKEN: " + bot_token)
+    util.logger = util.Logger(log=log_g)
+    util.logger.log(DiagMessage("BOT TOKEN",bot_token))
 
     # Create the slack client
-    global sc
-    sc = SlackClient(bot_token)
+    util.sc = SlackClient(bot_token)
     # Get bot info
-    bot_id, bot_channels = util.getBotInfo(sc, bot_token)
+    bot_id, bot_channels = util.getBotInfo(bot_token)
     if not util.matchUserId(bot_id):
-        logger.log("BAD ID   : " + bot_id)
+        util.logger.log(DiagMessage("BAD ID   ",bot_id))
         return util.EXIT_CODES["INVALID_bot_id"], None
 
     # Connect to rtm and create bot if successful
@@ -74,7 +74,7 @@ def duckboot():
     if return_code:
         return return_code, None
     else:
-        return return_code, Duckbot(sc, bot_id, bot_channels, logger, debug_g)
+        return return_code, Duckbot(bot_id, bot_channels, debug_g)
 #}}}
 
 # Connect to the rtm and test connection
@@ -84,12 +84,12 @@ def duckboot():
 def connect():
 #{{{
     # Connect to the rtm
-    if sc.rtm_connect(with_team_state=False):
+    if util.sc.rtm_connect(with_team_state=False):
     # {{{
         event_list = []
         # Wait for the connection event
         while not event_list:
-            event_list = sc.rtm_read()
+            event_list = util.sc.rtm_read()
         event = event_list.pop(0)
         if event["type"] == "hello":
             # Connection was good
@@ -97,13 +97,13 @@ def connect():
         else:
             # Error in connection
             error = event["error"]
-            logger.log("CON ERROR: " + error["msg"])
-            logger.log(" --  CODE: " + str(error["code"]))
+            util.logger.log(DiagMessage("CON ERROR",error["msg"]))
+            util.logger.log(DiagMessage(" --  CODE",str(error["code"])))
             return util.EXIT_CODES["RTM_CONNECT_FAILED"]
     #}}}
     # RTM connect failed
     else:
-        logger.log("CON ERROR: Failed to connect to RTM")
+        util.logger.log(DiagMessage("CON ERROR","Failed to connect to RTM"))
         return util.EXIT_CODES["RTM_CONNECT_FAILED"]
 #}}}
 
@@ -113,7 +113,8 @@ def connect():
 def run(duckbot):
 #{{{
     if debug_g:
-        logger.log("DEBUG    : Duckbot running in debug mode")
+        util.logger.log(DiagMessage("DEBUG    ",
+            "Duckbot running in debug mode"))
 
     running = True
     return_code = 0
@@ -147,13 +148,13 @@ def doRead():
     # Attempt to do rtm read, except errors
     # When new errors are experienced, they will be added specifically
     try:
-        event_list = sc.rtm_read()
+        event_list = util.sc.rtm_read()
         return 0, event_list
     except TimeoutError:
-        logger.log("RTM ERROR: TimeoutError")
+        util.logger.log(DiagMessage("RTM ERROR","TimeoutError"))
         return util.EXIT_CODES["RTM_TIMEOUT_ERROR"], None
     except:
-        logger.log("RTM ERROR: RTM read failed")
+        util.logger.log(DiagMessage("RTM ERROR","RTM read failed"))
         return util.EXIT_CODES["RTM_GENERIC_ERROR"], None
 #}}}
 
