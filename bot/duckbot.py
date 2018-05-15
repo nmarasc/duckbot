@@ -12,15 +12,14 @@ class Duckbot:
     # Constructor for the bot
     # Params: bot_id       - bot user id, used to detect mentions
     #         bot_channels - dict containing channel ids to channel data
-    #         debug        - bool to display debug messages or not
     # Return: Duckbot instance
-    def __init__(self, bot_id, bot_channels, debug = False):
+    def __init__(self, bot_id, bot_channels):
     #{{{
         # Param fields
         self.id = bot_id
         self.channels = bot_channels
-        self.debug = debug
 
+        self.debug = util.debug
         self.logger = util.logger
         self.bots = {}
         self.ticks = 0
@@ -82,9 +81,7 @@ class Duckbot:
             # Do something sassy with the bot
             if not self.cooldown_g:
                 self.cooldown_g = 120
-                messages = self.bot_handler.act(event)
-                for msg in messages:
-                    util.sendMessage(msg[0], msg[1], msg[2])
+                self.bot_handler.act(event)
             return 0
         #}}}
 

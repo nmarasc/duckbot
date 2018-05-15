@@ -174,10 +174,8 @@ class BotHandler:
     # Return: list of response parameters
     def act(self, event):
     #{{{
-        msgs = []
-        msgs.append([event.channel, "Check this out, kweh :duck:", None])
-        msgs.append([event.channel, "Hello", self.bots[event.user]])
-        return msgs
+        util.sendMessage(event.channel, "Check this out, kweh :duck:")
+        util.sendMessage(event.channel, "Hello", self.bots[event.user])
     #}}}
 
     # Check if bot id is known and add it if not

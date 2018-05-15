@@ -2,6 +2,7 @@
 import re
 import random
 from datetime import datetime
+from diagCodes import DIAG_CODES
 
 # Util constants
 RTM_READ_DELAY = 1
@@ -13,6 +14,7 @@ DEFAULT_FN = "../log.txt"
 EXIT_CODES = {
          "INVALID_BOT_ID"     : 10
         ,"RTM_CONNECT_FAILED" : 11
+        ,"RTM_BAD_CONNECTION" : 12
         ,"RTM_GENERIC_ERROR"  : 20
         ,"RTM_TIMEOUT_ERROR"  : 21
         }
@@ -84,8 +86,9 @@ LABELS = {
 }
 #}}}
 
-# Slackclient and Logger
-global sc, logger
+# Slackclient, Logger instance
+# debug flag
+global sc, logger, debug
 
 # Send message to designated channel, and notify user if present
 # Params: channel - channel id to send message to
@@ -238,13 +241,15 @@ class Logger:
 class DiagMessage:
 #{{{
     # Constructor for diag message
-    # Params: code - diag code for message
-    #         text - message text
+    # Params: code   - diag code for message
+    #         fill   - strings to fill in text
     # Return: DiagMessage instance
-    def __init__(self, code, text):
+    def __init__(self, code, *fill = None):
     #{{{
         self.code = code
-        self.text = text
-        self.msg  = self.code + ": " + self.text
+        self.text = DIAG_CODES[code]
+        self.msg  = self.code + " " + self.text
+        if fill:
+            self.msg += ": " + "- ".join(fill)
     #}}}
 #}}}
