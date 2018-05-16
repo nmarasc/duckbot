@@ -11,6 +11,7 @@ class HelpHandler:
     # Params: bot_id - user id for the bot
     # Return: HelpHandler instance
     def __init__(self, bot_id):
+    #{{{
         self.bot_id = bot_id
         #{{{ - Help messages
         self.help_messages = {
@@ -46,6 +47,7 @@ class HelpHandler:
                 "Can only be used in gambling approved channels :duck:")
         }
         #}}}
+    #}}}
 
     # Retrieve help message based on passed values
     # Params: parms - list of strings to check for help commands
@@ -90,7 +92,7 @@ class RollHandler:
     #}}}
 
     # Parse roll command parms and return values
-    # Params: roll_parms - list of potential
+    # Params: roll_parms - list of roll parameters
     # Return:  0, list of rolls
     #          1, list of stats
     #         -1, None for bad param
@@ -186,7 +188,7 @@ class RollHandler:
 
     # Roll for coin flip
     # Params: None
-    # Return: head or tails
+    # Return: heads or tails
     def coinRoll(self):
     #{{{
         result = util.doRolls(2)[0]
@@ -265,7 +267,7 @@ class GambleHandler:
 
     # Check for required labels and add channel id if good
     # Params: channel_id - channel id to potentially add
-    #         lables - label list to check
+    #         lables     - label list to check
     # Return: None
     def checkChannel(self, channel_id, labels):
     #{{{
@@ -285,7 +287,7 @@ class GambleHandler:
     #}}}
 
     # Add user to bank if not in already
-    # Params: user - user id to check for bank entry
+    # Params: user    - user id to check for bank entry
     #         channel - channel trying to add from
     # Return: Message to send to channel
     def join(self, user, channel):
@@ -304,7 +306,7 @@ class GambleHandler:
     #}}}
 
     # Check a user's bank balance
-    # Params: user - user id requesting balance
+    # Params: user   - user id requesting balance
     #         target - user id to get balance of, default None gets own balance
     # Return: Message contains users balance
     def checkbux(self, user, target = None):
