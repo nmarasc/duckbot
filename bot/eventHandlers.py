@@ -20,8 +20,11 @@ class MessageHandler:
     #{{{
         self.bot_id = bot_id
         self.roll_handler = RollHandler()
+        util.logger.log(DiagMessage("BOT0001I","Roll")) if util.debug else None
         self.help_handler = HelpHandler(bot_id)
+        util.logger.log(DiagMessage("BOT0001I","Help")) if util.debug else None
         self.gamble_handler = GambleHandler(bot_channels)
+        util.logger.log(DiagMessage("BOT0001I","Gamble")) if util.debug else None
     #}}}
 
     # Call handler functions based on extracted command word
@@ -38,19 +41,23 @@ class MessageHandler:
 
         # HI command
         if command == util.COMMANDS["HI"]:
+            util.logger.log(DiagMessage("BOT0020I","HI")) if util.debug else None
             return self.DEFAULT_RESPONSE
 
         # UPDATE command
         elif command == util.COMMANDS["UPDATE"]:
+            util.logger.log(DiagMessage("BOT0020I","UPDATE")) if util.debug else None
             return None
 
         # HELP command
         elif command == util.COMMANDS["HELP"]:
+            util.logger.log(DiagMessage("BOT0020I","HELP")) if util.debug else None
             return self.help_handler.act(u_parms)
 
         # ROLL command
         elif command == util.COMMANDS["ROLL"]:
         #{{{
+            util.logger.log(DiagMessage("BOT0020I","ROLL")) if util.debug else None
             return_code, rolls = self.roll_handler.roll(u_parms)
             # Regular dice roll
             if return_code == 0:
@@ -90,19 +97,23 @@ class MessageHandler:
 
         # COIN command
         elif command == util.COMMANDS["COIN"]:
+            util.logger.log(DiagMessage("BOT0020I","COIN")) if util.debug else None
             return "You got: " + self.roll_handler.coinRoll()
 
         # 8BALL command
         elif command == util.COMMANDS["EIGHTBALL"]:
+            util.logger.log(DiagMessage("BOT0020I","EIGHTBALL")) if util.debug else None
             return self.roll_handler.eightballRoll()
 
         # FACTOID command
         elif command == util.COMMANDS["FACTOID"]:
+            util.logger.log(DiagMessage("BOT0020I","FACTOID")) if util.debug else None
             return self.roll_handler.factoidRoll()
 
         # PICKIT command
         elif command == util.COMMANDS["PICKIT"]:
         #{{{
+            util.logger.log(DiagMessage("BOT0020I","PICKIT")) if util.debug else None
             return_code, response = self.roll_handler.pickitRoll(o_parms)
             # Number of choices out of range
             if return_code == 1:
@@ -117,10 +128,12 @@ class MessageHandler:
 
         # JOIN command
         elif command == util.COMMANDS["JOIN"]:
+            util.logger.log(DiagMessage("BOT0020I","JOIN")) if util.debug else None
             return self.gamble_handler.join(event.user, event.channel)
 
         # CHECKBUX command
         elif command == util.COMMANDS["CHECKBUX"]:
+            util.logger.log(DiagMessage("BOT0020I","CHECKBUX")) if util.debug else None
             return self.gamble_handler.checkbux(event.user)
 
         # No command or unrecognized, either way I don't care
@@ -174,14 +187,14 @@ class BotHandler:
     # Return: list of response parameters
     def act(self, event):
     #{{{
-        util.sendMessage(event.channel, "Check this out, kweh :duck:")
-        util.sendMessage(event.channel, "Hello", self.bots[event.user])
+        if event.user in self.bots:
+            util.sendMessage(event.channel, "Check this out, kweh :duck:")
+            util.sendMessage(event.channel, "Hello", self.bots[event.user])
     #}}}
 
     # Check if bot id is known and add it if not
     # Params: bot_id - bot id to check
-    # Return: True when added
-    #         False otherwise
+    # Return: None
     def checkBotId(self, bot_id):
     #{{{
         # Add the bot to the list if it's not in there
@@ -189,15 +202,12 @@ class BotHandler:
             response = util.sc.api_call("bots.info", token=util.sc.token, bot=bot_id)
             if response["ok"]:
                 self.bots[bot_id] = response["bot"]["user_id"]
-                return True
+                self.logger.log(DiagMessage("BOT0051I")) if util.debug else None
             else:
-                self.logger.log(DiagMessage("API ERROR",
-                    "Bot info request failed"))
-                self.logger.log(DiagMessage(" --  TEXT",
-                    response["error"]))
-                return False
+                self.logger.log(DiagMessage("BOT0040E"))
+                self.logger.log(DiagMessage("BOT0041E", response["error"]))
         else:
-            return False
+            self.logger.log(DiagMessage("BOT0050I")) if util.debug else None
     #}}}
 #}}}
 

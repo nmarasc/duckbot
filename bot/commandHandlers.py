@@ -266,21 +266,22 @@ class GambleHandler:
     # Check for required labels and add channel id if good
     # Params: channel_id - channel id to potentially add
     #         lables - label list to check
-    # Return:  1, if channel added
-    #         -1, if channel removed
-    #          0, if no change
+    # Return: None
     def checkChannel(self, channel_id, labels):
     #{{{
         if (util.LABELS["GAMBLE"] in labels and
             channel_id not in self.approved_channels):
             self.approved_channels.append(channel_id)
-            return 1
+            if util.debug:
+                self.logger.log(DiagMessage("BOT0060I","Added",event.channel["name"]))
         elif (util.LABELS["GAMBLE"] not in labels and
               channel_id in self.approved_channels):
             self.approved_channels.remove(channel_id)
-            return -1
+            if util.debug:
+                self.logger.log(DiagMessage("BOT0060I","Removed",event.channel["name"]))
         else:
-            return 0
+            if util.debug:
+                self.logger.log(DiagMessage("BOT0060I","No change"))
     #}}}
 
     # Add user to bank if not in already

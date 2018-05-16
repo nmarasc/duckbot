@@ -26,8 +26,12 @@ class Duckbot:
         self.cooldown_g = 0
 
         # Create main event handlers
+        self.logger.log(DiagMessage("BOT0000I"))
         self.msg_handler = MessageHandler(bot_id, bot_channels)
+        self.logger.log(DiagMessage("BOT0001I","Message")) if self.debug else None
         self.bot_handler = BotHandler()
+        self.logger.log(DiagMessage("BOT0001I","Bot")) if self.debug else None
+        self.logger.log(DiagMessage("BOT0002I"))
     #}}}
 
     # Handles incoming events, calling event specific handlers as needed
@@ -50,7 +54,7 @@ class Duckbot:
         #{{{
             # Display user and their message
             if event.text:
-                self.logger.log(DiagMessage(event.user,event.text))
+                self.logger.log(DiagMessage("BOT0010U",event.user,event.text))
             response = self.msg_handler.act(event)
 
             # Send message if one was returned
@@ -70,14 +74,7 @@ class Duckbot:
         # Bot message event
         elif event.type == "bot_message":
         #{{{
-            bot_added = self.bot_handler.checkBotId(event.user)
-            if self.debug:
-                if bot_added:
-                    self.logger.log(DiagMessage("BH ADDED ",
-                        "Bot id added to bot hander"))
-                else:
-                    self.logger.log(DiagMessage("BH STATIC",
-                        "Bot id not added to handler"))
+            self.bot_handler.checkBotId(event.user)
             # Do something sassy with the bot
             if not self.cooldown_g:
                 self.cooldown_g = 120
@@ -112,8 +109,7 @@ class Duckbot:
         self.ticks = (self.ticks + 1) % 3600
         # Flush the buffer every hour or so if there aren't enough messages
         if self.ticks % self.logger.LOG_TIME == 0:
-            self.logger.log(DiagMessage("FLUSH    ",
-                "Auto flushing buffer", flush=True))
+            self.logger.log(DiagMessage("LOG0010I"), flush=True)
         # Tick down the global cooldown
         if self.cooldown_g:
             self.cooldown_g -= 1
@@ -130,14 +126,5 @@ class Duckbot:
         event.channel = self.channels[event.channel]
         labels = util.parseLabels(event.channel["purpose"]["value"])
         gamble_handler = self.msg_handler.gamble_handler
-        result = gamble_handler.checkChannel(event.channel["id"], labels)
-        # Print debug message if desired
-        if self.debug:
-            if result == 1:
-                self.logger.log(DiagMessage("GC INSERT",event.channel["name"]))
-            elif result == -1:
-                self.logger.log(DiagMessage("GC REMOVE",event.channel["name"]))
-            elif not result:
-                self.logger.log(DiagMessage("GC STATIC",
-                    "No change to gamble channels made"))
+        gamble_handler.checkChannel(event.channel["id"], labels)
     #}}}

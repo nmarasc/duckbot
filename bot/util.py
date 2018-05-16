@@ -188,8 +188,8 @@ def doRolls(die_size, die_num = 1):
 # Buffers and writes messages to a file
 class Logger:
 #{{{
-    BUFFER_MAX = 5
-    LOG_TIME = 3600 # 60 minutes
+    BUFFER_MAX = 10
+    LOG_TIME = 1800 # 30 minutes
 
     # Constructor for logger class
     # Params: fn  - file name to use or leave default
@@ -201,8 +201,7 @@ class Logger:
         self.fn = fn
         self.log_buffer = []
         if self.keep_log:
-            with open(self.fn,'a') as logfile:
-                logfile.write("Starting new log...\n")
+            self.log(DiagMessage("LOG0000I"))
     #}}}
 
     # Append line to internal log buffer, flush if needed
@@ -212,7 +211,7 @@ class Logger:
     def log(self, diag, flush=False):
     #{{{
         if self.keep_log:
-            self.log_buffer.append(str(datetime.now()) + "- " + diag.msg)
+            self.log_buffer.append(str(datetime.now()) + " - " + diag.msg)
             if len(self.log_buffer) >= self.BUFFER_MAX or flush:
                 self._write()
         elif not flush:
@@ -224,16 +223,17 @@ class Logger:
     # Return: None
     def _write(self):
     #{{{
+        print("Writing log...") if debug else None
         with open(self.fn,'a') as logfile:
             for line in self.log_buffer:
                 try:
                     logfile.write(line)
                 except TypeError:
-                    logfile.write(str(datetime.now())+"- LOG ERR")
+                    logfile.write(str(datetime.now())+" - LOG ERR")
                 except UnicodeEncodeError:
                     logfile.write(str(line.encode("utf-8","replace")))
                 logfile.write("\n")
-            del self.log_buffer[:]
+        del self.log_buffer[:]
     #}}}
 #}}}
 
@@ -244,12 +244,14 @@ class DiagMessage:
     # Params: code   - diag code for message
     #         fill   - strings to fill in text
     # Return: DiagMessage instance
-    def __init__(self, code, *fill = None):
+    def __init__(self, code, *fill):
     #{{{
         self.code = code
         self.text = DIAG_CODES[code]
         self.msg  = self.code + " " + self.text
-        if fill:
-            self.msg += ": " + "- ".join(fill)
+        if fill and self.text:
+            self.msg += ": " + "  - ".join(fill)
+        elif fill and not self.text:
+            self.msg += ": ".join(fill)
     #}}}
 #}}}
