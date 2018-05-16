@@ -1,4 +1,6 @@
+import re
 import util
+from util import DiagMessage
 #{{{ - CommandHandler imports
 from commandHandlers import HelpHandler
 from commandHandlers import RollHandler
@@ -10,17 +12,28 @@ class MessageHandler:
 #{{{
     DEFAULT_RESPONSE = "Kweh! :DUCK:"
 
+    # Constructor for message handler
+    # Params: bot_id       - bot user id
+    #         bot_channels - dict of channel ids to channel data
+    # Return: MessageHandler instance
     def __init__(self, bot_id, bot_channels):
     #{{{
         self.bot_id = bot_id
-        self.rollHandler = RollHandler()
-        self.helpHandler = HelpHandler(bot_id)
-        self.gambleHandler = GambleHandler(bot_channels)
+        self.roll_handler = RollHandler()
+        util.logger.log(DiagMessage("BOT0001I","Roll")) if util.debug else None
+        self.help_handler = HelpHandler(bot_id)
+        util.logger.log(DiagMessage("BOT0001I","Help")) if util.debug else None
+        self.gamble_handler = GambleHandler(bot_channels)
+        util.logger.log(DiagMessage("BOT0001I","Gamble")) if util.debug else None
     #}}}
 
+    # Call handler functions based on extracted command word
+    # Params: event - Event instance with necessary data
+    # Return: string message to send to slack
     def act(self, event):
     #{{{
         u_parms = ""
+        # Split text into command word and params
         command, o_parms = self._getCommand(event.text)
         # Save old params for nicer messages if needed
         if o_parms:
@@ -28,31 +41,40 @@ class MessageHandler:
 
         # HI command
         if command == util.COMMANDS["HI"]:
+            util.logger.log(DiagMessage("BOT0020I","HI")) if util.debug else None
             return self.DEFAULT_RESPONSE
 
         # UPDATE command
         elif command == util.COMMANDS["UPDATE"]:
+            util.logger.log(DiagMessage("BOT0020I","UPDATE")) if util.debug else None
             return None
 
         # HELP command
         elif command == util.COMMANDS["HELP"]:
-            return self.helpHandler.act(u_parms)
+            util.logger.log(DiagMessage("BOT0020I","HELP")) if util.debug else None
+            return self.help_handler.act(u_parms)
 
         # ROLL command
         elif command == util.COMMANDS["ROLL"]:
         #{{{
-            rc, rolls = self.rollHandler.roll(u_parms)
-            if rc == 0:
+            util.logger.log(DiagMessage("BOT0020I","ROLL")) if util.debug else None
+            return_code, rolls = self.roll_handler.roll(u_parms)
+            # Regular dice roll
+            if return_code == 0:
             #{{{
-                add = rolls.pop()
+                # Grab what will be added to the end of the message
+                tail = rolls.pop()
                 output = "You rolled: "
+                # Join all the values if there's more than one
                 if len(rolls) > 1:
-                    output += ", ".join(map(str,rolls)) + "\nYour total: " + str(add)
+                    output += ", ".join(map(str,rolls)) + "\nYour total: " + str(tail)
+                # Otherwise grab the one and slap the tail on
                 else:
-                    output += str(rolls[0]) + " " + add
+                    output += str(rolls[0]) + " " + tail
                 return output
             # }}}
-            elif rc == 1:
+            # Character roll
+            elif return_code == 1:
             #{{{
                 output = ""
                 stats = []
@@ -67,30 +89,38 @@ class MessageHandler:
                 output += "\n\nYour stats are: " + ", ".join(map(str,stats))
                 return output
             #}}}
-            else:
+            elif return_code == -1:
                 return o_parms[0] + " is not a valid roll."
+            else:
+                return "Can't roll without parameters, kweh! :duck:"
         #}}}
 
         # COIN command
         elif command == util.COMMANDS["COIN"]:
-            return "You got: " + self.rollHandler.coinRoll()
+            util.logger.log(DiagMessage("BOT0020I","COIN")) if util.debug else None
+            return "You got: " + self.roll_handler.coinRoll()
 
         # 8BALL command
         elif command == util.COMMANDS["EIGHTBALL"]:
-            return self.rollHandler.eightballRoll()
+            util.logger.log(DiagMessage("BOT0020I","EIGHTBALL")) if util.debug else None
+            return self.roll_handler.eightballRoll()
 
         # FACTOID command
         elif command == util.COMMANDS["FACTOID"]:
-            return self.rollHandler.factoidRoll()
+            util.logger.log(DiagMessage("BOT0020I","FACTOID")) if util.debug else None
+            return self.roll_handler.factoidRoll()
 
         # PICKIT command
         elif command == util.COMMANDS["PICKIT"]:
         #{{{
-            rc, response = self.rollHandler.pickitRoll(o_parms)
-            if rc == 1:
+            util.logger.log(DiagMessage("BOT0020I","PICKIT")) if util.debug else None
+            return_code, response = self.roll_handler.pickitRoll(o_parms)
+            # Number of choices out of range
+            if return_code == 1:
                 return ("Must pick between " + str(min(response)) + " "
                         "and " + str(max(response)) + " things")
-            elif rc == 2:
+            # Parsing error
+            elif return_code == 2:
                 return "Unmatched quotes! Kweh :duck:"
             else:
                 return "I choose: " + response
@@ -98,11 +128,13 @@ class MessageHandler:
 
         # JOIN command
         elif command == util.COMMANDS["JOIN"]:
-            return self.gambleHandler.join(event.user, event.channel)
+            util.logger.log(DiagMessage("BOT0020I","JOIN")) if util.debug else None
+            return self.gamble_handler.join(event.user, event.channel)
 
         # CHECKBUX command
         elif command == util.COMMANDS["CHECKBUX"]:
-            return self.gambleHandler.checkbux(event.user)
+            util.logger.log(DiagMessage("BOT0020I","CHECKBUX")) if util.debug else None
+            return self.gamble_handler.checkbux(event.user)
 
         # No command or unrecognized, either way I don't care
         else:
@@ -110,6 +142,8 @@ class MessageHandler:
     #}}}
 
     # Parse message for mention, command, and parms
+    # Params: text - message text to parse
+    # Return: command word and params or None,None if no command
     def _getCommand(self, text):
     #{{{
         # Message event with no text? Don't even know if it's possible
@@ -117,13 +151,14 @@ class MessageHandler:
         if not text:
             return None, None
 
-        text_arr = text.split(" ")
-        temp = text_arr.pop(0).upper()
-        _, id_str = util.matchUserId(temp)
+        # Break up the text and try to match the trigger with the bot_id
+        text_arr = re.split(r'\s+',text.strip())
+        trigger = text_arr.pop(0).upper()
+        _, id_str = util.matchUserId(trigger)
 
-        # Check for mention
+        # Check for mention from id or trigger, then get command
         if ((id_str == self.bot_id) or
-           (temp   == ":DUCKBOT:")) and text_arr:
+           (trigger   == ":DUCKBOT:")) and text_arr:
             c_word = text_arr.pop(0).upper()
             command = util.COMMANDS.get(c_word,0)
             command = util.COMMANDS_ALT.get(c_word,0) if not command else command
@@ -135,73 +170,132 @@ class MessageHandler:
     #}}}
 #}}}
 
+# Bot handler class
+class BotHandler:
+#{{{
+    # Constructor for bot handler
+    # Params: None
+    # Return: BotHandler instance
+    def __init__(self):
+    #{{{
+        self.logger = util.logger
+        self.bots   = {}
+    #}}}
+
+    # Handle bot interaction
+    # Params: event - bot message event
+    # Return: list of response parameters
+    def act(self, event):
+    #{{{
+        if event.user in self.bots:
+            util.sendMessage(event.channel, "Check this out, kweh :duck:")
+            util.sendMessage(event.channel, "Hello", self.bots[event.user])
+    #}}}
+
+    # Check if bot id is known and add it if not
+    # Params: bot_id - bot id to check
+    # Return: None
+    def checkBotId(self, bot_id):
+    #{{{
+        # Add the bot to the list if it's not in there
+        if bot_id not in self.bots:
+            response = util.sc.api_call("bots.info", token=util.sc.token, bot=bot_id)
+            if response["ok"]:
+                self.bots[bot_id] = response["bot"]["user_id"]
+                self.logger.log(DiagMessage("BOT0051I")) if util.debug else None
+            else:
+                self.logger.log(DiagMessage("BOT0040E"))
+                self.logger.log(DiagMessage("BOT0041E", response["error"]))
+        else:
+            self.logger.log(DiagMessage("BOT0050I")) if util.debug else None
+    #}}}
+#}}}
+
 # Event class
-# Standardize event information, hopefully
-# Might be a bad idea now that I think about it
-# I'll see if this affects performance much
+# This may affect response time negatively, see how it goes
 class Event:
 #{{{
-    def __init__(self, event):
+    # Constructor for Event
+    # Params: event_p - incoming slack event to parse
+    # Return: Event instance
+    def __init__(self, event_p):
     #{{{
-        if "type" in event:
-            self.type = event["type"]
+        if "type" in event_p:
+            self.type = event_p["type"]
         else:
             self.type = None
 
+        # Call the parser based on the event type
         if self.type in EVENT_PARSERS:
-            EVENT_PARSERS[self.type](self, event)
+            EVENT_PARSERS[self.type](self, event_p)
     #}}}
 
-    def parseMessageEvent(event, old):
+    # Parser for message type events
+    # Params: event_new - Event instance to add field data to
+    #         event_old - slack event to extract data from
+    # Return: None
+    def parseMessageEvent(event_new, event_old):
     #{{{
-        event.channel = old["channel"]
-        if "subtype" not in old:
-            event.user = old["user"]
-            event.text = old["text"]
-            event.ts   = old["ts"]
-        elif old["subtype"] == "message_changed":
-            event.user = old["message"]["user"]
-            event.text = old["message"]["text"]
-            event.ts   = old["message"]["ts"]
-        elif old["subtype"] == "channel_purpose":
-            event.user = old["user"]
-            event.text = old["purpose"]
-            event.ts   = old["ts"]
-            event.type = "update"
-            event.subtype = "channel_purpose"
-        elif old["subtype"] == "bot_message":
-            event.type = "bot_message"
-            event.text = old["text"]
-            event.user = old["bot_id"]
-            event.name = old["username"]
-            event.ts   = old["ts"]
+        event_new.channel = event_old["channel"]
+        if "subtype" not in event_old:
+            event_new.user = event_old["user"]
+            event_new.text = event_old["text"]
+            event_new.ts   = event_old["ts"]
+        elif event_old["subtype"] == "message_changed":
+            event_new.user = event_old["message"]["user"]
+            event_new.text = event_old["message"]["text"]
+            event_new.ts   = event_old["message"]["ts"]
+        elif event_old["subtype"] == "channel_purpose":
+            event_new.user = event_old["user"]
+            event_new.text = event_old["purpose"]
+            event_new.ts   = event_old["ts"]
+            event_new.type = "update"
+            event_new.subtype = "channel_purpose"
+        elif event_old["subtype"] == "bot_message":
+            event_new.type = "bot_message"
+            event_new.text = event_old["text"]
+            event_new.user = event_old["bot_id"]
+            event_new.name = event_old["username"]
+            event_new.ts   = event_old["ts"]
     #}}}
 
-    def parseReactionAddedEvent(event, old):
+    # Parser for reaction added events
+    # Params: event_new - Event instance to add field data to
+    #         event_old - slack event to extract data from
+    # Return: None
+    def parseReactionAddedEvent(event_new, event_old):
     #{{{
-        event.user     = old["user"]
-        event.reaction = {
-             "emoji" : old["reaction"]
-            ,"type"  : old["item"]["type"]
+        event_new.user     = event_old["user"]
+        event_new.reaction = {
+             "emoji" : event_old["reaction"]
+            ,"type"  : event_old["item"]["type"]
         }
-        if event.reaction["type"] == "message":
-            event.channel = old["item"]["channel"]
-            event.ts      = old["item"]["ts"]
+        if event_new.reaction["type"] == "message":
+            event_new.channel = event_old["item"]["channel"]
+            event_new.ts      = event_old["item"]["ts"]
 
-        elif (event.reaction["type"] == "file" or
-              event.reaction["type"] == "file_comment"):
-            event.file = old["item"]["file"]
+        elif (event_new.reaction["type"] == "file" or
+              event_new.reaction["type"] == "file_comment"):
+            event_new.file = event_old["item"]["file"]
     #}}}
 
-    def parseTeamJoinEvent(event, old):
-        event.user = old["user"]["id"]
+    # Parser for team join events
+    # Params: event_new - Event instance to add field data to
+    #         event_old - slack event to extract data from
+    # Return: None
+    def parseTeamJoinEvent(event_new, event_old):
+        event_new.user = event_old["user"]["id"]
 
-    def parseChannelJoinedEvent(event, old):
+    # Parser for channel joined events
+    # Params: event_new - Event instance to add field data to
+    #         event_old - slack event to extract data from
+    # Return: None
+    def parseChannelJoinedEvent(event_new, event_old):
     #{{{
-        event.type    = "update"
-        event.subtype = "channel_joined"
-        event.channel = old["channel"]["id"]
-        event.ch_data = old["channel"]
+        event_new.type    = "update"
+        event_new.subtype = "channel_joined"
+        event_new.channel = event_old["channel"]["id"]
+        event_new.channel_data = event_old["channel"]
     #}}}
 #}}}
 

@@ -1,8 +1,11 @@
+# Python imports
 import re
 import random
 from datetime import datetime
+from diagCodes import DIAG_CODES
 
-DEBUG = False
+# Util constants
+RTM_READ_DELAY = 1
 USER_REGEX = "<@(U[A-Z0-9]{8})>$"
 LABEL_REGEX = "\[:LABEL:(:.+:)+\]"
 EMOJI_REGEX = ":.+?:"
@@ -11,6 +14,7 @@ DEFAULT_FN = "../log.txt"
 EXIT_CODES = {
          "INVALID_BOT_ID"     : 10
         ,"RTM_CONNECT_FAILED" : 11
+        ,"RTM_BAD_CONNECTION" : 12
         ,"RTM_GENERIC_ERROR"  : 20
         ,"RTM_TIMEOUT_ERROR"  : 21
         }
@@ -82,41 +86,62 @@ LABELS = {
 }
 #}}}
 
-# matchUserId:
-# Returns True if id is valid and matching id, False otherwise
+# Slackclient, Logger instance
+# debug flag
+global sc, logger, debug
+
+# Send message to designated channel, and notify user if present
+# Params: channel - channel id to send message to
+#         message - string message to send
+#         user    - user id to notify, not required
+# Return: None
+def sendMessage(channel, message, user = None):
+#{{{
+    # Prepend user notification if specified
+    if user:
+        message = "<@" + user + "> " + message
+    sc.rtm_send_message(channel, message)
+#}}}
+
+# Search for a user id in a string
+# Params: id_str - string to search for id
+# Return: True and matching user id if found
+#         False and None otherwise
 def matchUserId(id_str):
 #{{{
     matches = re.search(USER_REGEX,id_str)
     return (True, matches.group(1)) if matches else (False, None)
 #}}}
 
-# getBotInfo:
-# Obtain bot id, workspace channels and which bot is a member of
-def getBotInfo(sc, bot_token):
+# Obtain bot id and workspace channels
+# Params: sc        - slackclient instance to make api calls
+#         bot_token - connection token for the bot
+# Return: bot user id and channel dict
+def getBotInfo(bot_token):
 #{{{
     bot_id = sc.api_call("auth.test")["user_id"]
-    channels = getChannelData(sc, bot_token)
+    channels = getChannelData(bot_token)
     return bot_id, channels
 #}}}
 
-# getChannelData:
 # Request channel list and build channel map
-def getChannelData(sc, bot_token):
+# Params: sc        - slackclient instance to make api calls
+#         bot_token - connection token for the bot
+# Return: dict of channel ids to channel data
+def getChannelData(bot_token):
 #{{{
     channels = {}
-    channels["memberOf"] = []
     response = sc.api_call("channels.list", token=bot_token, exclude_members=True)
     for channel in response["channels"]:
-        if channel["is_member"]:
-            channels["memberOf"].append(channel["id"])
-            print("Member of: " + channel["name"])
         channels[channel["id"]] = channel
         channels[channel["id"]]["labels"] = parseLabels(channel["purpose"]["value"])
     return channels
 #}}}
 
-# updateChannels:
-# Make changes to channels list
+# Make changes to channels list based on event data
+# Params: channels - dict of channels to update
+#         event    - event to update from
+# Return: updated channel dict
 def updateChannels(channels, event):
 #{{{
     channel = event.channel
@@ -124,12 +149,14 @@ def updateChannels(channels, event):
         channels[channel]["purpose"]["value"] = event.text
     elif event.subtype == 'channel_joined':
         if channel not in channels:
-            channels[channel] = event.ch_data
+            channels[channel] = event.channel_data
         channels["memberOf"].append(channel)
     return channels
 #}}}
 
-# parseLabels:
+# Split text into a list of labels
+# Params: text - string to split up
+# Return: list of labels
 def parseLabels(text):
 #{{{
     labels = []
@@ -145,8 +172,10 @@ def parseLabels(text):
     return labels
 #}}}
 
-# doRolls:
 # Rolls randomly with the parameters given and returns numbers in a list
+# Params: die_size - number of sides on the dice rolling
+#         die_num  - number of times to roll the dice
+# Return: list of rolls
 def doRolls(die_size, die_num = 1):
 #{{{
     rolls = []
@@ -159,45 +188,70 @@ def doRolls(die_size, die_num = 1):
 # Buffers and writes messages to a file
 class Logger:
 #{{{
-    # Initialize Logger with output file name or use default
+    BUFFER_MAX = 10
+    LOG_TIME = 1800 # 30 minutes
+
+    # Constructor for logger class
+    # Params: fn  - file name to use or leave default
+    #         log - flag to keep a log file or not
+    # Return: Logger instance
     def __init__(self, fn = DEFAULT_FN, log = True):
     #{{{
-        self.BUFFER_MAX = 5
-        self.LOG_TIME = 3600 # 60 minutes
-        self._log = log
+        self.keep_log = log
         self.fn = fn
         self.log_buffer = []
-        if self._log:
-            with open(self.fn,'w') as logfile:
-                logfile.write("Starting new log file...\n")
-        self.last_log = datetime.now()
+        if self.keep_log:
+            self.log(DiagMessage("LOG0000I"))
     #}}}
 
     # Append line to internal log buffer, flush if needed
-    def log(self, text, flush=False):
+    # Params: diag  - DiagMessage to log
+    #         flush - bool flag for flushing buffer early
+    # Return: None
+    def log(self, diag, flush=False):
     #{{{
-        if self._log:
-            self.log_buffer.append(str(datetime.now()) + ": " + text)
-            timeDiff = (datetime.now() - self.last_log)
+        if self.keep_log:
+            self.log_buffer.append(str(datetime.now()) + " - " + diag.msg)
             if len(self.log_buffer) >= self.BUFFER_MAX or flush:
                 self._write()
-                self.last_log = datetime.now()
         elif not flush:
-            print(text)
+            print(diag.msg)
     #}}}
 
-    # Write contents of buffer out to file with timestamp
+    # Write contents of buffer out to file
+    # Params: None
+    # Return: None
     def _write(self):
     #{{{
+        print("Writing log...") if debug else None
         with open(self.fn,'a') as logfile:
             for line in self.log_buffer:
                 try:
                     logfile.write(line)
                 except TypeError:
-                    logfile.write(str(datetime.now())+": LOG ERR")
+                    logfile.write(str(datetime.now())+" - LOG ERR")
                 except UnicodeEncodeError:
                     logfile.write(str(line.encode("utf-8","replace")))
                 logfile.write("\n")
-            del self.log_buffer[:]
+        del self.log_buffer[:]
+    #}}}
+#}}}
+
+# Diag Message class
+class DiagMessage:
+#{{{
+    # Constructor for diag message
+    # Params: code   - diag code for message
+    #         fill   - strings to fill in text
+    # Return: DiagMessage instance
+    def __init__(self, code, *fill):
+    #{{{
+        self.code = code
+        self.text = DIAG_CODES[code]
+        self.msg  = self.code + " " + self.text
+        if fill and self.text:
+            self.msg += ": " + "  - ".join(fill)
+        elif fill and not self.text:
+            self.msg += ": ".join(fill)
     #}}}
 #}}}
