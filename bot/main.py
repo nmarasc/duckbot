@@ -157,7 +157,10 @@ def doRead():
     except TimeoutError:
         util.logger.log(DiagMessage("BOT0031E"))
         return util.EXIT_CODES["RTM_TIMEOUT_ERROR"], None
-    except:
+
+    except _ as err:
+        print("Error: RTM read failed")
+        print(err,file=sys.stderr)
         util.logger.log(DiagMessage("BOT0030E"))
         return util.EXIT_CODES["RTM_GENERIC_ERROR"], None
 #}}}
