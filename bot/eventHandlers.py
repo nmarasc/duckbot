@@ -137,6 +137,11 @@ class MessageHandler:
             target = u_parms[0] if u_parms else None
             return self.gamble_handler.checkbux(event.user, target)
 
+        # BET command
+        elif command == util.COMMANDS["BET"]:
+            util.logger.log(DiagMessage("BOT0020D","BET")) if util.debug else None
+            return self.gamble_handler.bet(event.user, event.channel, o_parms)
+
         # No command or unrecognized, either way I don't care
         else:
             return ""

@@ -249,6 +249,9 @@ class GambleHandler:
         "channels with the :slot_machine: label :duck:")
     CURRENCY = "duckbux"
     STARTING_BUX = 100
+    GAMES = [
+         "COIN"
+    ]
 
     # Constructor for gamble handler
     # Params: channels - list of channels to check for approved labels
@@ -321,18 +324,99 @@ class GambleHandler:
     # Return: Message contains users balance
     def checkbux(self, user, target = None):
     #{{{
+        # There's text to check for a target
         if target:
             valid, target = util.matchUserId(target)
+            # User and in the bank
             if valid and target in self.bank:
                 return ("<@" + target + "> currently has"
                         " " + str(self.bank[target]["bux"]) + " " + self.CURRENCY)
+            # User not in the bank
             elif valid:
                 return "<@" + target + "> is not currently registered for this bank :duck:"
 
+        # Either there was no text for a target or the text wasn't a user
+        # User in the bank
         if user in self.bank:
             return ("You currently have"
                     " " + str(self.bank[user]["bux"]) + " " + self.CURRENCY)
+        # Or not
         else:
             return "You are not currently registered for this bank :duck:"
     #}}}
+
+    # Bet bucks on a game to win more
+    # Params: user    - user id of player
+    #         channel - channel id playing from
+    #         bet_ops - bet options (amount, game, game_ops)
+    # Return: Message containing results
+    def bet(self, user, channel, bet_ops):
+    #{{{
+        # See if betting even allowed
+        return_code = canGamble(user, channel)
+        # RC=2 and RC=3 imply bad channel
+        if return_code > 1:
+            return self.BAD_CHANNEL_MSG
+        # RC=1 is just not a member
+        elif return_code == 1:
+            return ("You are not a member of the bank.\n"
+                    "Please use the JOIN command to use gambling features :duck:")
+        # Otherwise RC=0 and good to go
+        # Check parameters
+        return_code, bet_ops = parseBetOps(bet_ops)
+        # RC=1, missing parameters
+        if return_code == 1:
+            return ("Missing required parameters for BET command.\n"
+                   "Please use HELP BET for what is needed :duck:")
+        # RC=2, bad bet amount
+        elif return_code == 2:
+            return ("Invalid betting amount: " + bet_ops[0])
+        # RC=3, bad game type
+        elif return_code == 3:
+            return ("Invalid game type: " + bet_ops[0])
+
+        # Start the bet, check amount
+
+    #}}}
+
+    # Check if user and channel are appropriate for gambling
+    # Params: user    - user id to check for bank entry
+    #         channel - channel id to check for approval
+    # Return: int value based on failures
+    def canGamble(self, user, channel = None):
+    #{{{
+        return_code = 0
+        if user not in self.bank:
+            return_code += 1
+        if channel and channel not in self.approved_channels:
+            return_code += 2
+        return return_code
+    #}}}
+
+    # Parse needed values out of bet options
+    # Params: bet_ops - list of options to parse out
+    # Return: return code and converted bet_ops list
+    def parseBetOps(self, bet_ops):
+    #{{{
+        # Check for missing options
+        if len(bet_ops) < 3:
+            return 1, None
+        # Grab the options
+        u_ops = [x.upper() for x in bet_ops]
+        bet_amount, game, *game_ops = u_ops
+        # Check bet amount
+        try:
+            bet_amount = int(bet_amount)
+        except ValueError:
+            bet_amount = util.EMOJI_ROLLS.get(bet_amount,-1)
+        if bet_amount < 1:
+            return 2, bet_ops[0]
+        # Check game
+        if game not in self.GAMES:
+            return 3, bet_ops[1]
+        # Return everything
+        return 0, [bet_amount, game, game_ops]
+    #}}}
+
+
 #}}}

@@ -47,6 +47,7 @@ COMMANDS = {
     'PICKIT'    :  8,
     'JOIN'      :  9,
     'CHECKBUX'  : 10,
+    'BET'       : 11,
            }
 COMMANDS_ALT = {
     'HELLO'      : 1, 'KWEH'       : 1,
