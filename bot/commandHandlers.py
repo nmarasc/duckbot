@@ -1,7 +1,9 @@
 # Python imports
 import re
-import util
 import shlex
+# Project imports
+import util
+from util import DiagMessage
 
 # Help handler class
 class HelpHandler:
@@ -249,6 +251,7 @@ class GambleHandler:
     # Return: GambleHandler instance with approved channels added
     def __init__(self, channels):
     #{{{
+        self.logger = util.logger
         self.approved_channels = self.getApproved(channels)
         self.bank = {}
     #}}}
@@ -266,24 +269,26 @@ class GambleHandler:
     #}}}
 
     # Check for required labels and add channel id if good
-    # Params: channel_id - channel id to potentially add
-    #         lables     - label list to check
+    # Params: channel - channel to potentially add
+    #         lables  - label list to check
     # Return: None
-    def checkChannel(self, channel_id, labels):
+    def checkChannel(self, channel, labels):
     #{{{
+        channel_id   = channel["id"]
+        channel_name = channel["name"]
         if (util.LABELS["GAMBLE"] in labels and
             channel_id not in self.approved_channels):
             self.approved_channels.append(channel_id)
             if util.debug:
-                self.logger.log(DiagMessage("BOT0060I","Added",event.channel["name"]))
+                self.logger.log(DiagMessage("BOT0060D","Added",channel_name))
         elif (util.LABELS["GAMBLE"] not in labels and
               channel_id in self.approved_channels):
             self.approved_channels.remove(channel_id)
             if util.debug:
-                self.logger.log(DiagMessage("BOT0060I","Removed",event.channel["name"]))
+                self.logger.log(DiagMessage("BOT0060D","Removed",channel_name))
         else:
             if util.debug:
-                self.logger.log(DiagMessage("BOT0060I","No change"))
+                self.logger.log(DiagMessage("BOT0060D","No change"))
     #}}}
 
     # Add user to bank if not in already
@@ -307,21 +312,23 @@ class GambleHandler:
 
     # Check a user's bank balance
     # Params: user   - user id requesting balance
-    #         target - user id to get balance of, default None gets own balance
+    #         target - (maybe) user id str to get balance of
+    #                  default None gets user balance
     # Return: Message contains users balance
     def checkbux(self, user, target = None):
     #{{{
-        if not target:
-            if user not in self.bank:
-                return "You are not currently registered for this bank :duck:"
-            else:
-                return ("You currently have"
-                        " " + str(self.bank[user]["bux"]) + " " + self.CURRENCY)
-        else:
-            if target not in self.bank:
-                return "<@" + target + "> is not currently registered for this bank :duck:"
-            else:
+        if target:
+            valid, target = util.matchUserId(target)
+            if valid and target in self.bank:
                 return ("<@" + target + "> currently has"
                         " " + str(self.bank[target]["bux"]) + " " + self.CURRENCY)
+            elif valid:
+                return "<@" + target + "> is not currently registered for this bank :duck:"
+
+        if user in self.bank:
+            return ("You currently have"
+                    " " + str(self.bank[user]["bux"]) + " " + self.CURRENCY)
+        else:
+            return "You are not currently registered for this bank :duck:"
     #}}}
 #}}}

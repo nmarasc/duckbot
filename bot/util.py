@@ -150,7 +150,6 @@ def updateChannels(channels, event):
     elif event.subtype == 'channel_joined':
         if channel not in channels:
             channels[channel] = event.channel_data
-        channels["memberOf"].append(channel)
     return channels
 #}}}
 
