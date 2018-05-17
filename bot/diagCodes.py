@@ -74,7 +74,7 @@ DIAG_CODES = {
     # Starting bot initialization
     ,"BOT0000I" : "Initializing bot handlers..."
     # Handler
-    ,"BOT000DI" : "Handler created"
+    ,"BOT0001D" : "Handler created"
     # Initialized
     ,"BOT0002I" : "Duckbot initialization complete"
     # User message

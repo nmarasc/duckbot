@@ -249,7 +249,7 @@ class DiagMessage:
         self.text = DIAG_CODES[code]
         self.msg  = self.code + " " + self.text
         if fill and self.text:
-            self.msg += ": " + "  - ".join(fill)
+            self.msg += ": " + " - ".join(fill)
         elif fill and not self.text:
             self.msg += ": ".join(fill)
     #}}}

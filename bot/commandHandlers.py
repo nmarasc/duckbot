@@ -280,12 +280,12 @@ class GambleHandler:
             channel_id not in self.approved_channels):
             self.approved_channels.append(channel_id)
             if util.debug:
-                self.logger.log(DiagMessage("BOT0060D","Added",channel_name))
+                self.logger.log(DiagMessage("BOT0060D","Added","#"+channel_name))
         elif (util.LABELS["GAMBLE"] not in labels and
               channel_id in self.approved_channels):
             self.approved_channels.remove(channel_id)
             if util.debug:
-                self.logger.log(DiagMessage("BOT0060D","Removed",channel_name))
+                self.logger.log(DiagMessage("BOT0060D","Removed","#"+channel_name))
         else:
             if util.debug:
                 self.logger.log(DiagMessage("BOT0060D","No change"))
