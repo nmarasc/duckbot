@@ -47,6 +47,10 @@ class HelpHandler:
                 ("Add yourself to the gambler's bank\n"
                 "Usage: <@" + bot_id + "> JOIN\n"
                 "Can only be used in gambling approved channels :duck:")
+            ,util.COMMANDS["CHECKBUX"] :\
+                ("Check bank balance of yourself or others\n"
+                "Usage: <@" + bot_id + "> CHECKBUX [target]\n"
+                "No target defaults to yourself :duck:")
         }
         #}}}
     #}}}
