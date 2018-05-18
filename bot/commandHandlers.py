@@ -4,6 +4,7 @@ import shlex
 # Project imports
 import util
 from util import DiagMessage
+from gameHandlers import coinGame
 
 # Help handler class
 class HelpHandler:
@@ -249,9 +250,9 @@ class GambleHandler:
         "channels with the :slot_machine: label :duck:")
     CURRENCY = "duckbux"
     STARTING_BUX = 100
-    GAMES = [
-         "COIN"
-    ]
+    GAMES = {
+         "COIN" : coinGame
+    }
 
     # Constructor for gamble handler
     # Params: channels - list of channels to check for approved labels
@@ -311,7 +312,7 @@ class GambleHandler:
                     "\n" + self.checkbux(user))
         else:
             self.bank[user] = {
-                 "bux" : self.STARTING_BUX
+                 "balance" : self.STARTING_BUX
             }
             return ("You have been added to the bank :duck:"
                     "\n" + self.checkbux(user))
@@ -330,7 +331,7 @@ class GambleHandler:
             # User and in the bank
             if valid and target in self.bank:
                 return ("<@" + target + "> currently has"
-                        " " + str(self.bank[target]["bux"]) + " " + self.CURRENCY)
+                        " " + str(self.bank[target]["balance"]) + " " + self.CURRENCY)
             # User not in the bank
             elif valid:
                 return "<@" + target + "> is not currently registered for this bank :duck:"
@@ -339,7 +340,7 @@ class GambleHandler:
         # User in the bank
         if user in self.bank:
             return ("You currently have"
-                    " " + str(self.bank[user]["bux"]) + " " + self.CURRENCY)
+                    " " + str(self.bank[user]["balance"]) + " " + self.CURRENCY)
         # Or not
         else:
             return "You are not currently registered for this bank :duck:"
@@ -353,7 +354,7 @@ class GambleHandler:
     def bet(self, user, channel, bet_ops):
     #{{{
         # See if betting even allowed
-        return_code = canGamble(user, channel)
+        return_code = self.canGamble(user, channel)
         # RC=2 and RC=3 imply bad channel
         if return_code > 1:
             return self.BAD_CHANNEL_MSG
@@ -361,22 +362,42 @@ class GambleHandler:
         elif return_code == 1:
             return ("You are not a member of the bank.\n"
                     "Please use the JOIN command to use gambling features :duck:")
-        # Otherwise RC=0 and good to go
+
         # Check parameters
-        return_code, bet_ops = parseBetOps(bet_ops)
+        return_code, bet_ops = self.parseBetOps(bet_ops)
         # RC=1, missing parameters
         if return_code == 1:
             return ("Missing required parameters for BET command.\n"
                    "Please use HELP BET for what is needed :duck:")
         # RC=2, bad bet amount
         elif return_code == 2:
-            return ("Invalid betting amount: " + bet_ops[0])
+            return ("Invalid betting amount: " + bet_ops)
         # RC=3, bad game type
         elif return_code == 3:
-            return ("Invalid game type: " + bet_ops[0])
+            return ("Invalid game type: " + bet_ops)
 
-        # Start the bet, check amount
+        amount, game, game_ops = bet_ops
+        # Check bank balance
+        if self.bank[user]["balance"] < amount:
+            return ("Your balance is too low to make this bet"
+                   "\n" + self.checkbux(user))
 
+        return_code, response = self.GAMES[game](game_ops)
+        # Lost
+        if return_code == 0:
+            self.bank[user]["balance"] -= amount
+            return (response + "\nYou lost! You're down"
+                   " " + str(amount) + " " + self.CURRENCY + " "
+                   "\n" + self.checkbux(user))
+        # Won
+        elif return_code == 1:
+            self.bank[user]["balance"] += amount
+            return (response + "\nYou won! You've gained"
+                   " " + str(2*amount) + " " + self.CURRENCY + " "
+                   "\n" + self.checkbux(user))
+        # Option error
+        else:
+            return "Game option error: " + response
     #}}}
 
     # Check if user and channel are appropriate for gambling
@@ -399,7 +420,7 @@ class GambleHandler:
     def parseBetOps(self, bet_ops):
     #{{{
         # Check for missing options
-        if len(bet_ops) < 3:
+        if len(bet_ops) < 2:
             return 1, None
         # Grab the options
         u_ops = [x.upper() for x in bet_ops]
@@ -417,6 +438,5 @@ class GambleHandler:
         # Return everything
         return 0, [bet_amount, game, game_ops]
     #}}}
-
 
 #}}}
