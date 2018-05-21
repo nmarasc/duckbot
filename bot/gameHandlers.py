@@ -1,11 +1,13 @@
 import util
 
+#{{{ - Coin options
 COIN_OP = util.bidict({
      "HEADS" : 1
     ,"TAILS" : 2
     ,"H"     : 1
     ,"T"     : 2
 })
+#}}}
 
 # Play the coin game
 # Params: game_ops
@@ -28,4 +30,10 @@ def coinGame(game_ops):
         return 1, response
     else:
         return 0, response
+#}}}
+
+#{{{ - Games
+GAMES = {
+     "COIN" : coinGame
+}
 #}}}

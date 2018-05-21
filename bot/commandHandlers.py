@@ -4,7 +4,7 @@ import shlex
 # Project imports
 import util
 from util import DiagMessage
-from gameHandlers import coinGame
+from gameHandlers import *
 
 # Help handler class
 class HelpHandler:
@@ -30,7 +30,7 @@ class HelpHandler:
             ,util.COMMANDS["ROLL"] :\
                 ("Rolls dice based on parameters given\n"
                 "Usage: <@" + bot_id + "> ROLL ( [d]X | YdX )\n"
-                "Where X is the size of the die and Y is the number of them")
+                "Where X is the number of faces and Y is the number of dice")
             ,util.COMMANDS["COIN"] :\
                 ("Flip a coin\n"
                 "Usage: <@" + bot_id + "> COIN")
@@ -52,6 +52,18 @@ class HelpHandler:
                 ("Check bank balance of yourself or others\n"
                 "Usage: <@" + bot_id + "> CHECKBUX [target]\n"
                 "No target defaults to yourself :duck:")
+            ,util.COMMANDS["BET"] :\
+                ("Bet on a game with bank balance to win big\n"
+                "Usage: <@" + bot_id + "> BET <amount> <game> <game-options>\n"
+                "List of currently supported games: " + ", ".join(GAMES) + "\n"
+                "Use HELP BET <game> for details on options")
+        }
+        #}}}
+        #{{{ - Game help messages
+        self.game_help_messages = {
+             GAMES["COIN"] :\
+                ("Flip a coin and call it\n"
+                "Usage options: COIN ( H[EADS] | T[AILS] )")
         }
         #}}}
     #}}}
@@ -64,9 +76,15 @@ class HelpHandler:
         if parms:
             command = util.COMMANDS.get(parms[0],0)
             command = util.COMMANDS_ALT.get(parms[0],0) if not command else command
-            response = self.help_messages.get(command,
+            if command == util.COMMANDS["BET"] and len(parms) > 1:
+                subcommand = GAMES.get(parms[1],0)
+                response = self.game_help_messages.get(subcommand,
+                    parms[1] + " is not a recognized game")
+                return response
+            else:
+                response = self.help_messages.get(command,
                     parms[0] + " is not a recognized command")
-            return response
+                return response
         else:
             return ("Duckbot is a general purpose slackbot for doing various things\n"
                     "To interact with it use <@" + self.bot_id + "> <command>\n"
@@ -250,15 +268,13 @@ class GambleHandler:
         "channels with the :slot_machine: label :duck:")
     CURRENCY = "duckbux"
     STARTING_BUX = 100
-    GAMES = {
-         "COIN" : coinGame
-    }
 
     # Constructor for gamble handler
     # Params: channels - list of channels to check for approved labels
     # Return: GambleHandler instance with approved channels added
     def __init__(self, channels):
     #{{{
+        self.GAMES = GAMES
         self.logger = util.logger
         self.approved_channels = self.getApproved(channels)
         self.bank = {}
