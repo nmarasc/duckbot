@@ -64,6 +64,9 @@ class HelpHandler:
              GAMES["COIN"] :\
                 ("Flip a coin and call it\n"
                 "Usage options: COIN ( H[EADS] | T[AILS] )")
+            ,GAMES["DICE"] :\
+                ("Roll the dice and guess even or odd\n"
+                "Usage options: DICE ( E[VENS] | O[DDS] )")
         }
         #}}}
     #}}}
