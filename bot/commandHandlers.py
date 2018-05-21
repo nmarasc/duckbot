@@ -1,7 +1,10 @@
 # Python imports
 import re
-import util
 import shlex
+# Project imports
+import util
+from util import DiagMessage
+from gameHandlers import *
 
 # Help handler class
 class HelpHandler:
@@ -27,7 +30,7 @@ class HelpHandler:
             ,util.COMMANDS["ROLL"] :\
                 ("Rolls dice based on parameters given\n"
                 "Usage: <@" + bot_id + "> ROLL ( [d]X | YdX )\n"
-                "Where X is the size of the die and Y is the number of them")
+                "Where X is the number of faces and Y is the number of dice")
             ,util.COMMANDS["COIN"] :\
                 ("Flip a coin\n"
                 "Usage: <@" + bot_id + "> COIN")
@@ -45,6 +48,22 @@ class HelpHandler:
                 ("Add yourself to the gambler's bank\n"
                 "Usage: <@" + bot_id + "> JOIN\n"
                 "Can only be used in gambling approved channels :duck:")
+            ,util.COMMANDS["CHECKBUX"] :\
+                ("Check bank balance of yourself or others\n"
+                "Usage: <@" + bot_id + "> CHECKBUX [target]\n"
+                "No target defaults to yourself :duck:")
+            ,util.COMMANDS["BET"] :\
+                ("Bet on a game with bank balance to win big\n"
+                "Usage: <@" + bot_id + "> BET <amount> <game> <game-options>\n"
+                "List of currently supported games: " + ", ".join(GAMES) + "\n"
+                "Use HELP BET <game> for details on options")
+        }
+        #}}}
+        #{{{ - Game help messages
+        self.game_help_messages = {
+             GAMES["COIN"] :\
+                ("Flip a coin and call it\n"
+                "Usage options: COIN ( H[EADS] | T[AILS] )")
         }
         #}}}
     #}}}
@@ -57,9 +76,15 @@ class HelpHandler:
         if parms:
             command = util.COMMANDS.get(parms[0],0)
             command = util.COMMANDS_ALT.get(parms[0],0) if not command else command
-            response = self.help_messages.get(command,
+            if command == util.COMMANDS["BET"] and len(parms) > 1:
+                subcommand = GAMES.get(parms[1],0)
+                response = self.game_help_messages.get(subcommand,
+                    parms[1] + " is not a recognized game")
+                return response
+            else:
+                response = self.help_messages.get(command,
                     parms[0] + " is not a recognized command")
-            return response
+                return response
         else:
             return ("Duckbot is a general purpose slackbot for doing various things\n"
                     "To interact with it use <@" + self.bot_id + "> <command>\n"
@@ -249,6 +274,8 @@ class GambleHandler:
     # Return: GambleHandler instance with approved channels added
     def __init__(self, channels):
     #{{{
+        self.GAMES = GAMES
+        self.logger = util.logger
         self.approved_channels = self.getApproved(channels)
         self.bank = {}
     #}}}
@@ -266,24 +293,26 @@ class GambleHandler:
     #}}}
 
     # Check for required labels and add channel id if good
-    # Params: channel_id - channel id to potentially add
-    #         lables     - label list to check
+    # Params: channel - channel to potentially add
+    #         lables  - label list to check
     # Return: None
-    def checkChannel(self, channel_id, labels):
+    def checkChannel(self, channel, labels):
     #{{{
+        channel_id   = channel["id"]
+        channel_name = channel["name"]
         if (util.LABELS["GAMBLE"] in labels and
             channel_id not in self.approved_channels):
             self.approved_channels.append(channel_id)
             if util.debug:
-                self.logger.log(DiagMessage("BOT0060I","Added",event.channel["name"]))
+                self.logger.log(DiagMessage("BOT0060D","Added","#"+channel_name))
         elif (util.LABELS["GAMBLE"] not in labels and
               channel_id in self.approved_channels):
             self.approved_channels.remove(channel_id)
             if util.debug:
-                self.logger.log(DiagMessage("BOT0060I","Removed",event.channel["name"]))
+                self.logger.log(DiagMessage("BOT0060D","Removed","#"+channel_name))
         else:
             if util.debug:
-                self.logger.log(DiagMessage("BOT0060I","No change"))
+                self.logger.log(DiagMessage("BOT0060D","No change"))
     #}}}
 
     # Add user to bank if not in already
@@ -299,7 +328,7 @@ class GambleHandler:
                     "\n" + self.checkbux(user))
         else:
             self.bank[user] = {
-                 "bux" : self.STARTING_BUX
+                 "balance" : self.STARTING_BUX
             }
             return ("You have been added to the bank :duck:"
                     "\n" + self.checkbux(user))
@@ -307,21 +336,123 @@ class GambleHandler:
 
     # Check a user's bank balance
     # Params: user   - user id requesting balance
-    #         target - user id to get balance of, default None gets own balance
+    #         target - (maybe) user id str to get balance of
+    #                  default None gets user balance
     # Return: Message contains users balance
     def checkbux(self, user, target = None):
     #{{{
-        if not target:
-            if user not in self.bank:
-                return "You are not currently registered for this bank :duck:"
-            else:
-                return ("You currently have"
-                        " " + str(self.bank[user]["bux"]) + " " + self.CURRENCY)
-        else:
-            if target not in self.bank:
-                return "<@" + target + "> is not currently registered for this bank :duck:"
-            else:
+        # There's text to check for a target
+        if target:
+            valid, target = util.matchUserId(target)
+            # User and in the bank
+            if valid and target in self.bank:
                 return ("<@" + target + "> currently has"
-                        " " + str(self.bank[target]["bux"]) + " " + self.CURRENCY)
+                        " " + str(self.bank[target]["balance"]) + " " + self.CURRENCY)
+            # User not in the bank
+            elif valid:
+                return "<@" + target + "> is not currently registered for this bank :duck:"
+
+        # Either there was no text for a target or the text wasn't a user
+        # User in the bank
+        if user in self.bank:
+            return ("You currently have"
+                    " " + str(self.bank[user]["balance"]) + " " + self.CURRENCY)
+        # Or not
+        else:
+            return "You are not currently registered for this bank :duck:"
     #}}}
+
+    # Bet bucks on a game to win more
+    # Params: user    - user id of player
+    #         channel - channel id playing from
+    #         bet_ops - bet options (amount, game, game_ops)
+    # Return: Message containing results
+    def bet(self, user, channel, bet_ops):
+    #{{{
+        # See if betting even allowed
+        return_code = self.canGamble(user, channel)
+        # RC=2 and RC=3 imply bad channel
+        if return_code > 1:
+            return self.BAD_CHANNEL_MSG
+        # RC=1 is just not a member
+        elif return_code == 1:
+            return ("You are not a member of the bank.\n"
+                    "Please use the JOIN command to use gambling features :duck:")
+
+        # Check parameters
+        return_code, bet_ops = self.parseBetOps(bet_ops)
+        # RC=1, missing parameters
+        if return_code == 1:
+            return ("Missing required parameters for BET command.\n"
+                   "Please use HELP BET for what is needed :duck:")
+        # RC=2, bad bet amount
+        elif return_code == 2:
+            return ("Invalid betting amount: " + bet_ops)
+        # RC=3, bad game type
+        elif return_code == 3:
+            return ("Invalid game type: " + bet_ops)
+
+        amount, game, game_ops = bet_ops
+        # Check bank balance
+        if self.bank[user]["balance"] < amount:
+            return ("Your balance is too low to make this bet"
+                   "\n" + self.checkbux(user))
+
+        return_code, response = self.GAMES[game](game_ops)
+        # Lost
+        if return_code == 0:
+            self.bank[user]["balance"] -= amount
+            return (response + "\nYou lost! You're down"
+                   " " + str(amount) + " " + self.CURRENCY + " "
+                   "\n" + self.checkbux(user))
+        # Won
+        elif return_code == 1:
+            self.bank[user]["balance"] += amount
+            return (response + "\nYou won! You've gained"
+                   " " + str(2*amount) + " " + self.CURRENCY + " "
+                   "\n" + self.checkbux(user))
+        # Option error
+        else:
+            return "Game option error: " + response
+    #}}}
+
+    # Check if user and channel are appropriate for gambling
+    # Params: user    - user id to check for bank entry
+    #         channel - channel id to check for approval
+    # Return: int value based on failures
+    def canGamble(self, user, channel = None):
+    #{{{
+        return_code = 0
+        if user not in self.bank:
+            return_code += 1
+        if channel and channel not in self.approved_channels:
+            return_code += 2
+        return return_code
+    #}}}
+
+    # Parse needed values out of bet options
+    # Params: bet_ops - list of options to parse out
+    # Return: return code and converted bet_ops list
+    def parseBetOps(self, bet_ops):
+    #{{{
+        # Check for missing options
+        if len(bet_ops) < 2:
+            return 1, None
+        # Grab the options
+        u_ops = [x.upper() for x in bet_ops]
+        bet_amount, game, *game_ops = u_ops
+        # Check bet amount
+        try:
+            bet_amount = int(bet_amount)
+        except ValueError:
+            bet_amount = util.EMOJI_ROLLS.get(bet_amount,-1)
+        if bet_amount < 1:
+            return 2, bet_ops[0]
+        # Check game
+        if game not in self.GAMES:
+            return 3, bet_ops[1]
+        # Return everything
+        return 0, [bet_amount, game, game_ops]
+    #}}}
+
 #}}}

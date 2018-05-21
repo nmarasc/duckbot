@@ -74,13 +74,13 @@ DIAG_CODES = {
     # Starting bot initialization
     ,"BOT0000I" : "Initializing bot handlers..."
     # Handler
-    ,"BOT0001I" : "Handler created"
+    ,"BOT0001D" : "Handler created"
     # Initialized
     ,"BOT0002I" : "Duckbot initialization complete"
     # User message
     ,"BOT0010U" : ""
     # Command processing
-    ,"BOT0020I" : "Processing command"
+    ,"BOT0020D" : "Processing command"
     # RTM Generic error
     ,"BOT0030E" : "RTM read failed"
     # RTM Timeout
@@ -90,10 +90,10 @@ DIAG_CODES = {
     #     text of failed request
     ,"BOT0041E" : " -- Text"
     # Bot id not added
-    ,"BOT0050I" : "Bot id not added to handler"
+    ,"BOT0050D" : "Bot id not added to handler"
     # Bot id added
-    ,"BOT0051I" : "Bot id added to handler"
+    ,"BOT0051D" : "Bot id added to handler"
     # Gamble channel update
-    ,"BOT0060I" : "Gamble channel list update"
+    ,"BOT0060D" : "Gamble channel list update"
     #
 }

@@ -28,9 +28,9 @@ class Duckbot:
         # Create main event handlers
         self.logger.log(DiagMessage("BOT0000I"))
         self.msg_handler = MessageHandler(bot_id, bot_channels)
-        self.logger.log(DiagMessage("BOT0001I","Message")) if self.debug else None
+        self.logger.log(DiagMessage("BOT0001D","Message")) if self.debug else None
         self.bot_handler = BotHandler()
-        self.logger.log(DiagMessage("BOT0001I","Bot")) if self.debug else None
+        self.logger.log(DiagMessage("BOT0001D","Bot")) if self.debug else None
         self.logger.log(DiagMessage("BOT0002I"))
     #}}}
 
@@ -126,5 +126,5 @@ class Duckbot:
         event.channel = self.channels[event.channel]
         labels = util.parseLabels(event.channel["purpose"]["value"])
         gamble_handler = self.msg_handler.gamble_handler
-        gamble_handler.checkChannel(event.channel["id"], labels)
+        gamble_handler.checkChannel(event.channel, labels)
     #}}}
