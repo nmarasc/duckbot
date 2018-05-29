@@ -113,6 +113,9 @@ class Duckbot:
         # Tick down the global cooldown
         if self.cooldown_g:
             self.cooldown_g -= 1
+        # Regen some bux for the poor people
+        if self.ticks % self.msg_handler.gamble_handler.REGEN_TIME == 0:
+            self.msg_handler.gamble_handler.regenBux()
     #}}}
 
     # Make updates to channel lists

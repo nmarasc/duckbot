@@ -64,6 +64,9 @@ class HelpHandler:
              GAMES["COIN"] :\
                 ("Flip a coin and call it\n"
                 "Usage options: COIN ( H[EADS] | T[AILS] )")
+            ,GAMES["DICE"] :\
+                ("Roll the dice and guess even or odd\n"
+                "Usage options: DICE ( E[VENS] | O[DDS] )")
         }
         #}}}
     #}}}
@@ -262,12 +265,12 @@ class RollHandler:
 # Gambling handler class
 class GambleHandler:
 #{{{
-
     BAD_CHANNEL_MSG = ("Sorry, this is not an approved "
         "channel for gambling content\n Please keep it to "
         "channels with the :slot_machine: label :duck:")
     CURRENCY = "duckbux"
     STARTING_BUX = 100
+    REGEN_TIME = 300 # 5 minutes
 
     # Constructor for gamble handler
     # Params: channels - list of channels to check for approved labels
@@ -455,4 +458,16 @@ class GambleHandler:
         return 0, [bet_amount, game, game_ops]
     #}}}
 
+    # Regen some bux when players are low (gets called every five minutes or so)
+    # Params: None
+    # Return: None
+    def regenBux(self):
+    #{{{
+        for player in self.bank:
+            balance = self.bank[player]["balance"]
+            if balance <= 95:
+                self.bank[player]["balance"] += 5
+            elif balance < 100:
+                self.bank[player]["balance"] = 100
+    #}}}
 #}}}
