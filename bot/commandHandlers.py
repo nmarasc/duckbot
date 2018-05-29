@@ -4,6 +4,7 @@ import shlex
 # Project imports
 import util
 from util import DiagMessage
+from util import Bank
 from gameHandlers import *
 
 # Help handler class
@@ -271,6 +272,18 @@ class GambleHandler:
     CURRENCY = "duckbux"
     STARTING_BUX = 100
     REGEN_TIME = 300 # 5 minutes
+    #{{{ - Gacha ranges
+    GACHA_RANGES = {
+         range(50,150)    : [0,"Trash"]
+        ,range(150,600)   : [1,"Common"]
+        ,range(600,800)   : [2,"Uncommon"]
+        ,range(800,900)   : [3,"Rare"]
+        ,range(900,975)   : [4,"Super Rare"]
+        ,range(975,990)   : [5,"Ultra Rare"]
+        ,range(990,1000)  : [6,"SS Ultra Secret Rare"]
+        ,range(1000,1001) : [7,"1000-chan"]
+    }
+    #}}}
 
     # Constructor for gamble handler
     # Params: channels - list of channels to check for approved labels
@@ -280,7 +293,7 @@ class GambleHandler:
         self.GAMES = GAMES
         self.logger = util.logger
         self.approved_channels = self.getApproved(channels)
-        self.bank = {}
+        self.bank = Bank()
     #}}}
 
     # Go through channel list and get add approved to list

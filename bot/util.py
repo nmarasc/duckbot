@@ -256,6 +256,85 @@ class DiagMessage:
     #}}}
 #}}}
 
+# Bank class
+class Bank:
+#{{{
+    DEFAULT_POOL = [-1,-1,500,100,50,10,3,1]
+
+    # Constructor for bank class
+    # Params: perm - flag to determine whether to use a permanent bank
+    # Return: Bank instance
+    def __init__(self, perm = True):
+    #{{{
+        if perm:
+            self.readState()
+        else:
+            self.players = {}
+            self.gacha_pool = self.DEFAULT_POOL
+
+        print(self.players)
+        print()
+        print(self.gacha_pool)
+
+        self.saveState()
+    #}}}
+
+    # Read in bank state file and initialize
+    # Params: None
+    # Return: None
+    def readState(self):
+    #{{{
+        self.players = {}
+        try:
+            with open("bank.dat","r") as data:
+                # Read in players
+                for line in data:
+                    line = line.strip()
+                    # Skip comments
+                    if line.startswith("#"):
+                        pass
+                    # Signal switch to pool
+                    elif line.startswith(";"):
+                        line = data.readline().strip()
+                        break
+                    # Read the player
+                    else:
+                        line_data = line.split(":")
+                        print(line)
+                        self.players[line_data[0]] = {
+                             "balance" : int(line_data[1])
+                            ,"pool"    : list(map(int,line_data[2].split(",")))
+                        }
+                # Skip comments
+                while line.startswith("#"):
+                    line = data.readline().strip()
+                self.gacha_pool = list(map(int,line.split(",")))
+        # File doesn't exist or can't be read
+        except OSError:
+            self.gacha_pool = self.DEFAULT_POOL
+    #}}}
+
+    # Save bank state into file
+    # Params: None
+    # Return: None
+    def saveState(self):
+    #{{{
+        try:
+            with open("bank.dat","w") as data:
+                # Write out player data
+                data.write("# Players\n")
+                for key in self.players:
+                    data.write(key + ":" + str(self.players[key]["balance"]))
+                    data.write(":" + ",".join(map(str,self.players[key]["pool"])))
+                    data.write("\n")
+                data.write(";\n")
+                data.write("# Gacha Pool\n")
+                data.write(",".join(map(str,self.gacha_pool)))
+        except OSError:
+            pass
+    #}}}
+#}}}
+
 # Bidirectional dictionary class
 # Credit belongs to a dude on stackoverflow
 class bidict(dict):
