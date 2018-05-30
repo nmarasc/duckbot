@@ -66,9 +66,10 @@ def duckboot():
     util.logger.log(DiagMessage("INI0020I"))
 
     # Get bot info
-    bot_id, bot_channels = util.getBotInfo(bot_token)
-    if not util.matchUserId(bot_id):
-        util.logger.log(DiagMessage("INI0030E",bot_id))
+    bot_str, bot_channels = util.getBotInfo(bot_token)
+    bot_id = util.matchUserId(bot_str)
+    if not bot_id:
+        util.logger.log(DiagMessage("INI0030E",bot_str))
         return util.EXIT_CODES["INVALID_BOT_ID"], None
     util.logger.log(DiagMessage("INI0030I",bot_id))
 
@@ -79,7 +80,6 @@ def duckboot():
     else:
         return return_code, Duckbot(bot_id, bot_channels)
 #}}}
-
 
 # Connect to the rtm and test connection
 # Params: None

@@ -6,7 +6,7 @@ from diagCodes import DIAG_CODES
 
 # Util constants
 RTM_READ_DELAY = 1
-USER_REGEX = "<@(U[A-Z0-9]{8})>$"
+USER_REGEX = "U[A-Z0-9]{8}"
 LABEL_REGEX = "\[:LABEL:(:.+:)+\]"
 EMOJI_REGEX = ":.+?:"
 DEFAULT_FN = "../log.txt"
@@ -106,12 +106,11 @@ def sendMessage(channel, message, user = None):
 
 # Search for a user id in a string
 # Params: id_str - string to search for id
-# Return: True and matching user id if found
-#         False and None otherwise
+# Return: user id if found, None otherwise
 def matchUserId(id_str):
 #{{{
     matches = re.search(USER_REGEX,id_str)
-    return (True, matches.group(1)) if matches else (False, None)
+    return matches.group(0) if matches else None
 #}}}
 
 # Obtain bot id and workspace channels

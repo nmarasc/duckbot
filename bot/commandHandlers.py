@@ -336,7 +336,7 @@ class GambleHandler:
     # Return: Message to send to channel
     def join(self, user, channel):
     #{{{
-        return_code = self.validate(user, channel)
+        return_code, _ = self.validate(user, channel)
         # RC=4, RC=5 and RC=6 imply bad channel
         if return_code > 4:
             return self.BAD_CHANNEL_MSG
@@ -399,7 +399,7 @@ class GambleHandler:
     def bet(self, user, channel, bet_ops):
     #{{{
         # See if betting even allowed
-        return_code = self.validate(user, channel)
+        return_code, _ = self.validate(user, channel)
         # RC=4, RC=5 and RC=6 imply bad channel
         if return_code > 4:
             return self.BAD_CHANNEL_MSG
@@ -407,7 +407,7 @@ class GambleHandler:
         elif return_code == 2:
             return ("You are not a member of the bank.\n"
                     "Please use the JOIN command to use gambling features :duck:")
-        else:
+        elif return_code != 0:
             # TODO: Malformed user id
             return None
 
@@ -455,8 +455,8 @@ class GambleHandler:
     def validate(self, user, channel = None):
     #{{{
         return_code = 0
-        valid, user = util.matchUserId(user)
-        if not valid:
+        user = util.matchUserId(user)
+        if not user:
             return_code += 1
         elif not self.bank.isMember(user):
             return_code += 2
