@@ -88,8 +88,8 @@ LABELS = {
 #}}}
 
 # Slackclient, Logger instance
-# debug flag
-global sc, logger, debug
+# debug and permanent bank flag
+global sc, logger, debug, bank_file
 
 # Send message to designated channel, and notify user if present
 # Params: channel - channel id to send message to
@@ -259,32 +259,29 @@ class DiagMessage:
 # Bank class
 class Bank:
 #{{{
-    DEFAULT_POOL = [-1,-1,500,100,50,10,3,1]
+    DEFAULT_POOL  = [-1,-1,500,100,50,10,3,1]
+    STARTING_POOL = [0,0,0,0,0,0,0,0]
+    STARTING_BUX  = 100
 
     # Constructor for bank class
-    # Params: perm - flag to determine whether to use a permanent bank
+    # Params: None
     # Return: Bank instance
-    def __init__(self, perm = True):
+    def __init__(self):
     #{{{
-        if perm:
+        self.players = {}
+        if bank_file:
             self.readState()
         else:
-            self.players = {}
             self.gacha_pool = self.DEFAULT_POOL
-
-        print(self.players)
-        print()
-        print(self.gacha_pool)
-
-        self.saveState()
     #}}}
 
     # Read in bank state file and initialize
     # Params: None
     # Return: None
+    # Notes : Please don't write your own bank file.
+    # You make mistakes, the bot doesn't
     def readState(self):
     #{{{
-        self.players = {}
         try:
             with open("bank.dat","r") as data:
                 # Read in players
@@ -295,7 +292,6 @@ class Bank:
                         pass
                     # Signal switch to pool
                     elif line.startswith(";"):
-                        line = data.readline().strip()
                         break
                     # Read the player
                     else:
@@ -305,6 +301,7 @@ class Bank:
                              "balance" : int(line_data[1])
                             ,"pool"    : list(map(int,line_data[2].split(",")))
                         }
+                line = data.readline().strip()
                 # Skip comments
                 while line.startswith("#"):
                     line = data.readline().strip()
@@ -328,10 +325,53 @@ class Bank:
                     data.write(":" + ",".join(map(str,self.players[key]["pool"])))
                     data.write("\n")
                 data.write(";\n")
+                # Write pool data
                 data.write("# Gacha Pool\n")
                 data.write(",".join(map(str,self.gacha_pool)))
+        # File couldn't be written
         except OSError:
             pass
+    #}}}
+
+    # Check if user in bank
+    # Params: user - user id to check member status of
+    # Return: True if member, false otherwise
+    def isMember(self, user):
+        return user in self.players
+
+    # Add user to bank
+    # Params: user - user id to add to bank
+    # Return: None
+    def addUser(self, user):
+    #{{{
+        self.players[user] = {
+             "balance" : self.STARTING_BUX
+            ,"pool"    : self.STARTING_POOL
+        }
+    #}}}
+
+    # Get balance of user
+    # Params: user   - user to get balance of
+    #         adjust - amount to adjust user balance
+    # Return: int val of user balance
+    def balance(self, user, adjust = 0):
+    #{{{
+        if adjust:
+            self.players[user]["balance"] += adjust
+        return self.players[user]["balance"]
+    #}}}
+
+    # Regen bux for low players
+    # Params: None
+    # Return: None
+    def regen(self):
+    #{{{
+        for player in self.players:
+            balance = self.players[player]["balance"]
+            if balance <= 95:
+                self.players[player]["balance"] += 5
+            elif balance < 100:
+                self.players[player]["balance"] = 100
     #}}}
 #}}}
 

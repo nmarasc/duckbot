@@ -39,8 +39,10 @@ def initProgram():
     cl_parser = argparse.ArgumentParser(description='Start up Duckbot')
     cl_parser.add_argument('--debug', action='store_true')
     cl_parser.add_argument('--nolog', dest='log', action='store_false', default=True)
+    cl_parser.add_argument('--nobnk', dest='bnk', action='store_false', default=True)
     args = cl_parser.parse_args()
     util.debug = args.debug
+    util.bank_file = args.bnk
 
     # Start the logger with logging mode
     util.logger = util.Logger(log=args.log)
