@@ -6,7 +6,7 @@ from diagCodes import DIAG_CODES
 
 # Util constants
 RTM_READ_DELAY = 1
-USER_REGEX = "<@(U[A-Z0-9]{8})>$"
+USER_REGEX = "U[A-Z0-9]{8}"
 LABEL_REGEX = "\[:LABEL:(:.+:)+\]"
 EMOJI_REGEX = ":.+?:"
 DEFAULT_FN = "../log.txt"
@@ -88,8 +88,8 @@ LABELS = {
 #}}}
 
 # Slackclient, Logger instance
-# debug flag
-global sc, logger, debug
+# debug and permanent bank flag
+global sc, logger, debug, bank_file
 
 # Send message to designated channel, and notify user if present
 # Params: channel - channel id to send message to
@@ -106,12 +106,11 @@ def sendMessage(channel, message, user = None):
 
 # Search for a user id in a string
 # Params: id_str - string to search for id
-# Return: True and matching user id if found
-#         False and None otherwise
+# Return: user id if found, None otherwise
 def matchUserId(id_str):
 #{{{
     matches = re.search(USER_REGEX,id_str)
-    return (True, matches.group(1)) if matches else (False, None)
+    return matches.group(0) if matches else None
 #}}}
 
 # Obtain bot id and workspace channels
@@ -253,6 +252,125 @@ class DiagMessage:
             self.msg += ": " + " - ".join(fill)
         elif fill and not self.text:
             self.msg += ": ".join(fill)
+    #}}}
+#}}}
+
+# Bank class
+class Bank:
+#{{{
+    DEFAULT_POOL  = [-1,-1,500,100,50,10,3,1]
+    STARTING_POOL = [0,0,0,0,0,0,0,0]
+    STARTING_BUX  = 100
+
+    # Constructor for bank class
+    # Params: None
+    # Return: Bank instance
+    def __init__(self):
+    #{{{
+        self.players = {}
+        if bank_file:
+            self.readState()
+        else:
+            self.gacha_pool = self.DEFAULT_POOL
+    #}}}
+
+    # Read in bank state file and initialize
+    # Params: None
+    # Return: None
+    # Notes : Please don't write your own bank file.
+    # You make mistakes, the bot doesn't
+    def readState(self):
+    #{{{
+        try:
+            with open("bank.dat","r") as data:
+                # Read in players
+                for line in data:
+                    line = line.strip()
+                    # Skip comments
+                    if line.startswith("#"):
+                        pass
+                    # Signal switch to pool
+                    elif line.startswith(";"):
+                        break
+                    # Read the player
+                    else:
+                        line_data = line.split(":")
+                        print(line)
+                        self.players[line_data[0]] = {
+                             "balance" : int(line_data[1])
+                            ,"pool"    : list(map(int,line_data[2].split(",")))
+                        }
+                line = data.readline().strip()
+                # Skip comments
+                while line.startswith("#"):
+                    line = data.readline().strip()
+                self.gacha_pool = list(map(int,line.split(",")))
+        # File doesn't exist or can't be read
+        except OSError:
+            self.gacha_pool = self.DEFAULT_POOL
+    #}}}
+
+    # Save bank state into file
+    # Params: None
+    # Return: None
+    def saveState(self):
+    #{{{
+        try:
+            with open("bank.dat","w") as data:
+                # Write out player data
+                data.write("# Players\n")
+                for key in self.players:
+                    data.write(key + ":" + str(self.players[key]["balance"]))
+                    data.write(":" + ",".join(map(str,self.players[key]["pool"])))
+                    data.write("\n")
+                data.write(";\n")
+                # Write pool data
+                data.write("# Gacha Pool\n")
+                data.write(",".join(map(str,self.gacha_pool)))
+        # File couldn't be written
+        except OSError:
+            pass
+    #}}}
+
+    # Check if user in bank
+    # Params: user - user id to check member status of
+    # Return: True if member, false otherwise
+    def isMember(self, user):
+        return user in self.players
+
+    # Add user to bank
+    # Params: user - user id to add to bank
+    # Return: None
+    def addUser(self, user):
+    #{{{
+        self.players[user] = {
+             "balance" : self.STARTING_BUX
+            ,"pool"    : self.STARTING_POOL
+        }
+    #}}}
+
+    # Get balance of user
+    # Params: user   - user to get balance of
+    #         adjust - amount to adjust user balance
+    # Return: int val of user balance
+    def balance(self, user, adjust = 0):
+    #{{{
+        if adjust:
+            self.players[user]["balance"] += adjust
+        return self.players[user]["balance"]
+    #}}}
+
+    # Regen bux for low players
+    # Params: None
+    # Return: None
+    def regen(self):
+    #{{{
+        for player in self.players:
+            balance = self.players[player]["balance"]
+            if balance <= 95:
+                self.players[player]["balance"] += 5
+            elif balance < 100:
+                self.players[player]["balance"] = 100
     #}}}
 #}}}
 

@@ -160,7 +160,7 @@ class MessageHandler:
         # Break up the text and try to match the trigger with the bot_id
         text_arr = re.split(r'\s+',text.strip())
         trigger = text_arr.pop(0).upper()
-        _, id_str = util.matchUserId(trigger)
+        id_str = util.matchUserId(trigger)
 
         # Check for mention from id or trigger, then get command
         if ((id_str == self.bot_id) or

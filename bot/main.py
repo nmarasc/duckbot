@@ -39,8 +39,10 @@ def initProgram():
     cl_parser = argparse.ArgumentParser(description='Start up Duckbot')
     cl_parser.add_argument('--debug', action='store_true')
     cl_parser.add_argument('--nolog', dest='log', action='store_false', default=True)
+    cl_parser.add_argument('--nobnk', dest='bnk', action='store_false', default=True)
     args = cl_parser.parse_args()
     util.debug = args.debug
+    util.bank_file = args.bnk
 
     # Start the logger with logging mode
     util.logger = util.Logger(log=args.log)
@@ -64,9 +66,10 @@ def duckboot():
     util.logger.log(DiagMessage("INI0020I"))
 
     # Get bot info
-    bot_id, bot_channels = util.getBotInfo(bot_token)
-    if not util.matchUserId(bot_id):
-        util.logger.log(DiagMessage("INI0030E",bot_id))
+    bot_str, bot_channels = util.getBotInfo(bot_token)
+    bot_id = util.matchUserId(bot_str)
+    if not bot_id:
+        util.logger.log(DiagMessage("INI0030E",bot_str))
         return util.EXIT_CODES["INVALID_BOT_ID"], None
     util.logger.log(DiagMessage("INI0030I",bot_id))
 
@@ -77,7 +80,6 @@ def duckboot():
     else:
         return return_code, Duckbot(bot_id, bot_channels)
 #}}}
-
 
 # Connect to the rtm and test connection
 # Params: None
