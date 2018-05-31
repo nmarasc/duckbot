@@ -349,7 +349,7 @@ class Bank:
         }
     #}}}
 
-    # Get balance of user
+    # Get balance of user and adjust
     # Params: user   - user to get balance of
     #         adjust - amount to adjust user balance
     # Return: int val of user balance
