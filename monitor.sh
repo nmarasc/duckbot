@@ -4,12 +4,12 @@
 
 return_code=0
 retry=0
-duck_parm=$1
+duck_parms=$@
 
 # Bot startup function
 function start_bot {
   return_code=0
-  python bot/main.py $duck_parm & return_code=$?;duck_pid=$!
+  python bot/main.py $duck_parms & return_code=$?;duck_pid=$!
   # RC!=0 , something bad happened with bash
   if [ $return_code -ne 0 ]; then
     if [ $retry -eq 1 ]; then
@@ -30,7 +30,6 @@ function syntax_check {
   if [ $return_code -ne 0 ]; then
     echo "MON0040E" "Code failed syntax check"
     # Possibly put git restore here later
-    exit 2
   # Else clean up compiled files?
   fi
 }
