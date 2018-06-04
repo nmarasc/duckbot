@@ -293,18 +293,19 @@ class Bank:
                     elif line.startswith(";"):
                         break
                     # Read the player
-                    else:
+                    elif line:
                         line_data = line.split(":")
-                        print(line)
-                        self.players[line_data[0]] = {
-                             "balance" : int(line_data[1])
-                            ,"pool"    : list(map(int,line_data[2].split(",")))
-                        }
+                        if len(line_data) > 2:
+                            self.players[line_data[0]] = {
+                                 "balance" : int(line_data[1])
+                                ,"pool"    : list(map(int,line_data[2].split(",")))
+                            }
                 line = data.readline().strip()
                 # Skip comments
                 while line.startswith("#"):
                     line = data.readline().strip()
-                self.gacha_pool = list(map(int,line.split(",")))
+                if line:
+                    self.gacha_pool = list(map(int,line.split(",")))
         # File doesn't exist or can't be read
         except OSError:
             self.gacha_pool = self.DEFAULT_POOL
