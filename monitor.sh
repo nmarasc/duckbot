@@ -14,7 +14,6 @@ function start_bot {
   if [ $return_code -ne 0 ]; then
     if [ $retry -eq 1 ]; then
       echo "MON0031E" "Unable to start process, hep"
-      exit 1
     else
       echo "MON0030E" "Bash failed to start process, retrying"
       retry=1
@@ -52,12 +51,11 @@ while sleep 1; do
       # Check return code
       # RC=0 , clean exit
       if [ $duck_exit -eq 0 ]; then
-        exit 0
+        echo "Shutting down..."
 
       # RC=1 , Uncaught python error, python doesn't give good return codes
       elif [ $duck_exit -eq 1 ]; then
         echo "MON0011E" "Uncaught Python error, possible bad build"
-        exit 1
 
       # RC=2 , clean exit and update
       elif [ $duck_exit -eq 2 ]; then
