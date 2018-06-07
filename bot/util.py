@@ -87,6 +87,11 @@ LABELS = {
 }
 #}}}
 
+# Util timers
+LOG_TIME        = 1800 # 30 minutes
+REGEN_TIME      = 300  #  5 minutes
+SAVE_STATE_TIME = 3600 # 60 minutes
+
 # Slackclient, Logger instance
 # debug and permanent bank flag
 global sc, logger, debug, bank_file
@@ -188,7 +193,6 @@ def doRolls(die_size, die_num = 1):
 class Logger:
 #{{{
     BUFFER_MAX = 10
-    LOG_TIME = 1800 # 30 minutes
 
     # Constructor for logger class
     # Params: fn  - file name to use or leave default
@@ -294,7 +298,7 @@ class Bank:
                         reading_players = False
                     # Parse line for player data
                     elif reading_players and line:
-                        player_data = parsePlayerData(line.split(":"))
+                        player_data = self._parsePlayerData(line.split(":"))
                         if player_data:
                             self.players[player_data[0]] = {
                                  "balance" : player_data[1]
@@ -304,7 +308,7 @@ class Bank:
                     elif line:
                         self.gacha_pool = list(map(int,line.split(",")))
         # File doesn't exist, can't be read or gacha pool format error
-        except OSError, ValueError:
+        except (OSError, ValueError):
             self.gacha_pool = self.DEFAULT_POOL
     #}}}
 
@@ -374,7 +378,7 @@ class Bank:
     # Parse player data of line
     # Params: data - line data
     # Return: player data list or None
-    def parsePlayerData(self, data):
+    def _parsePlayerData(self, data):
     #{{{
         try:
             if len(data) == 3:

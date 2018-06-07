@@ -1,11 +1,7 @@
 import re
 import util
+import commandHandlers
 from util import DiagMessage
-#{{{ - CommandHandler imports
-from commandHandlers import HelpHandler
-from commandHandlers import RollHandler
-from commandHandlers import GambleHandler
-#}}}
 
 # Message handler class
 class MessageHandler:
@@ -19,12 +15,9 @@ class MessageHandler:
     def __init__(self, bot_id, bot_channels):
     #{{{
         self.bot_id = bot_id
-        self.roll_handler = RollHandler()
-        util.logger.log(DiagMessage("BOT0001D","Roll")) if util.debug else None
-        self.help_handler = HelpHandler(bot_id)
-        util.logger.log(DiagMessage("BOT0001D","Help")) if util.debug else None
-        self.gamble_handler = GambleHandler(bot_channels)
-        util.logger.log(DiagMessage("BOT0001D","Gamble")) if util.debug else None
+        self.roll_handler   = commandHandlers.roll_handler
+        self.help_handler   = commandHandlers.help_handler
+        self.gamble_handler = commandHandlers.gamble_handler
     #}}}
 
     # Call handler functions based on extracted command word
