@@ -122,7 +122,7 @@ class Duckbot:
         if self.ticks % util.LOG_TIME == 0:
             self.logger.log(DiagMessage("LOG0010I"), flush=True)
         # Save bank data timer
-        if self.ticks % util.SAVE_STATE_TIME == 0:
+        if util.bank_file and self.ticks % util.SAVE_STATE_TIME == 0:
             commandHandlers.gamble_handler.saveState()
         # Tick down the global cooldown
         if self.cooldown_g:
