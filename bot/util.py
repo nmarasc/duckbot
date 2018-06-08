@@ -87,6 +87,11 @@ LABELS = {
 }
 #}}}
 
+# Util timers
+LOG_TIME        = 1800 # 30 minutes
+REGEN_TIME      = 300  #  5 minutes
+SAVE_STATE_TIME = 3600 # 60 minutes
+
 # Slackclient, Logger instance
 # debug and permanent bank flag
 global sc, logger, debug, bank_file
@@ -188,7 +193,6 @@ def doRolls(die_size, die_num = 1):
 class Logger:
 #{{{
     BUFFER_MAX = 10
-    LOG_TIME = 1800 # 30 minutes
 
     # Constructor for logger class
     # Params: fn  - file name to use or leave default
@@ -281,9 +285,9 @@ class Bank:
     # You make mistakes, the bot doesn't
     def readState(self):
     #{{{
+        reading_players = True
         try:
             with open("bank.dat","r") as data:
-                # Read in players
                 for line in data:
                     line = line.strip()
                     # Skip comments
@@ -291,22 +295,20 @@ class Bank:
                         pass
                     # Signal switch to pool
                     elif line.startswith(";"):
-                        break
-                    # Read the player
-                    else:
-                        line_data = line.split(":")
-                        print(line)
-                        self.players[line_data[0]] = {
-                             "balance" : int(line_data[1])
-                            ,"pool"    : list(map(int,line_data[2].split(",")))
-                        }
-                line = data.readline().strip()
-                # Skip comments
-                while line.startswith("#"):
-                    line = data.readline().strip()
-                self.gacha_pool = list(map(int,line.split(",")))
-        # File doesn't exist or can't be read
-        except OSError:
+                        reading_players = False
+                    # Parse line for player data
+                    elif reading_players and line:
+                        player_data = self._parsePlayerData(line.split(":"))
+                        if player_data:
+                            self.players[player_data[0]] = {
+                                 "balance" : player_data[1]
+                                ,"pool"    : player_data[2]
+                            }
+                    # Parse line for gacha data
+                    elif line:
+                        self.gacha_pool = list(map(int,line.split(",")))
+        # File doesn't exist, can't be read or gacha pool format error
+        except (OSError, ValueError):
             self.gacha_pool = self.DEFAULT_POOL
     #}}}
 
@@ -371,6 +373,23 @@ class Bank:
                 self.players[player]["balance"] += 5
             elif balance < 100:
                 self.players[player]["balance"] = 100
+    #}}}
+
+    # Parse player data of line
+    # Params: data - line data
+    # Return: player data list or None
+    def _parsePlayerData(self, data):
+    #{{{
+        try:
+            if len(data) == 3:
+                player_data = [util.matchUserId(data[0])]
+                player_data.append(int(data[1]))
+                player_data.append(list(map(int,data[2].split(","))))
+                if player_data[0]:
+                    return player_data
+        except ValueError:
+            pass
+        return None
     #}}}
 #}}}
 

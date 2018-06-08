@@ -7,6 +7,9 @@ from util import DiagMessage
 from util import Bank
 from gameHandlers import *
 
+# Handler instances
+global help_handler, roll_handler, gamble_handler
+
 # Help handler class
 class HelpHandler:
 #{{{
@@ -175,33 +178,13 @@ class RollHandler:
         #{{{
             rolls = util.doRolls(die_size, die_num)
             if die_num == 1:
-                rolls.append(self.emojiRating(rolls[0], die_size))
+                rolls.append(self._emojiRating(rolls[0], die_size))
             else:
                 rolls.append(sum(rolls))
             return 0, rolls
         #}}}
         else:
             return -1, None
-    #}}}
-
-    # Give emoji ratings based on roll score
-    # Params: roll - roll score to rate
-    #         die  - total to compare score to
-    # Return: emoji string for rating
-    def emojiRating(self, roll, die):
-    #{{{
-        if roll == 1:
-            return ":hyperbleh:"
-        elif roll == die:
-            return ":partyparrot:"
-        elif roll == 69:
-            return ":eggplant:"
-        elif roll == 420:
-            return ":herb:"
-        elif roll <= die/2:
-            return ":bleh:"
-        else:
-            return ":ok_hand:"
     #}}}
 
     # Roll for dnd character stats
@@ -261,6 +244,26 @@ class RollHandler:
     def factoidRoll(self):
         return "Not yet. Kweh :duck:"
 
+    # Give emoji ratings based on roll score
+    # Params: roll - roll score to rate
+    #         die  - total to compare score to
+    # Return: emoji string for rating
+    def _emojiRating(self, roll, die):
+    #{{{
+        if roll == 1:
+            return ":hyperbleh:"
+        elif roll == die:
+            return ":partyparrot:"
+        elif roll == 69:
+            return ":eggplant:"
+        elif roll == 420:
+            return ":herb:"
+        elif roll <= die/2:
+            return ":bleh:"
+        else:
+            return ":ok_hand:"
+    #}}}
+
 #}}}
 
 # Gambling handler class
@@ -270,7 +273,6 @@ class GambleHandler:
         "channel for gambling content\n Please keep it to "
         "channels with the :slot_machine: label :duck:")
     CURRENCY = "duckbux"
-    REGEN_TIME = 300 # 5 minutes
     #{{{ - Gacha ranges
     GACHA_RANGES = {
          range(50,150)    : [0,"Trash"]
@@ -291,43 +293,8 @@ class GambleHandler:
     #{{{
         self.GAMES = GAMES
         self.logger = util.logger
-        self.approved_channels = self.getApproved(channels)
+        self.approved_channels = self._getApproved(channels)
         self.bank = Bank()
-    #}}}
-
-    # Go through channel list and get add approved to list
-    # Params: channels - dict of channels to channel data to check
-    # Return: list of approved channel ids
-    def getApproved(self, channels):
-    #{{{
-        approved = []
-        for key, channel in channels.items():
-            if util.LABELS["GAMBLE"] in channel["labels"]:
-                approved.append(channel["id"])
-        return approved
-    #}}}
-
-    # Check for required labels and add channel id if good
-    # Params: channel - channel to potentially add
-    #         lables  - label list to check
-    # Return: None
-    def checkChannel(self, channel, labels):
-    #{{{
-        channel_id   = channel["id"]
-        channel_name = channel["name"]
-        if (util.LABELS["GAMBLE"] in labels and
-            channel_id not in self.approved_channels):
-            self.approved_channels.append(channel_id)
-            if util.debug:
-                self.logger.log(DiagMessage("BOT0060D","Added","#"+channel_name))
-        elif (util.LABELS["GAMBLE"] not in labels and
-              channel_id in self.approved_channels):
-            self.approved_channels.remove(channel_id)
-            if util.debug:
-                self.logger.log(DiagMessage("BOT0060D","Removed","#"+channel_name))
-        else:
-            if util.debug:
-                self.logger.log(DiagMessage("BOT0060D","No change"))
     #}}}
 
     # Add user to bank if not in already
@@ -336,7 +303,7 @@ class GambleHandler:
     # Return: Message to send to channel
     def join(self, user, channel):
     #{{{
-        return_code, _ = self.validate(user, channel)
+        return_code, _ = self._validate(user, channel)
         # RC=4, RC=5 and RC=6 imply bad channel
         if return_code > 4:
             return self.BAD_CHANNEL_MSG
@@ -364,7 +331,7 @@ class GambleHandler:
     #{{{
         # There's text to check for a target
         if target:
-            return_code, target = self.validate(target)
+            return_code, target = self._validate(target)
             # User and in the bank
             if return_code == 0:
                 balance = self.bank.balance(target)
@@ -375,7 +342,7 @@ class GambleHandler:
                 return "<@" + target + "> is not currently registered for this bank :duck:"
 
         # Either there was no text for a target or the text wasn't a user
-        return_code, _ = self.validate(user)
+        return_code, _ = self._validate(user)
         # User in the bank
         if return_code == 0:
             balance = self.bank.balance(user)
@@ -399,7 +366,7 @@ class GambleHandler:
     def bet(self, user, channel, bet_ops):
     #{{{
         # See if betting even allowed
-        return_code, _ = self.validate(user, channel)
+        return_code, _ = self._validate(user, channel)
         # RC=4, RC=5 and RC=6 imply bad channel
         if return_code > 4:
             return self.BAD_CHANNEL_MSG
@@ -412,7 +379,7 @@ class GambleHandler:
             return None
 
         # Check parameters
-        return_code, bet_ops = self.parseBetOps(bet_ops)
+        return_code, bet_ops = self._parseBetOps(bet_ops)
         # RC=1, missing parameters
         if return_code == 1:
             return ("Missing required parameters for BET command.\n"
@@ -448,11 +415,52 @@ class GambleHandler:
             return "Game option error: " + response
     #}}}
 
+    # Regen some bux when players are low (gets called every five minutes or so)
+    # Params: None
+    # Return: None
+    def regenBux(self):
+        self.bank.regen()
+
+    # Check for required labels and add channel id if good
+    # Params: channel - channel to potentially add
+    #         lables  - label list to check
+    # Return: None
+    def checkChannel(self, channel, labels):
+    #{{{
+        channel_id   = channel["id"]
+        channel_name = channel["name"]
+        if (util.LABELS["GAMBLE"] in labels and
+            channel_id not in self.approved_channels):
+            self.approved_channels.append(channel_id)
+            if util.debug:
+                self.logger.log(DiagMessage("BOT0060D","Added","#"+channel_name))
+        elif (util.LABELS["GAMBLE"] not in labels and
+              channel_id in self.approved_channels):
+            self.approved_channels.remove(channel_id)
+            if util.debug:
+                self.logger.log(DiagMessage("BOT0060D","Removed","#"+channel_name))
+        else:
+            if util.debug:
+                self.logger.log(DiagMessage("BOT0060D","No change"))
+    #}}}
+
+    # Go through channel list and get add approved to list
+    # Params: channels - dict of channels to channel data to check
+    # Return: list of approved channel ids
+    def _getApproved(self, channels):
+    #{{{
+        approved = []
+        for key, channel in channels.items():
+            if util.LABELS["GAMBLE"] in channel["labels"]:
+                approved.append(channel["id"])
+        return approved
+    #}}}
+
     # Check if user and channel are appropriate for gambling
     # Params: user    - user id to check for bank entry
     #         channel - channel id to check for approval
     # Return: int value based on failures
-    def validate(self, user, channel = None):
+    def _validate(self, user, channel = None):
     #{{{
         return_code = 0
         user = util.matchUserId(user)
@@ -468,7 +476,7 @@ class GambleHandler:
     # Parse needed values out of bet options
     # Params: bet_ops - list of options to parse out
     # Return: return code and converted bet_ops list
-    def parseBetOps(self, bet_ops):
+    def _parseBetOps(self, bet_ops):
     #{{{
         # Check for missing options
         if len(bet_ops) < 2:
@@ -489,10 +497,4 @@ class GambleHandler:
         # Return everything
         return 0, [bet_amount, game, game_ops]
     #}}}
-
-    # Regen some bux when players are low (gets called every five minutes or so)
-    # Params: None
-    # Return: None
-    def regenBux(self):
-        self.bank.regen()
 #}}}

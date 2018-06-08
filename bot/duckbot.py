@@ -6,8 +6,13 @@ from eventHandlers import MessageHandler
 from eventHandlers import BotHandler
 from eventHandlers import Event
 
+import commandHandlers
+from commandHandlers import RollHandler, HelpHandler, GambleHandler
+
 # Duckbot class delegates event handlers and keeps track of time
 class Duckbot:
+
+    TICK_ROLLOVER = 3600 # 60 minutes
 
     # Constructor for the bot
     # Params: bot_id       - bot user id, used to detect mentions
@@ -21,12 +26,18 @@ class Duckbot:
 
         self.debug = util.debug
         self.logger = util.logger
-        self.bots = {}
         self.ticks = 0
         self.cooldown_g = 0
 
-        # Create main event handlers
         self.logger.log(DiagMessage("BOT0000I"))
+        # Create command handlers
+        commandHandlers.roll_handler = RollHandler()
+        util.logger.log(DiagMessage("BOT0001D","Roll")) if util.debug else None
+        commandHandlers.help_handler = HelpHandler(bot_id)
+        util.logger.log(DiagMessage("BOT0001D","Help")) if util.debug else None
+        commandHandlers.gamble_handler = GambleHandler(bot_channels)
+        util.logger.log(DiagMessage("BOT0001D","Gamble")) if util.debug else None
+        # Create event handlers
         self.msg_handler = MessageHandler(bot_id, bot_channels)
         self.logger.log(DiagMessage("BOT0001D","Message")) if self.debug else None
         self.bot_handler = BotHandler()
@@ -106,16 +117,19 @@ class Duckbot:
         # Tick function is called roughly every second, so the tick count rolls
         # over about every hour. Roll over point can be changed if time needs to
         # be tracked longer than an hour at a time.
-        self.ticks = (self.ticks + 1) % 3600
+        self.ticks = (self.ticks + 1) % self.TICK_ROLLOVER
         # Flush the buffer every hour or so if there aren't enough messages
-        if self.ticks % self.logger.LOG_TIME == 0:
+        if self.ticks % util.LOG_TIME == 0:
             self.logger.log(DiagMessage("LOG0010I"), flush=True)
+        # Save bank data timer
+        if util.bank_file and self.ticks % util.SAVE_STATE_TIME == 0:
+            commandHandlers.gamble_handler.saveState()
         # Tick down the global cooldown
         if self.cooldown_g:
             self.cooldown_g -= 1
         # Regen some bux for the poor people
-        if self.ticks % self.msg_handler.gamble_handler.REGEN_TIME == 0:
-            self.msg_handler.gamble_handler.regenBux()
+        if self.ticks % util.REGEN_TIME == 0:
+            commandHandlers.gamble_handler.regenBux()
     #}}}
 
     # Make updates to channel lists
