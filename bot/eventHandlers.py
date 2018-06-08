@@ -236,6 +236,11 @@ class Event:
     def parseMessageEvent(event_new, event_old):
     #{{{
 #         print(event_old)
+        # Ignore slackbot's messages
+        if event_old["user"] == "USLACKBOT":
+            event_new.type = None
+            return
+
         event_new.channel = event_old["channel"]
         if "subtype" not in event_old:
             event_new.user = event_old["user"]
