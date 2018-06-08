@@ -1,6 +1,7 @@
 # Python imports
 import re
 import shlex
+from datetime import datetime, date, time
 # Project imports
 import util
 from util import DiagMessage
@@ -273,6 +274,8 @@ class GambleHandler:
         "channel for gambling content\n Please keep it to "
         "channels with the :slot_machine: label :duck:")
     CURRENCY = "duckbux"
+    REFRESH_TIME = datetime(1,1,1,12)
+    PULL_RANGE = range(1,11)
     #{{{ - Gacha ranges
     GACHA_RANGES = {
          range(50,150)    : [0,"Trash"]
@@ -295,6 +298,7 @@ class GambleHandler:
         self.logger = util.logger
         self.approved_channels = self._getApproved(channels)
         self.bank = Bank()
+        self.pull_timer = self._getRefreshTime()
     #}}}
 
     # Add user to bank if not in already
@@ -415,6 +419,48 @@ class GambleHandler:
             return "Game option error: " + response
     #}}}
 
+    # Buy a gacha pull
+    # Params: user    - uid of player
+    #         channel - channel id playing from
+    #         amount  - number of pulls to do
+    # Return: Message containing results
+    def pull(self, user, channel, amount):
+    #{{{
+        return_code, _ = self._validate(user, channel)
+        # RC=4, RC=5 and RC=6 imply bad channel
+        if return_code > 4:
+            return self.BAD_CHANNEL_MSG
+        # RC=2 is not a member
+        elif return_code == 2:
+            return ("You are not a member of the bank.\n"
+                    "Please use the JOIN command to use gambling features :duck:")
+        elif return_code != 0:
+            #TODO: Malformed user id
+            return None
+
+        # Check amount
+        if amount:
+            # Number?
+            try:
+                amount = int(amount)
+            # Emoji?
+            except ValueError:
+                amount = util.EMOJI_ROLLS.get(amount,1)
+        else:
+            amount = 1
+
+        if amount in self.PULL_RANGE:
+            # Check for free pull
+            if self.bank.freePull(user):
+                amount -= 1
+                roll = util.doRolls(1000)[0]
+                for key in self.GACHA_RANGES:
+                    if roll in key:
+                        pull = self.GACHA_RANGES[key]
+
+        return None
+    #}}}
+
     # Regen some bux when players are low (gets called every five minutes or so)
     # Params: None
     # Return: None
@@ -496,5 +542,34 @@ class GambleHandler:
             return 3, bet_ops[1]
         # Return everything
         return 0, [bet_amount, game, game_ops]
+    #}}}
+
+    # Get the seconds until next pull refresh
+    # Params: None
+    # Return: Seconds unil daily pulls refresh
+    def _getRefreshTime(self):
+    #{{{
+        # Get current time
+        current_time = datetime.now().replace(year = 1, month = 1, day = 1)
+        # Send back diff
+        return (self.REFRESH_TIME - current_time).seconds
+    #}}}
+
+    # Do the gacha pull
+    # Params: None
+    # Return: Result from gacha ranges
+    def _doPull(self, user):
+    #{{{
+        roll = util.doRolls(1000)[0]
+        # Nuke time
+        if roll == 1:
+            self.bank.nuke()
+        # Lost one
+        elif roll < 50:
+            self.bank.
+        for key in self.GACHA_RANGES:
+            if roll in key:
+                return self.GACHA_RANGES[key]
+        return None
     #}}}
 #}}}

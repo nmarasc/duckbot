@@ -3,6 +3,7 @@ import re
 import random
 from datetime import datetime
 from diagCodes import DIAG_CODES
+from bidict import bidict
 
 # Util constants
 RTM_READ_DELAY = 1
@@ -36,7 +37,7 @@ EMOJI_ROLLS={
         }
 #}}}
 #{{{ - Commands
-COMMANDS = {
+COMMANDS = bidict({
     'HI'        :  1,
     'UPDATE'    :  2,
     'HELP'      :  3,
@@ -48,7 +49,8 @@ COMMANDS = {
     'JOIN'      :  9,
     'CHECKBUX'  : 10,
     'BET'       : 11,
-           }
+    'PULL'      : 12,
+})
 COMMANDS_ALT = {
     'HELLO'      : 1, 'KWEH'       : 1,
     '?'          : 3, ':QUESTION:' : 3,
@@ -278,68 +280,6 @@ class Bank:
             self.gacha_pool = self.DEFAULT_POOL
     #}}}
 
-    # Read in bank state file and initialize
-    # Params: None
-    # Return: None
-    # Notes : Please don't write your own bank file.
-    # You make mistakes, the bot doesn't
-    def readState(self):
-    #{{{
-        reading_players = True
-        try:
-            with open("bank.dat","r") as data:
-                for line in data:
-                    line = line.strip()
-                    # Skip comments
-                    if line.startswith("#"):
-                        pass
-                    # Signal switch to pool
-                    elif line.startswith(";"):
-                        reading_players = False
-                    # Parse line for player data
-                    elif reading_players and line:
-                        player_data = self._parsePlayerData(line.split(":"))
-                        if player_data:
-                            self.players[player_data[0]] = {
-                                 "balance" : player_data[1]
-                                ,"pool"    : player_data[2]
-                            }
-                    # Parse line for gacha data
-                    elif line:
-                        self.gacha_pool = list(map(int,line.split(",")))
-        # File doesn't exist, can't be read or gacha pool format error
-        except (OSError, ValueError):
-            self.gacha_pool = self.DEFAULT_POOL
-    #}}}
-
-    # Save bank state into file
-    # Params: None
-    # Return: None
-    def saveState(self):
-    #{{{
-        try:
-            with open("bank.dat","w") as data:
-                # Write out player data
-                data.write("# Players\n")
-                for key in self.players:
-                    data.write(key + ":" + str(self.players[key]["balance"]))
-                    data.write(":" + ",".join(map(str,self.players[key]["pool"])))
-                    data.write("\n")
-                data.write(";\n")
-                # Write pool data
-                data.write("# Gacha Pool\n")
-                data.write(",".join(map(str,self.gacha_pool)))
-        # File couldn't be written
-        except OSError:
-            pass
-    #}}}
-
-    # Check if user in bank
-    # Params: user - user id to check member status of
-    # Return: True if member, false otherwise
-    def isMember(self, user):
-        return user in self.players
-
     # Add user to bank
     # Params: user - user id to add to bank
     # Return: None
@@ -348,6 +288,7 @@ class Bank:
         self.players[user] = {
              "balance" : self.STARTING_BUX
             ,"pool"    : self.STARTING_POOL
+            ,"pull"    : True
         }
     #}}}
 
@@ -375,59 +316,96 @@ class Bank:
                 self.players[player]["balance"] = 100
     #}}}
 
+    # Read in bank state file and initialize
+    # Params: None
+    # Return: None
+    # Notes : Please don't write your own bank file.
+    # You make mistakes, the bot doesn't
+    def readState(self):
+    #{{{
+        reading_players = True
+        try:
+            with open("bank.dat","r") as data:
+                for line in data:
+                    line = line.strip()
+                    # Skip comments
+                    if line.startswith("#"):
+                        pass
+                    # Signal switch to pool
+                    elif line.startswith(";"):
+                        reading_players = False
+                    # Parse line for player data
+                    elif reading_players and line:
+                        player_data = self._parsePlayerData(line.split(":"))
+                        if player_data:
+                            self.players[player_data[0]] = {
+                                 "balance" : player_data[1]
+                                ,"pool"    : player_data[2]
+                                ,"pull"    : player_data[3]
+                            }
+                    # Parse line for gacha data
+                    elif line:
+                        self.gacha_pool = list(map(int,line.split(",")))
+        # File doesn't exist, can't be read or gacha pool format error
+        except (OSError, ValueError):
+            self.gacha_pool = self.DEFAULT_POOL
+    #}}}
+
+    # Save bank state into file
+    # Params: None
+    # Return: None
+    def saveState(self):
+    #{{{
+        try:
+            with open("bank.dat","w") as data:
+                # Write out player data
+                data.write("# Players\n")
+                for key in self.players:
+                    data.write(key + ":" + str(self.players[key]["balance"]))
+                    data.write(":" + ",".join(map(str,self.players[key]["pool"])))
+                    data.write(":" + str(self.players[key]["pull"]))
+                    data.write("\n")
+                data.write(";\n")
+                # Write pool data
+                data.write("# Gacha Pool\n")
+                data.write(",".join(map(str,self.gacha_pool)))
+        # File couldn't be written
+        except OSError:
+            pass
+    #}}}
+
+    # Check if user in bank
+    # Params: user - user id to check member status of
+    # Return: True if member, false otherwise
+    def isMember(self, user):
+        return user in self.players
+
+    # Check for free pull available and disable it
+    # Params: user - uid to check
+    # Return: True if available, False otherwise
+    def freePull(self, user):
+    #{{{
+        if self.players[user]["pull"]:
+            self.players[user]["pull"] = False
+            return True
+        return False
+    #}}}
+
     # Parse player data of line
     # Params: data - line data
     # Return: player data list or None
     def _parsePlayerData(self, data):
     #{{{
         try:
-            if len(data) == 3:
+            if len(data) == 4:
                 player_data = [util.matchUserId(data[0])]
                 player_data.append(int(data[1]))
                 player_data.append(list(map(int,data[2].split(","))))
+                player_data.append(data[3] == "True")
                 if player_data[0]:
                     return player_data
         except ValueError:
             pass
         return None
-    #}}}
-#}}}
-
-# Bidirectional dictionary class
-# Credit belongs to a dude on stackoverflow
-class bidict(dict):
-#{{{
-    # Constructor for bidict
-    # Params: same as regular dict
-    # Return: bidict instance
-    def __init__(self, *args, **kwargs):
-    #{{{
-        super(bidict, self).__init__(*args, **kwargs)
-        self.inverse = {}
-        for key, value in self.items():
-            self.inverse.setdefault(value,[]).append(key)
-    #}}}
-
-    # Set value in both directions
-    # Params: key   - index to map value to
-    #         value - value to map key to
-    # Return: None
-    def __setitem__(self, key, value):
-    #{{{
-        if key in self:
-            self.inverse[self[key]].remove(key)
-        super(bidict, self).__setitem__(key, value)
-        self.inverse.setdefault(value,[]).append(key)
-    #}}}
-
-    # Remove key from dict
-    # Params: key - key to remove
-    # Return: None
-    def __delitem__(self, key):
-    #{{{
-        self.inverse.setdefault(self[key],[]).remove(key)
-        if self[key] in self.inverse and not self.inverse[self[key]]:
-            del self.inverse[self[key]]
-        super(bidict, self).__delitem__(key)
     #}}}
 #}}}

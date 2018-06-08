@@ -130,6 +130,11 @@ class Duckbot:
         # Regen some bux for the poor people
         if self.ticks % util.REGEN_TIME == 0:
             commandHandlers.gamble_handler.regenBux()
+        # Refresh the free pulls
+        if commandHandlers.gamble_handler.pull_timer:
+            commandHandlers.gamble_handler.pull_timer -= 1
+        else:
+            commandHandlers.gamble_handler.refreshPulls()
     #}}}
 
     # Make updates to channel lists

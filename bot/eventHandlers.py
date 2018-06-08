@@ -32,25 +32,28 @@ class MessageHandler:
         if o_parms:
             u_parms = list(map(str.upper,o_parms))
 
+        # Log command being processed
+        if util.debug:
+            util.logger.log(DiagMessage(
+                "BOT0020D",
+                util.COMMANDS.inverse[command][0]
+            ))
+
         # HI command
         if command == util.COMMANDS["HI"]:
-            util.logger.log(DiagMessage("BOT0020D","HI")) if util.debug else None
             return self.DEFAULT_RESPONSE
 
         # UPDATE command
         elif command == util.COMMANDS["UPDATE"]:
-            util.logger.log(DiagMessage("BOT0020D","UPDATE")) if util.debug else None
             return None
 
         # HELP command
         elif command == util.COMMANDS["HELP"]:
-            util.logger.log(DiagMessage("BOT0020D","HELP")) if util.debug else None
             return self.help_handler.act(u_parms)
 
         # ROLL command
         elif command == util.COMMANDS["ROLL"]:
         #{{{
-            util.logger.log(DiagMessage("BOT0020D","ROLL")) if util.debug else None
             return_code, rolls = self.roll_handler.roll(u_parms)
             # Regular dice roll
             if return_code == 0:
@@ -90,23 +93,19 @@ class MessageHandler:
 
         # COIN command
         elif command == util.COMMANDS["COIN"]:
-            util.logger.log(DiagMessage("BOT0020D","COIN")) if util.debug else None
             return "You got: " + self.roll_handler.coinRoll()
 
         # 8BALL command
         elif command == util.COMMANDS["EIGHTBALL"]:
-            util.logger.log(DiagMessage("BOT0020D","EIGHTBALL")) if util.debug else None
             return self.roll_handler.eightballRoll()
 
         # FACTOID command
         elif command == util.COMMANDS["FACTOID"]:
-            util.logger.log(DiagMessage("BOT0020D","FACTOID")) if util.debug else None
             return self.roll_handler.factoidRoll()
 
         # PICKIT command
         elif command == util.COMMANDS["PICKIT"]:
         #{{{
-            util.logger.log(DiagMessage("BOT0020D","PICKIT")) if util.debug else None
             return_code, response = self.roll_handler.pickitRoll(o_parms)
             # Number of choices out of range
             if return_code == 1:
@@ -121,19 +120,21 @@ class MessageHandler:
 
         # JOIN command
         elif command == util.COMMANDS["JOIN"]:
-            util.logger.log(DiagMessage("BOT0020D","JOIN")) if util.debug else None
             return self.gamble_handler.join(event.user, event.channel)
 
         # CHECKBUX command
         elif command == util.COMMANDS["CHECKBUX"]:
-            util.logger.log(DiagMessage("BOT0020D","CHECKBUX")) if util.debug else None
             target = u_parms[0] if u_parms else None
             return self.gamble_handler.checkbux(event.user, target)
 
         # BET command
         elif command == util.COMMANDS["BET"]:
-            util.logger.log(DiagMessage("BOT0020D","BET")) if util.debug else None
             return self.gamble_handler.bet(event.user, event.channel, o_parms)
+
+        # PULL command
+        elif command == util.COMMANDS["PULL"]:
+            amount = u_parms[0] if u_parms else None
+            return self.gamble_handler.pull(event.user, event.channel, amount)
 
         # No command or unrecognized, either way I don't care
         else:
