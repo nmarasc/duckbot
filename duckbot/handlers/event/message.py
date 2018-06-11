@@ -1,23 +1,22 @@
+# Python imports
 import re
-import util
-import commandHandlers
-from util import DiagMessage
+# Project imports
+from util.diagMessage import DiagMessage
+from util import util
 
 # Message handler class
 class MessageHandler:
-#{{{
     DEFAULT_RESPONSE = "Kweh! :DUCK:"
 
     # Constructor for message handler
     # Params: bot_id       - bot user id
-    #         bot_channels - dict of channel ids to channel data
+    #         kwargs       - dict containing handlers
     # Return: MessageHandler instance
-    def __init__(self, bot_id, bot_channels):
+    def __init__(self, bot_id, **kwargs):
     #{{{
         self.bot_id = bot_id
-        self.roll_handler   = commandHandlers.roll_handler
-        self.help_handler   = commandHandlers.help_handler
-        self.gamble_handler = commandHandlers.gamble_handler
+        for key in kwargs:
+            setattr(self, key, kwargs[key])
     #}}}
 
     # Call handler functions based on extracted command word
@@ -33,7 +32,7 @@ class MessageHandler:
             u_parms = list(map(str.upper,o_parms))
 
         # Log command being processed
-        if util.debug:
+        if util.debug and command:
             util.logger.log(DiagMessage(
                 "BOT0020D",
                 util.COMMANDS.inverse[command][0]
@@ -168,151 +167,3 @@ class MessageHandler:
         else:
             return None, None
     #}}}
-#}}}
-
-# Bot handler class
-class BotHandler:
-#{{{
-    # Constructor for bot handler
-    # Params: None
-    # Return: BotHandler instance
-    def __init__(self):
-    #{{{
-        self.logger = util.logger
-        self.bots   = {}
-    #}}}
-
-    # Handle bot interaction
-    # Params: event - bot message event
-    # Return: list of response parameters
-    def act(self, event):
-    #{{{
-        if event.user in self.bots:
-            util.sendMessage(event.channel, "Check this out, kweh :duck:")
-            util.sendMessage(event.channel, "Hello", self.bots[event.user])
-    #}}}
-
-    # Check if bot id is known and add it if not
-    # Params: bot_id - bot id to check
-    # Return: None
-    def checkBotId(self, bot_id):
-    #{{{
-        # Add the bot to the list if it's not in there
-        if bot_id not in self.bots:
-            response = util.sc.api_call("bots.info", token=util.sc.token, bot=bot_id)
-            if response["ok"]:
-                self.bots[bot_id] = response["bot"]["user_id"]
-                self.logger.log(DiagMessage("BOT0051D")) if util.debug else None
-            else:
-                self.logger.log(DiagMessage("BOT0040E"))
-                self.logger.log(DiagMessage("BOT0041E", response["error"]))
-        else:
-            self.logger.log(DiagMessage("BOT0050D")) if util.debug else None
-    #}}}
-#}}}
-
-# Event class
-# This may affect response time negatively, see how it goes
-class Event:
-#{{{
-    # Constructor for Event
-    # Params: event_p - incoming slack event to parse
-    # Return: Event instance
-    def __init__(self, event_p):
-    #{{{
-        if "type" in event_p:
-            self.type = event_p["type"]
-        else:
-            self.type = None
-
-        # Call the parser based on the event type
-        if self.type in EVENT_PARSERS:
-            EVENT_PARSERS[self.type](self, event_p)
-    #}}}
-
-    # Parser for message type events
-    # Params: event_new - Event instance to add field data to
-    #         event_old - slack event to extract data from
-    # Return: None
-    def parseMessageEvent(event_new, event_old):
-    #{{{
-#         print(event_old)
-        # Ignore slackbot's messages
-        if event_old["user"] == "USLACKBOT":
-            event_new.type = None
-            return
-
-        event_new.channel = event_old["channel"]
-        if "subtype" not in event_old:
-            event_new.user = event_old["user"]
-            event_new.text = event_old["text"]
-            event_new.ts   = event_old["ts"]
-        elif event_old["subtype"] == "message_changed":
-            event_new.user = event_old["message"]["user"]
-            event_new.text = event_old["message"]["text"]
-            event_new.ts   = event_old["message"]["ts"]
-        elif event_old["subtype"] == "channel_purpose":
-            event_new.user = event_old["user"]
-            event_new.text = event_old["purpose"]
-            event_new.ts   = event_old["ts"]
-            event_new.type = "update"
-            event_new.subtype = "channel_purpose"
-        elif event_old["subtype"] == "bot_message":
-            event_new.type = "bot_message"
-            event_new.text = event_old["text"]
-            event_new.user = event_old["bot_id"]
-            event_new.name = event_old["username"]
-            event_new.ts   = event_old["ts"]
-        # Ignore subtypes not handled
-        else:
-            event_new.type = None
-    #}}}
-
-    # Parser for reaction added events
-    # Params: event_new - Event instance to add field data to
-    #         event_old - slack event to extract data from
-    # Return: None
-    def parseReactionAddedEvent(event_new, event_old):
-    #{{{
-        event_new.user     = event_old["user"]
-        event_new.reaction = {
-             "emoji" : event_old["reaction"]
-            ,"type"  : event_old["item"]["type"]
-        }
-        if event_new.reaction["type"] == "message":
-            event_new.channel = event_old["item"]["channel"]
-            event_new.ts      = event_old["item"]["ts"]
-
-        elif (event_new.reaction["type"] == "file" or
-              event_new.reaction["type"] == "file_comment"):
-            event_new.file = event_old["item"]["file"]
-    #}}}
-
-    # Parser for team join events
-    # Params: event_new - Event instance to add field data to
-    #         event_old - slack event to extract data from
-    # Return: None
-    def parseTeamJoinEvent(event_new, event_old):
-        event_new.user = event_old["user"]["id"]
-
-    # Parser for channel joined events
-    # Params: event_new - Event instance to add field data to
-    #         event_old - slack event to extract data from
-    # Return: None
-    def parseChannelJoinedEvent(event_new, event_old):
-    #{{{
-        event_new.type    = "update"
-        event_new.subtype = "channel_joined"
-        event_new.channel = event_old["channel"]["id"]
-        event_new.channel_data = event_old["channel"]
-    #}}}
-#}}}
-
-#{{{ - EVENT_PARSERS
-EVENT_PARSERS = {
-     "message"        : Event.parseMessageEvent
-    ,"reaction_added" : Event.parseReactionAddedEvent
-    ,"team_join"      : Event.parseTeamJoinEvent
-    ,"channel_joined" : Event.parseChannelJoinedEvent
-}
-#}}}

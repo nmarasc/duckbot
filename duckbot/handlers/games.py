@@ -1,8 +1,9 @@
-import util
+from util.bidict import bidict
+from util import util
 
 GAME_OPS = {
     #{{{ - Coin options
-     "COIN_OPS" : util.bidict({
+     "COIN_OPS" : bidict({
          "HEADS" : 1
         ,"TAILS" : 2
         ,"H"     : 1
@@ -10,7 +11,7 @@ GAME_OPS = {
     })
     #}}}
     #{{{ - Dice options
-    ,"DICE_OPS" : util.bidict({
+    ,"DICE_OPS" : bidict({
          "EVENS" : 0
         ,"ODDS"  : 1
         ,"E"     : 0

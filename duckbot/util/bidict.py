@@ -1,7 +1,6 @@
 # Bidirectional dictionary class
 # Credit belongs to a dude on stackoverflow
 class bidict(dict):
-#{{{
     # Constructor for bidict
     # Params: same as regular dict
     # Return: bidict instance
@@ -35,4 +34,3 @@ class bidict(dict):
             del self.inverse[self[key]]
         super(bidict, self).__delitem__(key)
     #}}}
-#}}}

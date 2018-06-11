@@ -1,5 +1,5 @@
 import os,py_compile
-bot_dir = "bot/"
+bot_dir = "duckbot/"
 for fn in os.listdir(bot_dir):
     if fn.endswith(".py"):
         try:

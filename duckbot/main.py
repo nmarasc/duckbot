@@ -8,8 +8,10 @@ import argparse
 from slackclient import SlackClient
 
 # Project imports
-import util
-from util import DiagMessage
+from util import util
+from util.diagMessage import DiagMessage
+from util.logger import Logger
+
 from duckbot import Duckbot
 
 # Mainline code
@@ -45,7 +47,7 @@ def initProgram():
     util.bank_file = args.bnk
 
     # Start the logger with logging mode
-    util.logger = util.Logger(log=args.log)
+    util.logger = Logger(log=args.log)
     util.logger.log(DiagMessage("INI0000I"))
 #}}}
 
