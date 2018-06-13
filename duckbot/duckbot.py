@@ -6,11 +6,10 @@ from util.event import Event
 from handlers.event.message import MessageHandler
 from handlers.event.bot import BotHandler
 
-# import commandHandlers
+# Command handler imports
 from handlers.command.roll import RollHandler
 from handlers.command.help import HelpHandler
 from handlers.command.gamble import GambleHandler
-# from commandHandlers import RollHandler, HelpHandler, GambleHandler
 
 # Duckbot class delegates event handlers and keeps track of time
 class Duckbot:
@@ -41,11 +40,6 @@ class Duckbot:
         self.gamble_handler = GambleHandler(bot_channels)
         util.logger.log(DiagMessage("BOT0001D","Gamble")) if util.debug else None
         # Create event handlers
-        kwargs = {
-            "gamble_handler" : self.gamble_handler,
-            "help_handler"   : self.help_handler,
-            "roll_handler"   : self.roll_handler
-        }
         self.msg_handler = MessageHandler(
             bot_id,
             gamble_handler=self.gamble_handler,
