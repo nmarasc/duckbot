@@ -1,5 +1,5 @@
 # Project imports
-from util import util
+import util.common as util
 from util.diagMessage import DiagMessage
 from util.event import Event
 # Event handler imports

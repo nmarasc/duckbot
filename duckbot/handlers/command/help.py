@@ -1,4 +1,4 @@
-from util import util
+import util.common as util
 
 # Help handler class
 class HelpHandler:

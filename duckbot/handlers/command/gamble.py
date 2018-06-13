@@ -1,8 +1,8 @@
 # Python imports
 from datetime import datetime
 # Project imports
+import util.common as util
 from util.bank import Bank
-from util import util
 import handlers.games as Games
 
 # Gambling handler class

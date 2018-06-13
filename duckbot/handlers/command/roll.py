@@ -2,7 +2,7 @@
 import re
 import shlex
 # Project imports
-from util import util
+import util.common as util
 
 # Roll handler class
 class RollHandler:

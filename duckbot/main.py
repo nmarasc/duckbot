@@ -8,7 +8,7 @@ import argparse
 from slackclient import SlackClient
 
 # Project imports
-from util import util
+import util.common as util
 from util.diagMessage import DiagMessage
 from util.logger import Logger
 

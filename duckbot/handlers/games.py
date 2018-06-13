@@ -1,5 +1,5 @@
+import util.common as util
 from util.bidict import bidict
-from util import util
 
 GAME_OPS = {
     #{{{ - Coin options

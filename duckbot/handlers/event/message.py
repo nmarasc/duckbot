@@ -1,8 +1,8 @@
 # Python imports
 import re
 # Project imports
+import util.common as util
 from util.diagMessage import DiagMessage
-from util import util
 
 # Message handler class
 class MessageHandler:
