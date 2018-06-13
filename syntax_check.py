@@ -1,8 +1,13 @@
-import os,py_compile
-bot_dir = "duckbot/"
-for fn in os.listdir(bot_dir):
-    if fn.endswith(".py"):
-        try:
-            py_compile.compile(bot_dir + fn, doraise=True)
-        except PyCompileError:
-            sys.exit(1)
+import os, sys, py_compile
+from glob import glob
+
+file_paths = glob('duckbot/**/*.py', recursive=True)
+for path in file_paths:
+    try:
+        py_compile.compile(path, doraise=True)
+    except py_compile.PyCompileError as err:
+        print("File failed to compile: " + path, file=sys.stderr)
+        err = [x.strip() for x in str(err).split('\n')]
+        prefix = [">>  ",">>    ",">>    ",">>  ",">>"]
+        for i in range(0,len(err)):
+            print(prefix[i % len(prefix)] + err[i], file=sys.stderr)
