@@ -35,7 +35,7 @@ function syntax_check {
 
 # Mainline
 syntax_check
-while $return_code -eq 0; do
+while [ $return_code -eq 0 ]; do
 
     # Attempt to start bot
     start_bot
