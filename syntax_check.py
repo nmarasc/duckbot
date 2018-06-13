@@ -11,5 +11,5 @@ for path in file_paths:
         prefix = [">>  ",">>    ",">>    ",">>  ",">>"]
         for i in range(0,len(err)):
             print(prefix[i % len(prefix)] + err[i], file=sys.stderr)
-        return 1
-return 0
+        sys.exit(1)
+sys.exit(0)
