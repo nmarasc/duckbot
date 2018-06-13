@@ -1,13 +1,15 @@
 # Project imports
-import util
-from util import DiagMessage
+import util.common as util
+from util.diagMessage import DiagMessage
+from util.event import Event
 # Event handler imports
-from eventHandlers import MessageHandler
-from eventHandlers import BotHandler
-from eventHandlers import Event
+from handlers.event.message import MessageHandler
+from handlers.event.bot import BotHandler
 
-import commandHandlers
-from commandHandlers import RollHandler, HelpHandler, GambleHandler
+# Command handler imports
+from handlers.command.roll import RollHandler
+from handlers.command.help import HelpHandler
+from handlers.command.gamble import GambleHandler
 
 # Duckbot class delegates event handlers and keeps track of time
 class Duckbot:
@@ -31,14 +33,19 @@ class Duckbot:
 
         self.logger.log(DiagMessage("BOT0000I"))
         # Create command handlers
-        commandHandlers.roll_handler = RollHandler()
+        self.roll_handler = RollHandler()
         util.logger.log(DiagMessage("BOT0001D","Roll")) if util.debug else None
-        commandHandlers.help_handler = HelpHandler(bot_id)
+        self.help_handler = HelpHandler(bot_id)
         util.logger.log(DiagMessage("BOT0001D","Help")) if util.debug else None
-        commandHandlers.gamble_handler = GambleHandler(bot_channels)
+        self.gamble_handler = GambleHandler(bot_channels)
         util.logger.log(DiagMessage("BOT0001D","Gamble")) if util.debug else None
         # Create event handlers
-        self.msg_handler = MessageHandler(bot_id, bot_channels)
+        self.msg_handler = MessageHandler(
+            bot_id,
+            gamble_handler=self.gamble_handler,
+            help_handler=self.help_handler,
+            roll_handler=self.roll_handler
+        )
         self.logger.log(DiagMessage("BOT0001D","Message")) if self.debug else None
         self.bot_handler = BotHandler()
         self.logger.log(DiagMessage("BOT0001D","Bot")) if self.debug else None
@@ -123,13 +130,18 @@ class Duckbot:
             self.logger.log(DiagMessage("LOG0010I"), flush=True)
         # Save bank data timer
         if util.bank_file and self.ticks % util.SAVE_STATE_TIME == 0:
-            commandHandlers.gamble_handler.saveState()
+            self.gamble_handler.saveState()
         # Tick down the global cooldown
         if self.cooldown_g:
             self.cooldown_g -= 1
         # Regen some bux for the poor people
         if self.ticks % util.REGEN_TIME == 0:
-            commandHandlers.gamble_handler.regenBux()
+            self.gamble_handler.regenBux()
+        # Refresh the free pulls
+        if self.gamble_handler.pull_timer:
+            self.gamble_handler.pull_timer -= 1
+        else:
+            self.gamble_handler.refreshPulls()
     #}}}
 
     # Make updates to channel lists
@@ -142,6 +154,5 @@ class Duckbot:
         # Update gambler channel list
         event.channel = self.channels[event.channel]
         labels = util.parseLabels(event.channel["purpose"]["value"])
-        gamble_handler = self.msg_handler.gamble_handler
-        gamble_handler.checkChannel(event.channel, labels)
+        self.gamble_handler.checkChannel(event.channel, labels)
     #}}}

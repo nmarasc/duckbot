@@ -9,7 +9,7 @@ duck_parms=$@
 # Bot startup function
 function start_bot {
   return_code=0
-  python bot/main.py $duck_parms & return_code=$?;duck_pid=$!
+  python duckbot/main.py $duck_parms & return_code=$?;duck_pid=$!
   # RC!=0 , something bad happened with bash
   if [ $return_code -ne 0 ]; then
     if [ $retry -eq 1 ]; then
