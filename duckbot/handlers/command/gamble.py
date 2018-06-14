@@ -3,6 +3,7 @@ from datetime import datetime
 # Project imports
 import util.common as util
 from util.bank import Bank
+import util.bankMsg
 import handlers.games as Games
 
 # Gambling handler class
@@ -13,6 +14,7 @@ class GambleHandler:
     CURRENCY = "duckbux"
     REFRESH_TIME = datetime(1,1,1,12)
     PULL_RANGE = range(1,11)
+    PULL_COST  = 10
     #{{{ - Gacha ranges
     GACHA_RANGES = {
          range(50,150)    : [0,"Trash"]
@@ -175,7 +177,7 @@ class GambleHandler:
             #TODO: Malformed user id
             return None
 
-        # Check amount
+        # Convert amount
         if amount:
             # Number?
             try:
@@ -185,15 +187,20 @@ class GambleHandler:
                 amount = util.EMOJI_ROLLS.get(amount,1)
         else:
             amount = 1
-
+        # Check amount and total cost
         if amount in self.PULL_RANGE:
             # Check for free pull
-            if self.bank.freePull(user):
-                amount -= 1
-                roll = util.doRolls(1000)[0]
-                for key in self.GACHA_RANGES:
-                    if roll in key:
-                        pull = self.GACHA_RANGES[key]
+            if self.bank.hasFreePull(user):
+                total_cost = (amount - 1) * self.PULL_COST
+            else:
+                total_cost = amount * self.PULL_COST
+
+            if total_cost > self.bank.balance(user):
+                return bankMsg.INSUFFICIENT_FUNDS
+
+                pull_id, pull_name = self._doPull(user)
+                # Nuked
+                if pull_id == -2:
 
         return None
     #}}}
@@ -301,11 +308,15 @@ class GambleHandler:
         # Nuke time
         if roll == 1:
             self.bank.nuke()
+            return -2, None
         # Lost one
         elif roll < 50:
-            self.bank.removeOne()
-        for key in self.GACHA_RANGES:
-            if roll in key:
-                return self.GACHA_RANGES[key]
-        return None
+            self.bank.removeOne(user)
+            return -1, None
+        # Actual roll
+        else:
+            for key in self.GACHA_RANGES:
+                if roll in key:
+                    return self.GACHA_RANGES[key]
+        return None, None
     #}}}

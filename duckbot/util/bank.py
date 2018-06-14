@@ -118,16 +118,11 @@ class Bank:
     def isMember(self, user):
         return user in self.players
 
-    # Check for free pull available and disable it
+    # Check for free pull available
     # Params: user - uid to check
     # Return: True if available, False otherwise
-    def freePull(self, user):
-    #{{{
-        if self.players[user]["pull"]:
-            self.players[user]["pull"] = False
-            return True
-        return False
-    #}}}
+    def hasFreePull(self, user):
+        return self.players['pull'] == True
 
     # Parse player data of line
     # Params: data - line data
