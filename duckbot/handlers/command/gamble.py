@@ -212,32 +212,43 @@ class GambleHandler:
         else:
             self.bank.balance(user, -total_cost)
 
-        #TODO: Do the pulls and accumulate results
+        response = "Your pull results: "
+        for i in range(0,amount):
             pull_id = self._doPull(user)
             # Nuked
             if pull_id == -2:
+                # TODO: Add nuke to bank.py
                 self.bank.nuke()
                 return bank_msgs.NUKE
             # Bad pull
             if pull_id == -1:
+                # TODO: Add removeBest to bank.py
                 pull_id = self.bank.removeBest(user)
                 pull_name = self.GACHA_NAMES[pull_id]
                 # Lost the big one
                 if pull_id == self.GACHA_RANGES[1000]:
-                    return (
-                        "You have diappointed " + pull_name + "\n"
+                    response += (
+                        "\nYou have diappointed " + pull_name + ". "
                         "She returns back to the pool"
                     )
                 # Lost your best
                 elif pull_id:
-                    return (
-                        "A disappointed " + pull_name + " "
+                    response += (
+                        "\nA disappointed " + pull_name + " "
                         "leaves your collection"
                     )
                 # Didn't have anything to lose
                 else:
-                    return bank_msgs.NO_LOSS
-            # Else good pull
+                    response += bank_msgs.NO_LOSS
+            # Good pull
+            else:
+                # TODO: Add way to add pull to user
+                pull_name = self.GACHA_NAMES[pull_id]
+                response += (
+                    "\nA " + pull_name + " has entered your collection"
+                )
+
+            # Send back results
 
         return None
     #}}}
