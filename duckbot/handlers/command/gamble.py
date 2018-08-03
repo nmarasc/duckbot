@@ -56,7 +56,7 @@ class GambleHandler:
     # Return: Message to send to channel
     def join(self, user, channel):
     #{{{
-        return_code, _ = self._validate(user, channel)
+        return_code, _ = self._checkGambleStatus(user, channel)
         # RC=4, RC=5 and RC=6 imply bad channel
         if return_code > 4:
             return bank_msgs.BAD_CHANNEL
@@ -84,7 +84,7 @@ class GambleHandler:
     #{{{
         # There's text to check for a target
         if target:
-            return_code, target = self._validate(target)
+            return_code, target = self._checkGambleStatus(target)
             # User and in the bank
             if return_code == 0:
                 balance = self.bank.balance(target)
@@ -95,7 +95,7 @@ class GambleHandler:
                 return "<@" + target + "> is not currently registered for this bank :duck:"
 
         # Either there was no text for a target or the text wasn't a user
-        return_code, _ = self._validate(user)
+        return_code, _ = self._checkGambleStatus(user)
         # User in the bank
         if return_code == 0:
             balance = self.bank.balance(user)
@@ -119,7 +119,7 @@ class GambleHandler:
     def bet(self, user, channel, bet_ops):
     #{{{
         # See if betting even allowed
-        return_code, _ = self._validate(user, channel)
+        return_code, _ = self._checkGambleStatus(user, channel)
         # RC=4, RC=5 and RC=6 imply bad channel
         if return_code > 4:
             return bank_msgs.BAD_CHANNEL
@@ -173,7 +173,7 @@ class GambleHandler:
     # Return: Message containing results
     def pull(self, user, channel, amount):
     #{{{
-        return_code, _ = self._validate(user, channel)
+        return_code, _ = self._checkGambleStatus(user, channel)
         # RC=4, RC=5 and RC=6 imply bad channel
         if return_code > 4:
             return self.BAD_CHANNEL_MSG
@@ -200,57 +200,62 @@ class GambleHandler:
                 " " + str(min(self.PULL_RANGE)) + " to"
                 " " + str(max(self.PULL_RANGE)))
 
-        # Check for free pull
-        if self.bank.hasFreePull(user):
-            total_cost = (amount - 1) * self.PULL_COST
-        else:
-            total_cost = amount * self.PULL_COST
+        response = ""
+        # Check balance for free pull
+        if (self.bank.hasFreePull(user) and
+           (amount - 1) * self.PULL_COST <= self.bank.balance(user)):
 
-        # Check for required balance and deduct
-        if total_cost > self.bank.balance(user):
+            self.bank.balance(user, -((amount - 1) * self.PULL_COST))
+            response += "Free pull was available, -1 pull cost\n"
+            self.bank.setFreePull(False, user)
+        # Check balance for no free pull
+        elif (not self.bank.hasFreePull(user) and
+             amount * self.PULL_COST <= self.bank.balance(user)):
+
+            self.bank.balance(user, -(amount * self.PULL_COST))
+        # Not enough funds
+        else:
             return bank_msgs.INSUFFICIENT_FUNDS
-        else:
-            self.bank.balance(user, -total_cost)
 
-        response = "Your pull results: "
+        response += "Your pull results: "
         for i in range(0,amount):
             pull_id = self._doPull(user)
             # Nuked
             if pull_id == -2:
-                # TODO: Add nuke to bank.py
                 self.bank.nuke()
                 return bank_msgs.NUKE
             # Bad pull
             if pull_id == -1:
-                # TODO: Add removeBest to bank.py
                 pull_id = self.bank.removeBest(user)
-                pull_name = self.GACHA_NAMES[pull_id]
-                # Lost the big one
-                if pull_id == self.GACHA_RANGES[1000]:
-                    response += (
-                        "\nYou have diappointed " + pull_name + ". "
-                        "She returns back to the pool"
-                    )
-                # Lost your best
-                elif pull_id:
-                    response += (
-                        "\nA disappointed " + pull_name + " "
-                        "leaves your collection"
-                    )
                 # Didn't have anything to lose
-                else:
+                if pull_id < 0:
                     response += bank_msgs.NO_LOSS
+
+                else:
+                    pull_name = self.GACHA_NAMES[pull_id]
+                    # Lost the big one
+                    if pull_id == self.GACHA_RANGES[1000]:
+                        response += (
+                            "\nYou have diappointed " + pull_name + ". "
+                            "She returns back to the pool"
+                        )
+                    # Lost your best
+                    else:
+                        response += (
+                            "\nA disappointed " + pull_name + " "
+                            "leaves your collection"
+                        )
             # Good pull
+            # TODO: Change up messages
             else:
-                # TODO: Add way to add pull to user
+                self.bank.addPool(pull_id, user)
                 pull_name = self.GACHA_NAMES[pull_id]
                 response += (
                     "\nA " + pull_name + " has entered your collection"
                 )
 
-            # Send back results
-
-        return None
+        # Send back results
+        return response
     #}}}
 
     # Regen some bux when players are low (gets called every five minutes or so)
@@ -258,6 +263,10 @@ class GambleHandler:
     # Return: None
     def regenBux(self):
         self.bank.regen()
+
+    # TODO: This function
+    def refreshPulls(self):
+        return 0
 
     # Check for required labels and add channel id if good
     # Params: channel - channel to potentially add
@@ -297,8 +306,13 @@ class GambleHandler:
     # Check if user and channel are appropriate for gambling
     # Params: user    - user id to check for bank entry
     #         channel - channel id to check for approval
-    # Return: int value based on failures
-    def _validate(self, user, channel = None):
+    # Return: int value based on failures and matched user id
+    #           0 - all good
+    #           1 - bad user id
+    #           2 - user not a member of bank
+    #           4 - channel not approved
+    # Note  : Other return codes are some combination of the above
+    def _checkGambleStatus(self, user, channel = None):
     #{{{
         return_code = 0
         user = util.matchUserId(user)

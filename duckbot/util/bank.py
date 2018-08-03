@@ -54,6 +54,38 @@ class Bank:
                 self.players[player]["balance"] = 100
     #}}}
 
+    # Wipe all player's gacha pools
+    # Params: None
+    # Return: None
+    def nuke(self):
+    #{{{
+        for player in self.players:
+            self.players[player]["pool"] = self.STARTING_POOL
+    #}}}
+
+    # Remove the best item from a users gacha pool
+    # Params: user - user id to remove from
+    # Return: pull id of removed value or -1 if pool was empty
+    def removeBest(self, user):
+    #{{{
+        pool = self.players[user]["pool"]
+        try:
+            pid = max([ind for ind, val in enumerate(pool) if val > 0])
+            pool[pid] -= 1
+            return pid
+        # Pool was empty
+        except ValueError:
+            return -1
+    #}}}
+
+    # Add value to user pool
+    # Params: pid  - pull id to increase
+    #         user - user id to add to
+    # Return: None
+    def addPool(self, pid, user):
+        # TODO: Add limited pool and stealing
+        self.players[user]["pool"][pid] += 1
+
     # Read in bank state file and initialize
     # Params: None
     # Return: None
@@ -122,7 +154,20 @@ class Bank:
     # Params: user - uid to check
     # Return: True if available, False otherwise
     def hasFreePull(self, user):
-        return self.players['pull'] == True
+        return self.players[user]['pull'] == True
+
+    # Set free pull value of users
+    # Params: value - boolean value to set user pull to
+    #         user  - user id to set, if null sets all users
+    # Return: None
+    def setFreePull(self, value, user = None):
+    #{{{
+        if user:
+            self.players[user]["pull"] = value
+        else:
+            for player in self.players:
+                self.players[player]["pull"] = value
+    #}}}
 
     # Parse player data of line
     # Params: data - line data
