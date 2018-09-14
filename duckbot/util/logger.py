@@ -1,3 +1,6 @@
+from datetime import datetime
+from util.diagMessage import DiagMessage
+
 # Logger class
 # Buffers and writes messages to a file
 class Logger:

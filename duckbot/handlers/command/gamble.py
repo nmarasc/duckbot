@@ -2,28 +2,40 @@
 from datetime import datetime
 # Project imports
 import util.common as util
+from util.rangeDict import rangedict
 from util.bank import Bank
+import util.bankMessage as bank_msgs
 import handlers.games as Games
 
 # Gambling handler class
 class GambleHandler:
-    BAD_CHANNEL_MSG = ("Sorry, this is not an approved "
-        "channel for gambling content\n Please keep it to "
-        "channels with the :slot_machine: label :duck:")
-    CURRENCY = "duckbux"
+    CURRENCY = "dux"
     REFRESH_TIME = datetime(1,1,1,12)
     PULL_RANGE = range(1,11)
+    PULL_COST  = 10
     #{{{ - Gacha ranges
-    GACHA_RANGES = {
-         range(50,150)    : [0,"Trash"]
-        ,range(150,600)   : [1,"Common"]
-        ,range(600,800)   : [2,"Uncommon"]
-        ,range(800,900)   : [3,"Rare"]
-        ,range(900,975)   : [4,"Super Rare"]
-        ,range(975,990)   : [5,"Ultra Rare"]
-        ,range(990,1000)  : [6,"SS Ultra Secret Rare"]
-        ,range(1000,1001) : [7,"1000-chan"]
-    }
+    GACHA_RANGES = rangedict({
+         range(50,150)    : 0
+        ,range(150,600)   : 1
+        ,range(600,800)   : 2
+        ,range(800,900)   : 3
+        ,range(900,975)   : 4
+        ,range(975,990)   : 5
+        ,range(990,1000)  : 6
+        ,range(1000,1001) : 7
+    })
+    #}}}
+    #{{{ - Gacha names
+    GACHA_NAMES = [
+         "Trash"
+        ,"Common"
+        ,"Uncommon"
+        ,"Rare"
+        ,"Super Rare"
+        ,"Ultra Rare"
+        ,"SS Ultra Secret Rare"
+        ,"1000-chan"
+    ]
     #}}}
 
     # Constructor for gamble handler
@@ -44,10 +56,10 @@ class GambleHandler:
     # Return: Message to send to channel
     def join(self, user, channel):
     #{{{
-        return_code, _ = self._validate(user, channel)
+        return_code, _ = self._checkGambleStatus(user, channel)
         # RC=4, RC=5 and RC=6 imply bad channel
         if return_code > 4:
-            return self.BAD_CHANNEL_MSG
+            return bank_msgs.BAD_CHANNEL
         # RC=0 means good channel and valid id in the bank
         elif return_code == 0:
             return ("You are already a member of this bank :duck:"
@@ -72,7 +84,7 @@ class GambleHandler:
     #{{{
         # There's text to check for a target
         if target:
-            return_code, target = self._validate(target)
+            return_code, target = self._checkGambleStatus(target)
             # User and in the bank
             if return_code == 0:
                 balance = self.bank.balance(target)
@@ -83,7 +95,7 @@ class GambleHandler:
                 return "<@" + target + "> is not currently registered for this bank :duck:"
 
         # Either there was no text for a target or the text wasn't a user
-        return_code, _ = self._validate(user)
+        return_code, _ = self._checkGambleStatus(user)
         # User in the bank
         if return_code == 0:
             balance = self.bank.balance(user)
@@ -91,7 +103,7 @@ class GambleHandler:
                     " " + str(balance) + " " + self.CURRENCY)
         # Or not
         elif return_code == 2:
-            return "You are not currently registered for this bank :duck:"
+            return bank_msgs.NOT_A_MEMBER
         # Illegal user id
         else:
             # TODO: Malformed user id code
@@ -107,14 +119,13 @@ class GambleHandler:
     def bet(self, user, channel, bet_ops):
     #{{{
         # See if betting even allowed
-        return_code, _ = self._validate(user, channel)
+        return_code, _ = self._checkGambleStatus(user, channel)
         # RC=4, RC=5 and RC=6 imply bad channel
         if return_code > 4:
-            return self.BAD_CHANNEL_MSG
+            return bank_msgs.BAD_CHANNEL
         # RC=2 is just not a member
         elif return_code == 2:
-            return ("You are not a member of the bank.\n"
-                    "Please use the JOIN command to use gambling features :duck:")
+            return bank_msgs.NOT_A_MEMBER
         elif return_code != 0:
             # TODO: Malformed user id
             return None
@@ -123,8 +134,7 @@ class GambleHandler:
         return_code, bet_ops = self._parseBetOps(bet_ops)
         # RC=1, missing parameters
         if return_code == 1:
-            return ("Missing required parameters for BET command.\n"
-                   "Please use HELP BET for what is needed :duck:")
+            return bank_msgs.BET_PARMS
         # RC=2, bad bet amount
         elif return_code == 2:
             return ("Invalid betting amount: " + bet_ops)
@@ -163,19 +173,19 @@ class GambleHandler:
     # Return: Message containing results
     def pull(self, user, channel, amount):
     #{{{
-        return_code, _ = self._validate(user, channel)
+        return_code, _ = self._checkGambleStatus(user, channel)
         # RC=4, RC=5 and RC=6 imply bad channel
         if return_code > 4:
             return self.BAD_CHANNEL_MSG
         # RC=2 is not a member
         elif return_code == 2:
-            return ("You are not a member of the bank.\n"
-                    "Please use the JOIN command to use gambling features :duck:")
+            return bank_msgs.NOT_A_MEMBER
         elif return_code != 0:
             #TODO: Malformed user id
+            # Need infrastructure for return codes with messages
             return None
 
-        # Check amount
+        # Convert amount
         if amount:
             # Number?
             try:
@@ -185,17 +195,64 @@ class GambleHandler:
                 amount = util.EMOJI_ROLLS.get(amount,1)
         else:
             amount = 1
+        # Check amount and total cost
+        if amount not in self.PULL_RANGE:
+            return (bank_msgs.PULL_RANGE + "\nAllowed range is from"
+                " " + str(min(self.PULL_RANGE)) + " to"
+                " " + str(max(self.PULL_RANGE)))
 
-        if amount in self.PULL_RANGE:
-            # Check for free pull
-            if self.bank.freePull(user):
-                amount -= 1
-                roll = util.doRolls(1000)[0]
-                for key in self.GACHA_RANGES:
-                    if roll in key:
-                        pull = self.GACHA_RANGES[key]
+        response = ""
+        # Check balance for free pull
+        if (self.bank.hasFreePull(user) and
+           (amount - 1) * self.PULL_COST <= self.bank.balance(user)):
 
-        return None
+            self.bank.balance(user, -((amount - 1) * self.PULL_COST))
+            response += "Free pull was available, -1 pull cost\n"
+            self.bank.setFreePull(False, user)
+        # Check balance for no free pull
+        elif (not self.bank.hasFreePull(user) and
+             amount * self.PULL_COST <= self.bank.balance(user)):
+
+            self.bank.balance(user, -(amount * self.PULL_COST))
+        # Not enough funds
+        else:
+            return bank_msgs.INSUFFICIENT_FUNDS
+
+        response += "Your pull results: "
+        for i in range(0,amount):
+            pull_id = self._doPull(user)
+            # Nuked
+            if pull_id == -2:
+                self.bank.nuke()
+                return bank_msgs.NUKE
+            # Bad pull
+            if pull_id == -1:
+                pull_id = self.bank.removeBest(user)
+
+                # Didn't have anything to lose
+                if pull_id < 0:
+                    response += bank_msgs.NO_LOSS
+
+                else:
+                    pull_name = self.GACHA_NAMES[pull_id]
+                # Lost the big one
+                    if pull_id == self.GACHA_RANGES[1000]:
+                        response += (
+                            "\nYou have diappointed " + pull_name + ". "
+                            "She returns back to the pool"
+                        )
+                # Lost your best
+                    else:
+                        response += "\nYou lost a " + pull_name
+
+            # Good pull
+            else:
+                self.bank.addPool(pull_id, user)
+                pull_name = self.GACHA_NAMES[pull_id]
+                response += "\nYou got a " + pull_name
+
+        # Send back results
+        return response
     #}}}
 
     # Regen some bux when players are low (gets called every five minutes or so)
@@ -203,6 +260,15 @@ class GambleHandler:
     # Return: None
     def regenBux(self):
         self.bank.regen()
+
+    # Reset players' daily pull
+    # Params: None
+    # Return: None
+    def refreshPulls(self):
+    #{{{
+        self.pull_timer = self._getRefreshTime()
+        self.bank.setFreePull(True)
+    #}}}
 
     # Check for required labels and add channel id if good
     # Params: channel - channel to potentially add
@@ -242,8 +308,13 @@ class GambleHandler:
     # Check if user and channel are appropriate for gambling
     # Params: user    - user id to check for bank entry
     #         channel - channel id to check for approval
-    # Return: int value based on failures
-    def _validate(self, user, channel = None):
+    # Return: int value based on failures and matched user id
+    #           0 - all good
+    #           1 - bad user id
+    #           2 - user not a member of bank
+    #           4 - channel not approved
+    # Note  : Other return codes are some combination of the above
+    def _checkGambleStatus(self, user, channel = None):
     #{{{
         return_code = 0
         user = util.matchUserId(user)
@@ -300,12 +371,12 @@ class GambleHandler:
         roll = util.doRolls(1000)[0]
         # Nuke time
         if roll == 1:
-            self.bank.nuke()
+            return -2
         # Lost one
         elif roll < 50:
-            self.bank.removeOne()
-        for key in self.GACHA_RANGES:
-            if roll in key:
-                return self.GACHA_RANGES[key]
+            return -1
+        # Actual roll
+        else:
+            return self.GACHA_RANGES[roll]
         return None
     #}}}

@@ -20,3 +20,6 @@ Bot return codes:</br>
 </br>RC=2x exit codes signify an error during rtm use
 </br>&nbsp;&nbsp;&nbsp;&nbsp;RC=20 , generic error during RTM read, should restart
 </br>&nbsp;&nbsp;&nbsp;&nbsp;RC=21 , timeout error during RTM read, should restart
+</br>
+</br>RC=3x exit codes signify an error during command processing
+</br>&nbsp;&nbsp;&nbsp;&nbsp;RC=30 , malformed user id found
