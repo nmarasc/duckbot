@@ -115,7 +115,7 @@ class Bank:
                             }
                     # Parse line for gacha data
                     elif line:
-                        self.gacha_pool = list(map(int,line.split(",")))
+                        self.gacha_pool = [int(val) for val in line.split(",")]
         # File doesn't exist, can't be read or gacha pool format error
         except (OSError, ValueError):
             self.gacha_pool = self.DEFAULT_POOL
@@ -169,6 +169,15 @@ class Bank:
                 self.players[player]["pull"] = value
     #}}}
 
+    # Reset player pull values
+    # Params: None
+    # Return: None
+    def refreshPulls(self):
+    #{{{
+        for player in self.players:
+            self.players[player]['pull'] = True
+    #}}}
+
     # Parse player data of line
     # Params: data - line data
     # Return: player data list or None
@@ -178,7 +187,7 @@ class Bank:
             if len(data) == 4:
                 player_data = [util.matchUserId(data[0])]
                 player_data.append(int(data[1]))
-                player_data.append(list(map(int,data[2].split(","))))
+                player_data.append([int(val) for val in data[2].split(",")])
                 player_data.append(data[3] == "True")
                 if player_data[0]:
                     return player_data

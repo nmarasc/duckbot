@@ -264,9 +264,14 @@ class GambleHandler:
     def regenBux(self):
         self.bank.regen()
 
-    # TODO: This function
+    # Reset players' daily pull
+    # Params: None
+    # Return: None
     def refreshPulls(self):
-        return 0
+    #{{{
+        self.pull_timer = self._getRefreshTime()
+        self.bank.refreshPulls()
+    #}}}
 
     # Check for required labels and add channel id if good
     # Params: channel - channel to potentially add

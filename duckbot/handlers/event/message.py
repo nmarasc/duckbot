@@ -29,7 +29,7 @@ class MessageHandler:
         command, o_parms = self._getCommand(event.text)
         # Save old params for nicer messages if needed
         if o_parms:
-            u_parms = list(map(str.upper,o_parms))
+            u_parms = [str.upper(val) for val in o_parms]
 
         # Log command being processed
         if util.debug and command:
