@@ -16,6 +16,7 @@ EXIT_CODES = {
         ,"RTM_BAD_CONNECTION" : 12
         ,"RTM_GENERIC_ERROR"  : 20
         ,"RTM_TIMEOUT_ERROR"  : 21
+        ,"MALFORMED_USER_ID"  : 30
         }
 #}}}
 #{{{ - Emoji rolls

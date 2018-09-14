@@ -182,6 +182,7 @@ class GambleHandler:
             return bank_msgs.NOT_A_MEMBER
         elif return_code != 0:
             #TODO: Malformed user id
+            # Need infrastructure for return codes with messages
             return None
 
         # Convert amount
@@ -227,32 +228,28 @@ class GambleHandler:
             # Bad pull
             if pull_id == -1:
                 pull_id = self.bank.removeBest(user)
+
                 # Didn't have anything to lose
                 if pull_id < 0:
                     response += bank_msgs.NO_LOSS
 
                 else:
                     pull_name = self.GACHA_NAMES[pull_id]
-                    # Lost the big one
+                # Lost the big one
                     if pull_id == self.GACHA_RANGES[1000]:
                         response += (
                             "\nYou have diappointed " + pull_name + ". "
                             "She returns back to the pool"
                         )
-                    # Lost your best
+                # Lost your best
                     else:
-                        response += (
-                            "\nA disappointed " + pull_name + " "
-                            "leaves your collection"
-                        )
+                        response += "\nYou lost a " + pull_name
+
             # Good pull
-            # TODO: Change up messages
             else:
                 self.bank.addPool(pull_id, user)
                 pull_name = self.GACHA_NAMES[pull_id]
-                response += (
-                    "\nA " + pull_name + " has entered your collection"
-                )
+                response += "\nYou got a " + pull_name
 
         # Send back results
         return response
@@ -270,7 +267,7 @@ class GambleHandler:
     def refreshPulls(self):
     #{{{
         self.pull_timer = self._getRefreshTime()
-        self.bank.refreshPulls()
+        self.bank.setFreePull(True)
     #}}}
 
     # Check for required labels and add channel id if good

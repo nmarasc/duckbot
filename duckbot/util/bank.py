@@ -169,15 +169,6 @@ class Bank:
                 self.players[player]["pull"] = value
     #}}}
 
-    # Reset player pull values
-    # Params: None
-    # Return: None
-    def refreshPulls(self):
-    #{{{
-        for player in self.players:
-            self.players[player]['pull'] = True
-    #}}}
-
     # Parse player data of line
     # Params: data - line data
     # Return: player data list or None
