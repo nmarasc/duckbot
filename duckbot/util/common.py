@@ -49,6 +49,7 @@ COMMANDS = bidict({
     'CHECKBUX'  : 10,
     'BET'       : 11,
     'PULL'      : 12,
+    'CHECKPOOL' : 13,
 })
 COMMANDS_ALT = {
     'HELLO'      : 1, 'KWEH'       : 1,

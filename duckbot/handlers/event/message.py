@@ -135,6 +135,11 @@ class MessageHandler:
             amount = u_parms[0] if u_parms else None
             return self.gamble_handler.pull(event.user, event.channel, amount)
 
+        # CHECKPOOL command
+        elif command == util.COMMANDS["CHECKPOOL"]:
+            target = u_parms[0] if u_parms else None
+            return self.gamble_handler.checkPool(event.user, target)
+
         # No command or unrecognized, either way I don't care
         else:
             return ""
