@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Last Updated: 2.2
 # For diag code documentation see diagCodes.py
 
 running=1

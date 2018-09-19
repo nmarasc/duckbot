@@ -1,3 +1,4 @@
+# Last Updated: 2.2
 # Event class
 # This may affect response time negatively, see how it goes
 class Event:

@@ -1,3 +1,4 @@
+# Last Updated: 2.2
 ''' * Message format *
     INI 001 1 E
       |   | | |
