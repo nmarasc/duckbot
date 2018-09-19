@@ -1,3 +1,4 @@
+# Last Updated: 2.2
 BAD_CHANNEL = (
     "Sorry, this is not an approved "
     "channel for gambling content\n Please keep it to "

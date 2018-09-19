@@ -1,3 +1,4 @@
+# Last Updated: 2.2
 import util.common as util
 
 # Bank class
@@ -41,6 +42,12 @@ class Bank:
         return self.players[user]["balance"]
     #}}}
 
+    # Get pool of user
+    # Params: user - user to get pool of
+    # Return: gacha pool
+    def getPool(self, user):
+        return self.players[user]["pool"]
+
     # Regen bux for low players
     # Params: None
     # Return: None
@@ -72,6 +79,7 @@ class Bank:
         try:
             pid = max([ind for ind, val in enumerate(pool) if val > 0])
             pool[pid] -= 1
+            self.gacha_pool[pid] += 1
             return pid
         # Pool was empty
         except ValueError:
@@ -81,10 +89,17 @@ class Bank:
     # Add value to user pool
     # Params: pid  - pull id to increase
     #         user - user id to add to
-    # Return: None
+    # Return: True if added, False otherwise
     def addPool(self, pid, user):
-        # TODO: Add limited pool and stealing
+    #{{{
+        # TODO: Add stealing
+        if (self.gacha_pool[pid] == 0):
+            return False
+        if (self.gacha_pool[pid] > 0):
+            self.gacha_pool[pid] -= 1
         self.players[user]["pool"][pid] += 1
+        return True
+    #}}}
 
     # Read in bank state file and initialize
     # Params: None

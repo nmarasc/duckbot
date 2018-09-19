@@ -1,3 +1,4 @@
+# Last Updated: 2.2
 # Project imports
 import util.common as util
 from util.diagMessage import DiagMessage

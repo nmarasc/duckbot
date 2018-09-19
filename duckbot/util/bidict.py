@@ -1,3 +1,4 @@
+# Last Updated: 2.2
 # Bidirectional dictionary class
 # Credit belongs to a dude on stackoverflow
 class bidict(dict):

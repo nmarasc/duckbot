@@ -1,3 +1,4 @@
+# Last Updated: 2.2
 import util.common as util
 
 # Bot handler class

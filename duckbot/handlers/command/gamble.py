@@ -1,3 +1,4 @@
+# Last Updated: 2.2
 # Python imports
 from datetime import datetime
 # Project imports
@@ -108,7 +109,45 @@ class GambleHandler:
         else:
             # TODO: Malformed user id code
             return None
+    #}}}
 
+    # Check a user's gacha collection
+    # Params: user   - user id requesting
+    #         target - user id str to check
+    #                  default None gets user collection
+    # Return: Message containing collection
+    def checkPool(self, user, target = None):
+    #{{{
+        # Check for target
+        if target:
+            return_code, target = self._checkGambleStatus(target)
+            # Is a user and in bank
+            if return_code == 0:
+                pool = self.bank.getPool(target)
+                msg = "<@" + target + "> currently has:"
+                for pid in range(0,len(pool)):
+                    msg += "\n" + str(pool[pid]) + " " + self.GACHA_NAMES[pid]
+                return msg
+            # User not in bank
+            elif return_code == 2:
+                return "<@" + target + "> is not currently registered for this bank :duck:"
+
+        # Either no target or target was not a user
+        return_code, _ = self._checkGambleStatus(user)
+        # User in bank
+        if return_code == 0:
+            pool = self.bank.getPool(user)
+            msg = "You currently have:"
+            for pid in range(0,len(pool)):
+                msg += "\n" + str(pool[pid]) + " " + self.GACHA_NAMES[pid]
+            return msg
+        # Or not
+        elif return_code == 2:
+            return bank_msgs.NOT_A_MEMBER
+        # Illegal user id
+        else:
+            #TODO: Malformed user id
+            return None
     #}}}
 
     # Bet bucks on a game to win more
@@ -247,9 +286,13 @@ class GambleHandler:
 
             # Good pull
             else:
-                self.bank.addPool(pull_id, user)
                 pull_name = self.GACHA_NAMES[pull_id]
-                response += "\nYou got a " + pull_name
+                result = self.bank.addPool(pull_id, user)
+                if result:
+                    response += "\nYou have received a " + pull_name
+                else:
+                    response += "\nThere were no more " + pull_name
+
 
         # Send back results
         return response

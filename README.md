@@ -1,6 +1,8 @@
 # Duckbot
 General purpose slack bot
 
+Current version: `2.2`
+</br>
 `main.py` is the driver for the bot. It handles creating the bot, connecting to slack, and the rtm read loop
 </br>`duckbot.py` sets up the event handlers, assigning them appropriately and sending messages
 </br>`eventHandlers.py` contains all the event handlers and their specific parsers
