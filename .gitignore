@@ -1,3 +1,4 @@
+# Last Updated: 2.2
 # Created by https://www.gitignore.io/api/vim,venv,linux,python,windows
 
 ### Linux ###
@@ -171,3 +172,5 @@ test.sh
 error.txt
 bash.exe.stackdump
 updateVersion.sh
+modified.txt
+new.txt

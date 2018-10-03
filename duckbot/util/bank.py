@@ -1,4 +1,6 @@
 # Last Updated: 2.2
+import random
+import util.choiceFunctions as cFunc
 import util.common as util
 
 # Bank class
@@ -92,13 +94,20 @@ class Bank:
     # Return: True if added, False otherwise
     def addPool(self, pid, user):
     #{{{
-        # TODO: Add stealing
+        result = user
+        # Attempt to steal because pool was empty
         if (self.gacha_pool[pid] == 0):
-            return False
-        if (self.gacha_pool[pid] > 0):
+            chosen = self._steal(pid)
+            if chosen: # another user was stolen from
+                self.players[chosen]["pool"][pid] -= 1
+                result = chosen
+            else:      # the user owns them all
+                return None
+        # Taking from non infinite pool
+        else if (self.gacha_pool[pid] > 0):
             self.gacha_pool[pid] -= 1
         self.players[user]["pool"][pid] += 1
-        return True
+        return result
     #}}}
 
     # Read in bank state file and initialize
@@ -200,4 +209,16 @@ class Bank:
         except ValueError:
             pass
         return None
+    #}}}
+
+    # Steal pool id from a player
+    # Params: pid - pool id to steal
+    # Return: user id stolen from or None if nothing to steal
+    def _steal(self, pid):
+    #{{{
+        players = self._getPlayersWithPid(pid)
+        if players: # there's people to steal from
+            return cFunc.randomChoice(players)
+        else:       # nobody has one
+            return None
     #}}}

@@ -289,10 +289,13 @@ class GambleHandler:
                 pull_name = self.GACHA_NAMES[pull_id]
                 result = self.bank.addPool(pull_id, user)
                 if result:
-                    response += "\nYou have received a " + pull_name
+                    if result = user:
+                        response += "\nYou have received a " + pull_name
+                    else:
+                        response += ("\nYou have stolen a " + pull_name + " "
+                                     "from <@" + result + ">")
                 else:
                     response += "\nThere were no more " + pull_name
-
 
         # Send back results
         return response
