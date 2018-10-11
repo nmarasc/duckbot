@@ -104,7 +104,7 @@ class Bank:
             else:      # the user owns them all
                 return None
         # Taking from non infinite pool
-        else if (self.gacha_pool[pid] > 0):
+        elif (self.gacha_pool[pid] > 0):
             self.gacha_pool[pid] -= 1
         self.players[user]["pool"][pid] += 1
         return result
