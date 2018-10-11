@@ -4,4 +4,4 @@ import random
 # Params: players - dict of user bank info
 # Return: player entry to steal from
 def randomChoice(players):
-    return random.randrange(0,len(players))
+    return players[random.randrange(0,len(players))]

@@ -1,11 +1,13 @@
 # Last Updated: 2.2
 import random
+import copy
 import util.choiceFunctions as cFunc
 import util.common as util
 
 # Bank class
 class Bank:
-    DEFAULT_POOL  = [-1,-1,500,100,50,10,3,1]
+#     DEFAULT_POOL  = [-1,-1,500,100,50,10,3,1]
+    DEFAULT_POOL = [1,1,1,1,1,1,1,1]
     STARTING_POOL = [0,0,0,0,0,0,0,0]
     STARTING_BUX  = 100
 
@@ -28,7 +30,7 @@ class Bank:
     #{{{
         self.players[user] = {
              "balance" : self.STARTING_BUX
-            ,"pool"    : self.STARTING_POOL
+            ,"pool"    : copy.copy(self.STARTING_POOL)
             ,"pull"    : True
         }
     #}}}
@@ -97,7 +99,7 @@ class Bank:
         result = user
         # Attempt to steal because pool was empty
         if (self.gacha_pool[pid] == 0):
-            chosen = self._steal(pid)
+            chosen = self._steal(pid, user)
             if chosen: # another user was stolen from
                 self.players[chosen]["pool"][pid] -= 1
                 result = chosen
@@ -212,13 +214,25 @@ class Bank:
     #}}}
 
     # Steal pool id from a player
-    # Params: pid - pool id to steal
+    # Params: pid  - pool id to steal
+    #         user - user doing the stealing
     # Return: user id stolen from or None if nothing to steal
-    def _steal(self, pid):
+    def _steal(self, pid, user):
     #{{{
-        players = self._getPlayersWithPid(pid)
+        players = self._getPlayersWithPid(pid, [user])
         if players: # there's people to steal from
             return cFunc.randomChoice(players)
         else:       # nobody has one
             return None
+    #}}}
+
+    # Get list of players that have that have a specfied pool id
+    # Params: pid     - pool id to check for
+    #         exclude - list of users to ignore
+    # Return: list of player ids that have at least one specified pool id
+    def _getPlayersWithPid(self, pid, exclude):
+    #{{{
+        return [player for player in self.players if
+                self.players[player]["pool"][pid] and
+                player not in exclude]
     #}}}
