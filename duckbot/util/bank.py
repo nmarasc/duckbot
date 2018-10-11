@@ -6,8 +6,7 @@ import util.common as util
 
 # Bank class
 class Bank:
-#     DEFAULT_POOL  = [-1,-1,500,100,50,10,3,1]
-    DEFAULT_POOL = [1,1,1,1,1,1,1,1]
+    DEFAULT_POOL  = [-1,-1,500,100,50,10,3,1]
     STARTING_POOL = [0,0,0,0,0,0,0,0]
     STARTING_BUX  = 100
 
