@@ -1,4 +1,7 @@
-# Last Updated: 2.2
+# Last Updated: 2.3.0
+import random
+import copy
+import util.choiceFunctions as cFunc
 import util.common as util
 
 # Bank class
@@ -26,7 +29,7 @@ class Bank:
     #{{{
         self.players[user] = {
              "balance" : self.STARTING_BUX
-            ,"pool"    : self.STARTING_POOL
+            ,"pool"    : copy.copy(self.STARTING_POOL)
             ,"pull"    : True
         }
     #}}}
@@ -92,13 +95,20 @@ class Bank:
     # Return: True if added, False otherwise
     def addPool(self, pid, user):
     #{{{
-        # TODO: Add stealing
+        result = user
+        # Attempt to steal because pool was empty
         if (self.gacha_pool[pid] == 0):
-            return False
-        if (self.gacha_pool[pid] > 0):
+            chosen = self._steal(pid, user)
+            if chosen: # another user was stolen from
+                self.players[chosen]["pool"][pid] -= 1
+                result = chosen
+            else:      # the user owns them all
+                return None
+        # Taking from non infinite pool
+        elif (self.gacha_pool[pid] > 0):
             self.gacha_pool[pid] -= 1
         self.players[user]["pool"][pid] += 1
-        return True
+        return result
     #}}}
 
     # Read in bank state file and initialize
@@ -200,4 +210,28 @@ class Bank:
         except ValueError:
             pass
         return None
+    #}}}
+
+    # Steal pool id from a player
+    # Params: pid  - pool id to steal
+    #         user - user doing the stealing
+    # Return: user id stolen from or None if nothing to steal
+    def _steal(self, pid, user):
+    #{{{
+        players = self._getPlayersWithPid(pid, [user])
+        if players: # there's people to steal from
+            return cFunc.randomChoice(players)
+        else:       # nobody has one
+            return None
+    #}}}
+
+    # Get list of players that have that have a specfied pool id
+    # Params: pid     - pool id to check for
+    #         exclude - list of users to ignore
+    # Return: list of player ids that have at least one specified pool id
+    def _getPlayersWithPid(self, pid, exclude):
+    #{{{
+        return [player for player in self.players if
+                self.players[player]["pool"][pid] and
+                player not in exclude]
     #}}}

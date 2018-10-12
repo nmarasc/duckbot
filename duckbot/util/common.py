@@ -1,4 +1,4 @@
-# Last Updated: 2.2
+# Last Updated: 2.3.0
 # Python imports
 import re
 import random
@@ -145,7 +145,8 @@ def getBotInfo(bot_token):
 def getChannelData(bot_token):
 #{{{
     channels = {}
-    response = sc.api_call("channels.list", token=bot_token, exclude_members=True)
+    response = sc.api_call("conversations.list")
+    sc.server.parse_channel_data(response["channels"])
     for channel in response["channels"]:
         channels[channel["id"]] = channel
         channels[channel["id"]]["labels"] = parseLabels(channel["purpose"]["value"])

@@ -1,8 +1,9 @@
-# Last Updated: 2.2
+# Last Updated: 2.3.0
 # Project imports
 import util.common as util
 from util.diagMessage import DiagMessage
 from util.event import Event
+from datetime import datetime
 # Event handler imports
 from handlers.event.message import MessageHandler
 from handlers.event.bot import BotHandler
@@ -16,6 +17,8 @@ from handlers.command.gamble import GambleHandler
 class Duckbot:
 
     TICK_ROLLOVER = 3600 # 60 minutes
+    WISH_TIME     = datetime(1,1,1,16) # 16:00
+    WISH_CHANNEL  = 'random'
 
     # Constructor for the bot
     # Params: bot_id       - bot user id, used to detect mentions
@@ -31,6 +34,8 @@ class Duckbot:
         self.logger = util.logger
         self.ticks = 0
         self.cooldown_g = 0
+
+        self._getWishTime()
 
         self.logger.log(DiagMessage("BOT0000I"))
         # Create command handlers
@@ -143,6 +148,12 @@ class Duckbot:
             self.gamble_handler.pull_timer -= 1
         else:
             self.gamble_handler.refreshPulls()
+        # Wonderful day wish
+        if self.wish_timer:
+            self.wish_timer -= 1
+        else:
+            util.sendMessage(self.WISH_CHANNEL, "Go, have a wonderful day.")
+            self._getWishTime()
     #}}}
 
     # Make updates to channel lists
@@ -156,4 +167,14 @@ class Duckbot:
         event.channel = self.channels[event.channel]
         labels = util.parseLabels(event.channel["purpose"]["value"])
         self.gamble_handler.checkChannel(event.channel, labels)
+    #}}}
+
+    # Set time until next wonderful day message
+    # Params: None
+    # Return: None
+    def _getWishTime(self):
+    #{{{
+        # Get current time
+        current_time = datetime.now().replace(year = 1, month = 1, day = 1)
+        self.wish_timer = (self.WISH_TIME - current_time).seconds
     #}}}
