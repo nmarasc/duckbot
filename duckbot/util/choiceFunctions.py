@@ -1,3 +1,4 @@
+# Last Updated: 2.3.0
 import random
 
 # Randomly get user to steal from

@@ -1,4 +1,4 @@
-# Last Updated: 2.2
+# Last Updated: 2.3.0
 import random
 import copy
 import util.choiceFunctions as cFunc

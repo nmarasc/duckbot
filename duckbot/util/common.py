@@ -1,4 +1,4 @@
-# Last Updated: 2.2
+# Last Updated: 2.3.0
 # Python imports
 import re
 import random
