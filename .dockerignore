@@ -1,5 +1,10 @@
-# Last Updated: 2.3.0
-# Created by https://www.gitignore.io/api/vim,venv,linux,python,windows
+Dockerfile
+
+### Git ###
+.git/
+.gitignore
+LICENSE
+README.md
 
 ### Linux ###
 *~
@@ -118,6 +123,7 @@ venv.bak/
 
 ### venv ###
 # Linux
+bin/
 include/
 share/
 
@@ -129,7 +135,6 @@ Scripts/
 # Shared
 pyvenv.cfg
 pip-selfcheck.json
-
 
 ### Vim ###
 # swap
@@ -163,11 +168,11 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
-# End of https://www.gitignore.io/api/vim,venv,linux,python,windows
+# Bash on Windows error
+bash.exe.stackdump
 
+### Misc ###
 log.txt
 error.txt
-bash.exe.stackdump
 modified.txt
 new.txt
-Dockerfile

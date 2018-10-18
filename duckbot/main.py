@@ -58,10 +58,24 @@ def initProgram():
 #         Non 0 return code and None on failure
 # Credit: Name courtesy of Katie. What a thinker, what a genius, wow
 def duckboot():
-#{{{
-    # Get bot token from the env file
-    with open("../.env") as env_file:
-        bot_token = env_file.readline().rstrip().split("=")[1]
+    # Check for environment variable
+    try:
+        bot_token = os.environ["BOT_TOKEN"]
+        print("Got token from env")
+    except KeyError:
+        # TODO: Log env variable not found
+        try:
+            # Get bot token from the env file
+            with open("../.env") as env_file:
+                bot_token = env_file.readline().rstrip().split("=")[1]
+            print("Got token from file")
+        # Can't open file or doesn't exist
+        except OSError:
+            # Exit because there is no token to connect with
+            # TODO: Make no token error code
+            print("No token found")
+            return -1, None
+
     util.logger.log(DiagMessage("INI0010I", bot_token))
 
     # Create the slack client
@@ -82,7 +96,6 @@ def duckboot():
         return return_code, None
     else:
         return return_code, Duckbot(bot_id, bot_channels)
-#}}}
 
 # Connect to the rtm and test connection
 # Params: None

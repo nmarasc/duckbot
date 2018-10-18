@@ -79,7 +79,7 @@ class HelpHandler:
                 return response
             else:
                 response = self.help_messages.get(command,
-                    parms[0] + " is not a recognized command")
+                                            parms[0] + " is not a recognized command")
                 return response
         else:
             return ("Duckbot is a general purpose slackbot for doing various things\n"

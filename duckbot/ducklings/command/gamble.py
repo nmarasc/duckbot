@@ -6,7 +6,7 @@ import util.common as util
 from util.rangeDict import rangedict
 from util.bank import Bank
 import util.bankMessage as bank_msgs
-import handlers.games as Games
+import util.games as Games
 
 # Gambling handler class
 class GambleHandler:

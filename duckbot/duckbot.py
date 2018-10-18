@@ -5,19 +5,21 @@ from util.diagMessage import DiagMessage
 from util.event import Event
 from datetime import datetime
 # Event handler imports
-from handlers.event.message import MessageHandler
-from handlers.event.bot import BotHandler
+from ducklings.event.base import EventManager
+from ducklings.event.message import MessageHandler
+from ducklings.event.bot import BotHandler
 
 # Command handler imports
-from handlers.command.roll import RollHandler
-from handlers.command.help import HelpHandler
-from handlers.command.gamble import GambleHandler
+from ducklings.command.roll import RollHandler
+from ducklings.command.help import HelpHandler
+from ducklings.command.gamble import GambleHandler
+
 
 # Duckbot class delegates event handlers and keeps track of time
 class Duckbot:
 
-    TICK_ROLLOVER = 3600 # 60 minutes
-    WISH_TIME     = datetime(1,1,1,16) # 16:00
+    TICK_ROLLOVER = 3600  # 60 minutes
+    WISH_TIME     = datetime(1,1,1,16)  # 16:00
     WISH_CHANNEL  = 'random'
 
     # Constructor for the bot
@@ -177,4 +179,3 @@ class Duckbot:
         # Get current time
         current_time = datetime.now().replace(year = 1, month = 1, day = 1)
         self.wish_timer = (self.WISH_TIME - current_time).seconds
-    #}}}
