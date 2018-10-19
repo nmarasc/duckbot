@@ -21,20 +21,6 @@ EXIT_CODES = {
         }
 #}}}
 #{{{ - Emoji rolls
-EMOJI_ROLLS={
-         ":ONE:"        : 1
-        ,":TWO:"        : 2
-        ,":THREE:"      : 3
-        ,":FOUR:"       : 4
-        ,":FIVE:"       : 5
-        ,":SIX:"        : 6
-        ,":SEVEN:"      : 7
-        ,":EIGHT:"      : 8
-        ,":NINE:"       : 9
-        ,":KEYCAP_TEN:" : 10
-        ,":100:"        : 100
-        ,":HERB:"       : 420
-        }
 #}}}
 #{{{ - Commands
 COMMANDS = bidict({
@@ -64,30 +50,6 @@ GAMES = {
     'COIN' : 1,
     'DICE' : 2,
 }
-#}}}
-#{{{ - Eightball Responses
-EIGHTBALL_RESPONSES = [
-     "It is certain"
-    ,"It is decidedly so"
-    ,"Without a doubt"
-    ,"Yes, definitely"
-    ,"You may rely on it"
-    ,"As I see it, yes"
-    ,"Most likely"
-    ,"Outlook good"
-    ,"Yes"
-    ,"Signs point to yes"
-    ,"Reply hazy, try again"
-    ,"Ask again later"
-    ,"Better not tell you now"
-    ,"Cannot predict now"
-    ,"Concentrate and ask again"
-    ,"Don't count on it"
-    ,"My reply is no"
-    ,"My sources say no"
-    ,"Outlook not so good"
-    ,"Very doubtful"
-    ]
 #}}}
 #{{{ - Channel labels
 LABELS = {
@@ -189,11 +151,11 @@ def parseLabels(text):
 # Rolls randomly with the parameters given and returns numbers in a list
 # Params: die_size - number of sides on the dice rolling
 #         die_num  - number of times to roll the dice
-# Return: list of rolls
-def doRolls(die_size, die_num = 1):
-#{{{
+# Return: roll value or list of rolls if more than one
+def roll(die_size, die_num = 1):
     rolls = []
     for i in range(die_num):
         rolls.append(random.randint(1,die_size))
+    if len(rolls) == 1:
+        return rolls[0]
     return rolls
-#}}}

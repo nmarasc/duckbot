@@ -50,74 +50,40 @@ class MessageHandler:
         # HELP command
         elif command == util.COMMANDS["HELP"]:
             return self.help_handler.act(u_parms)
-
-        # ROLL command
-        elif command == util.COMMANDS["ROLL"]:
-        #{{{
-            return_code, rolls = self.roll_handler.roll(u_parms)
-            # Regular dice roll
-            if return_code == 0:
-            #{{{
-                # Grab what will be added to the end of the message
-                tail = rolls.pop()
-                output = "You rolled: "
-                # Join all the values if there's more than one
-                if len(rolls) > 1:
-                    output += ", ".join(map(str,rolls)) + "\nYour total: " + str(tail)
-                # Otherwise grab the one and slap the tail on
-                else:
-                    output += str(rolls[0]) + " " + tail
-                return output
-            # }}}
-            # Character roll
-            elif return_code == 1:
-            #{{{
-                output = ""
-                stats = []
-                # Go through each set of rolls, drop the lowest and total
-                for group in rolls:
-                    output += "\n\nYou rolled: " + ", ".join(map(str,group))
-                    output += "\nDropping " + str(min(group)) + ", "
-                    group.remove(min(group))
-                    stat = sum(group)
-                    stats.append(stat)
-                    output += "Total: " + str(stat)
-                output += "\n\nYour stats are: " + ", ".join(map(str,stats))
-                return output
-            #}}}
-            elif return_code == -1:
-                return o_parms[0] + " is not a valid roll."
-            else:
-                return "Can't roll without parameters, kweh! :duck:"
-        #}}}
-
-        # COIN command
-        elif command == util.COMMANDS["COIN"]:
-            return "You got: " + self.roll_handler.coinRoll()
-
-        # 8BALL command
-        elif command == util.COMMANDS["EIGHTBALL"]:
-            return self.roll_handler.eightballRoll()
-
-        # FACTOID command
-        elif command == util.COMMANDS["FACTOID"]:
-            return self.roll_handler.factoidRoll()
-
-        # PICKIT command
-        elif command == util.COMMANDS["PICKIT"]:
-        #{{{
-            return_code, response = self.roll_handler.pickitRoll(o_parms)
-            # Number of choices out of range
-            if return_code == 1:
-                return ("Must pick between " + str(min(response)) + " "
-                        "and " + str(max(response)) + " things")
-            # Parsing error
-            elif return_code == 2:
-                return "Unmatched quotes! Kweh :duck:"
-            else:
-                return "I choose: " + response
-        #}}}
-
+###
+#        # ROLL command
+#        elif command == util.COMMANDS["ROLL"]:
+#        #{{{
+#            roll.handle([u_parms,o_parms])
+#        #}}}
+###
+#        # COIN command
+#        elif command == util.COMMANDS["COIN"]:
+#            return "You got: " + self.roll_handler.coinRoll()
+###
+#        # 8BALL command
+#        elif command == util.COMMANDS["EIGHTBALL"]:
+#            return self.roll_handler.eightballRoll()
+###
+#        # FACTOID command
+#        elif command == util.COMMANDS["FACTOID"]:
+#            return self.roll_handler.factoidRoll()
+###
+#        # PICKIT command
+#        elif command == util.COMMANDS["PICKIT"]:
+#        #{{{
+#            return_code, response = self.roll_handler.pickitRoll(o_parms)
+#            # Number of choices out of range
+#            if return_code == 1:
+#                return ("Must pick between " + str(min(response)) + " "
+#                        "and " + str(max(response)) + " things")
+#            # Parsing error
+#            elif return_code == 2:
+#                return "Unmatched quotes! Kweh :duck:"
+#            else:
+#                return "I choose: " + response
+#        #}}}
+###
         # JOIN command
         elif command == util.COMMANDS["JOIN"]:
             return self.gamble_handler.join(event.user, event.channel)
