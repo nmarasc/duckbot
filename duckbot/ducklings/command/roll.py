@@ -11,6 +11,13 @@ NAMES = [
     ':GAME_DIE:'
 ]
 
+# Command help message
+HELP = (
+    "Rolls dice based on parameters given\n"
+    "Usage: <@{id:s}> " + NAMES[0] + " ( [d]X | YdX )\n"
+    "Where X is the number of faces and Y is the number of dice"
+)
+
 # Valid character roll names
 NAMES_CHARACTER = [
     "CHARACTER",

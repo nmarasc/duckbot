@@ -8,6 +8,12 @@ NAMES = [
     ':8BALL:'
 ]
 
+# Command help message
+HELP = (
+    "Shake the magic 8ball\n"
+    "Usage: <@{id:s}> " + NAMES[0]
+)
+
 # Eightball response messages
 MESSAGES = [
      "It is certain"

@@ -1,8 +1,9 @@
-# Last Updated: chicn
+#!/usr/bin/env python
+# Last Updated: 2.2
 import os, sys, py_compile
 from glob import glob
 
-file_paths = glob('duckbot/**/*.py', recursive=True)
+file_paths = glob('../duckbot/**/*.py', recursive=True)
 for path in file_paths:
     try:
         py_compile.compile(path, doraise=True)

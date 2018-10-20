@@ -13,6 +13,9 @@ RED='\033[0;31m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 PROJECT_DIR=`git rev-parse --show-toplevel`
+LOG_DIR=".version_log"
+NEW="$LOG_DIR/new.txt"
+MOD="$LOG_DIR/modified.txt"
 
 # Set command line options
 function parseOps {
@@ -45,36 +48,39 @@ function parseOps {
 # Save new and modified files to update later
 function freeze {
   # Do the saves
-  git ls-files -m >> modified.txt
-  git ls-files -o --exclude-standard >> new.txt
+  git ls-files -m >> "$MOD"
+  git ls-files -o --exclude-standard >> "$NEW"
   # Remove any duplicates
-  sort -u modified.txt -o modified.txt
-  sort -u new.txt -o new.txt
+  sort -u "$MOD" -o "$MOD"
+  sort -u "$NEW" -o "$NEW"
 }
 
 # Change the last updated on each file modified or add one for new files
 function update {
   # Change modified
-  cat modified.txt | xargs sed -ri "s/^.*Last Updated: [0-9]+\.[0-9]+(\.[0-9]+)?$/$1/"
+  cat "$MOD" | xargs sed -ri "s/^.*Last Updated: [0-9]+\.[0-9]+(\.[0-9]+)?$/$1/"
   # Add new
-  cat new.txt | xargs sed -i "1s/^/$1\n/"
+  cat "$NEW" | xargs sed -i "1s/^/$1\n/"
   # Modify README
   "${VISUAL:-${EDITOR:-vi}}" README.md
 }
 
 pushd "$PROJECT_DIR" > /dev/null || exit 1
+if ! [ -d "$LOG_DIR" ]; then
+  mkdir "$LOG_DIR"
+fi
 if [ $# -eq 0 ]; then
   echo -e "warn: No arguments supplied, showing saved change list\n"
-  if [ -f modified.txt ]; then
+  if [ -f "$MOD" ]; then
     echo -e "Modified:${YELLOW}"
-    cat modified.txt | xargs -L1 echo -e "\t"
+    cat "$MOD" | xargs -L1 echo -e "\t"
     echo -e "${NC}"
   else
     echo "No modified files"
   fi
-  if [ -f new.txt ]; then
+  if [ -f "$NEW" ]; then
     echo -e "New:${RED}"
-    cat new.txt | xargs -L1 echo -e "\t"
+    cat "$NEW" | xargs -L1 echo -e "\t"
     echo -e "${NC}"
   else
     echo "No new files"

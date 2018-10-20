@@ -38,11 +38,11 @@ class MessageHandler:
                 "BOT0020D",
                 util.COMMANDS.inverse[command][0]
             ))
-
-        # HI command
-        if command == util.COMMANDS["HI"]:
-            return self.DEFAULT_RESPONSE
-
+###
+#        # HI command
+#        if command == util.COMMANDS["HI"]:
+#            return self.DEFAULT_RESPONSE
+###
         # UPDATE command
         elif command == util.COMMANDS["UPDATE"]:
             return None

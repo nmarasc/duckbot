@@ -8,6 +8,13 @@ NAMES = [
     'PIKMIN'
 ]
 
+# Command help message
+HELP = (
+    "Pick from a number of things\n"
+    "Usage: <@{id:s}> " + NAMES[0] + " <item1> <item2> ...\n"
+    "Use quotes to have items with spaces in them :duck:"
+)
+
 PICK_RANGE = range(2, 21)  # Pick between 2 and 20 things
 
 # Randomly pick from a list of specified items

@@ -6,6 +6,12 @@ NAMES = [
     "COIN"
 ]
 
+# Command help messsage
+HELP = (
+    "Flip a coin\n"
+    "Usage: <@{id:s}> " + NAMES[0]
+)
+
 # Flip a coin
 # Params: args - list of arguments, **unused**
 # Return: String containing the response

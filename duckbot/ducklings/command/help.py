@@ -1,4 +1,5 @@
 # Last Updated: 2.2
+
 import util.common as util
 
 # Help handler class
@@ -11,32 +12,12 @@ class HelpHandler:
         self.bot_id = bot_id
         #{{{ - Help messages
         self.help_messages = {
-             util.COMMANDS["HI"] :\
-                ("Legacy HI command\n"
-                "Usage: <@" + bot_id + "> HI")
             ,util.COMMANDS["UPDATE"] :\
                 ("Causes the bot to shutdown and signal "
                 "the monitor script to check for updates\n"
                 "Usage: <@" + bot_id + "> UPDATE")
             ,util.COMMANDS["HELP"] :\
                 "Don't get smart, you know how to use this"
-            ,util.COMMANDS["ROLL"] :\
-                ("Rolls dice based on parameters given\n"
-                "Usage: <@" + bot_id + "> ROLL ( [d]X | YdX )\n"
-                "Where X is the number of faces and Y is the number of dice")
-            ,util.COMMANDS["COIN"] :\
-                ("Flip a coin\n"
-                "Usage: <@" + bot_id + "> COIN")
-            ,util.COMMANDS["EIGHTBALL"] :\
-                ("Shake the magic 8ball\n"
-                "Usage: <@" + bot_id + "> 8BALL")
-            ,util.COMMANDS["FACTOID"] :\
-                ("Pull out a random and totally true fact\n"
-                "Usage: <@" + bot_id + "> FACTOID")
-            ,util.COMMANDS["PICKIT"] :\
-                ("Pick from a number of things\n"
-                "Usage: <@" + bot_id + "> PICKIT <item1> <item2> ...\n"
-                "Use quotes to have items with spaces in them :duck:")
             ,util.COMMANDS["JOIN"] :\
                 ("Add yourself to the gambler's bank\n"
                 "Usage: <@" + bot_id + "> JOIN\n"
