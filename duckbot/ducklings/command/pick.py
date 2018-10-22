@@ -27,3 +27,9 @@ def handle(args):
         response = ("Must pick between " + str(min(PICK_RANGE)) +
                     " and " + str(max(PICK_RANGE)))
     return response
+
+# Retrieve command help message
+# Params: ops - help options, **unused**
+# Return: String help message
+def getHelp(ops):
+    return HELP

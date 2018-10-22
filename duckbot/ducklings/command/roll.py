@@ -68,6 +68,12 @@ def handle(args):
         response = _defaultRoll(args[0])
     return response
 
+# Retrieve command help message
+# Params: ops - help options, **unused**
+# Return: String help message
+def getHelp(ops):
+    return HELP
+
 # Standard roll command
 # Params: roll_str - String containing roll command operator
 # Return: String containing reponse from standard roll command

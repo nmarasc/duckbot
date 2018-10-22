@@ -43,4 +43,10 @@ MESSAGES = [
 # Return: String containing eightball message
 def handle(args=None):
     result = roll(len(MESSAGES))
-    return MESSAGES[result]
+    return MESSAGES[result-1]
+
+# Retrieve command help message
+# Params: ops - help options, **unused**
+# Return: String help message
+def getHelp(ops):
+    return HELP

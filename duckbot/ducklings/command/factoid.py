@@ -15,3 +15,9 @@ HELP = (
 # Return: String containing response from command
 def handle(args=None):
     return "Not yet. Kweh :duck:"
+
+# Retrieve command help message
+# Params: ops - help options, **unused**
+# Return: String help message
+def getHelp(ops):
+    return HELP

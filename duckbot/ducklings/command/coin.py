@@ -23,3 +23,9 @@ def handle(args=None):
     if result == 1:
         response += "HEADS"
     return response
+
+# Retrieve command help message
+# Params: ops - help options, **unused**
+# Return: String help message
+def getHelp(ops):
+    return HELP
