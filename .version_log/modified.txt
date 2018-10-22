@@ -9,3 +9,4 @@ duckbot/ducklings/command/hi.py
 duckbot/ducklings/command/pick.py
 duckbot/ducklings/command/roll.py
 duckbot/ducklings/event/message.py
+duckbot/util/moduleLoader.py

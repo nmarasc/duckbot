@@ -13,7 +13,6 @@ class ModuleLoader:
     # Return: ModuleLoader instance
     def __init__(self):
         self._setDefaultModulePaths()  # Initialize module paths
-        os.chdir(self.src_root)
 
     # Load the bot command modules
     # Params: None
@@ -28,8 +27,9 @@ class ModuleLoader:
                       os.path.basename(self.cmd_root))
         # Load command modules
         commands = {}
-        for mod in modules:
-            commands[mod] = importlib.import_module(mod_anchor + "." + mod)
+        for mod_name in modules:
+            mod = importlib.import_module(mod_anchor + "." + mod_name)
+            commands[mod.NAMES[0]] = mod
         return commands
 
     # Set default paths for bot modules
