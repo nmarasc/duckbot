@@ -10,16 +10,14 @@ RTM_READ_DELAY = 1
 USER_REGEX = "U[A-Z0-9]{8}"
 LABEL_REGEX = "\[:LABEL:(:.+:)+\]"
 EMOJI_REGEX = ":.+?:"
-#{{{ - Exit codes
-EXIT_CODES = {
-         "INVALID_BOT_ID"     : 10
-        ,"RTM_CONNECT_FAILED" : 11
-        ,"RTM_BAD_CONNECTION" : 12
-        ,"RTM_GENERIC_ERROR"  : 20
-        ,"RTM_TIMEOUT_ERROR"  : 21
-        ,"MALFORMED_USER_ID"  : 30
-        }
-#}}}
+ERROR_CODES = {
+     "INVALID_BOT_ID"     : 10
+    ,"RTM_CONNECT_FAILED" : 11
+    ,"RTM_BAD_CONNECTION" : 12
+    ,"RTM_GENERIC_ERROR"  : 20
+    ,"RTM_TIMEOUT_ERROR"  : 21
+    ,"MALFORMED_USER_ID"  : 30
+}
 #{{{ - Emoji rolls
 #}}}
 #{{{ - Commands
@@ -65,7 +63,9 @@ SAVE_STATE_TIME = 3600 # 60 minutes
 
 # Slackclient, Logger instance
 # debug and permanent bank flag
-global sc, logger, debug, bank_file
+global sc, debug, bank_file
+global bank
+global logger
 
 # Send message to designated channel, and notify user if present
 # Params: channel - channel id to send message to

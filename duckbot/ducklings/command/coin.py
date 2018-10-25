@@ -13,9 +13,9 @@ HELP = (
 )
 
 # Flip a coin
-# Params: args - list of arguments, **unused**
+# Params: args - dict of arguments, **unused**
 # Return: String containing the response
-def handle(args=None):
+def handle(**args):
     response = "You got: "
     result = roll(2)
     # Save a branch half of the time by assuming one

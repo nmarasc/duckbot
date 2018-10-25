@@ -39,9 +39,9 @@ MESSAGES = [
 ]
 
 # Randomly select an eightball message
-# Params: args - list of arguments, **unused**
+# Params: args - dict of arguments, **unused**
 # Return: String containing eightball message
-def handle(args=None):
+def handle(**args):
     result = roll(len(MESSAGES))
     return MESSAGES[result-1]
 

@@ -51,66 +51,6 @@ class GambleHandler:
         self.pull_timer = self._getRefreshTime()
     #}}}
 
-    # Add user to bank if not in already
-    # Params: user    - user id to check for bank entry
-    #         channel - channel trying to add from
-    # Return: Message to send to channel
-    def join(self, user, channel):
-    #{{{
-        return_code, _ = self._checkGambleStatus(user, channel)
-        # RC=4, RC=5 and RC=6 imply bad channel
-        if return_code > 4:
-            return bank_msgs.BAD_CHANNEL
-        # RC=0 means good channel and valid id in the bank
-        elif return_code == 0:
-            return ("You are already a member of this bank :duck:"
-                    "\n" + self.checkbux(user))
-        # RC=2 means valid user not in bank
-        elif return_code == 2:
-            self.bank.addUser(user)
-            return ("You have been added to the bank :duck:"
-                    "\n" + self.checkbux(user))
-        # Illegal user id somehow
-        else:
-            #TODO: Add error code for malformed user id
-            return None
-    #}}}
-
-    # Check a user's bank balance
-    # Params: user   - user id requesting balance
-    #         target - (maybe) user id str to get balance of
-    #                  default None gets user balance
-    # Return: Message contains users balance
-    def checkbux(self, user, target = None):
-    #{{{
-        # There's text to check for a target
-        if target:
-            return_code, target = self._checkGambleStatus(target)
-            # User and in the bank
-            if return_code == 0:
-                balance = self.bank.balance(target)
-                return ("<@" + target + "> currently has"
-                        " " + str(balance) + " " + self.CURRENCY)
-            # User not in the bank
-            elif return_code == 2:
-                return "<@" + target + "> is not currently registered for this bank :duck:"
-
-        # Either there was no text for a target or the text wasn't a user
-        return_code, _ = self._checkGambleStatus(user)
-        # User in the bank
-        if return_code == 0:
-            balance = self.bank.balance(user)
-            return ("You currently have"
-                    " " + str(balance) + " " + self.CURRENCY)
-        # Or not
-        elif return_code == 2:
-            return bank_msgs.NOT_A_MEMBER
-        # Illegal user id
-        else:
-            # TODO: Malformed user id code
-            return None
-    #}}}
-
     # Check a user's gacha collection
     # Params: user   - user id requesting
     #         target - user id str to check
@@ -349,28 +289,6 @@ class GambleHandler:
             if util.LABELS["GAMBLE"] in channel["labels"]:
                 approved.append(channel["id"])
         return approved
-    #}}}
-
-    # Check if user and channel are appropriate for gambling
-    # Params: user    - user id to check for bank entry
-    #         channel - channel id to check for approval
-    # Return: int value based on failures and matched user id
-    #           0 - all good
-    #           1 - bad user id
-    #           2 - user not a member of bank
-    #           4 - channel not approved
-    # Note  : Other return codes are some combination of the above
-    def _checkGambleStatus(self, user, channel = None):
-    #{{{
-        return_code = 0
-        user = util.matchUserId(user)
-        if not user:
-            return_code += 1
-        elif not self.bank.isMember(user):
-            return_code += 2
-        if channel and channel not in self.approved_channels:
-            return_code += 4
-        return return_code, user
     #}}}
 
     # Parse needed values out of bet options

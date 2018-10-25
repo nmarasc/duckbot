@@ -194,6 +194,18 @@ class Bank:
                 self.players[player]["pull"] = value
     #}}}
 
+    # Check if user and channel are valid for gambling
+    # Params: user    - user id to check for bank entry
+    #         channel - channel id to check for approval
+    # Return: integer return code
+    def checkEligible(self, user, channel = None):
+        return_code = 0
+        if not self.isMember(user):
+            return_code = 1
+        if channel and channel not in self.approved_channels:
+            return_code = 2
+        return return_code
+
     # Parse player data of line
     # Params: data - line data
     # Return: player data list or None

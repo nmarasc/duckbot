@@ -54,18 +54,22 @@ ROLL_REGEX = "^(:[a-zA-Z0-9_-]+:|\d+)?D(:[a-zA-Z0-9_-]+:|\d+)$"
 DIE_RANGE = range(1,101)
 
 # Get response from proper sub roll command
-# Params: args - list of roll parameters
+# Params: args - dict of arguments containing:
+#   user    - user id of command issuer, **unused**
+#   channel - channel id command was issued from, **unused**
+#   ops     - list containing roll parameters
 # Return:  String containing the response from the command
-def handle(args):
-    # Check for no parameters
-    if not args:
+def handle(**args):
+    # Grab command options
+    ops = args["ops"]
+    if not ops:
         response = "Can't roll without parameters, kweh! :duck:"
     # Check for character roll
-    elif str.upper(args[0]) in NAMES_CHARACTER:
+    elif str.upper(ops[0]) in NAMES_CHARACTER:
         response = _characterRoll()
     # Otherwise regular roll command
     else:
-        response = _defaultRoll(args[0])
+        response = _defaultRoll(ops[0])
     return response
 
 # Retrieve command help message

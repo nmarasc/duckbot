@@ -11,9 +11,9 @@ HELP = (
 )
 
 # Say hello
-# Params: args - list of arguments, **unused**
+# Params: args - dict of arguments, **unused**
 # Return: String containing command response
-def handle(args):
+def handle(**args):
     return "Kweh! :DUCK:"
 
 # Retrieve command help message

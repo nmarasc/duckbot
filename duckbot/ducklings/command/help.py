@@ -7,6 +7,10 @@ NAMES = [
 ]
 
 HELP = (
+    "Don't get smart, you know how to use this :duck:"
+)
+
+DEFAULT_HELP = (
     "Duckbot is a general purpose slackbot for doing various things\n"
     "To interact with it use <@{id:s}> <command>\n"
     "Supported commands: {cmds:s}\n"
@@ -18,31 +22,31 @@ HELP = (
 COMMANDS = {}
 
 # Get bot help messages
-# Params: args - List containing command to get help of
+# Params: args - dict of arguments containing:
+#   user    - user id of command issuer, **unused**
+#   channel - channel command issued from, **unused**
+#   ops     - list with command to get help of
 # Return: String containing command response
-def handle(args):
-    if args:  # Check for command
-        command = COMMANDS.get(str.upper(args[0]), 0)
+def handle(**args):
+    ops = args["ops"]
+    if ops:  # Check for command
+        command = COMMANDS.get(str.upper(ops[0]), 0)
         if command:  # Was a command
-            response = command.getHelp(args[1:])
+            response = command.getHelp(ops[1:])
         else:  # Invalid command
-            response = args[0] + " is not a recognized command"
+            response = ops[0] + " is not a recognized command"
     else:  # Default help message
         command_names = [cmd.NAMES[0] for cmd in COMMANDS]
-        response = HELP.format(cmds=", ".join(command_names))
+        response = DEFAULT_HELP.format(cmds=", ".join(command_names))
     return response
 
+# Retrieve help command message
+# Params: ops - help command options, **unused**
+# Return: String help message
+def getHelp(ops):
+    return HELP
+
 #
-#            ,util.COMMANDS["UPDATE"] :\
-#                ("Causes the bot to shutdown and signal "
-#                "the monitor script to check for updates\n"
-#                "Usage: <@" + bot_id + "> UPDATE")
-#            ,util.COMMANDS["HELP"] :\
-#                "Don't get smart, you know how to use this"
-#            ,util.COMMANDS["JOIN"] :\
-#                ("Add yourself to the gambler's bank\n"
-#                "Usage: <@" + bot_id + "> JOIN\n"
-#                "Can only be used in gambling approved channels :duck:")
 #            ,util.COMMANDS["CHECKBUX"] :\
 #                ("Check bank balance of yourself or others\n"
 #                "Usage: <@" + bot_id + "> CHECKBUX [target]\n"
