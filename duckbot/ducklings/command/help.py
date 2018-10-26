@@ -6,15 +6,17 @@ NAMES = [
     "HEP"
 ]
 
+# Command help message
 HELP = (
     "Don't get smart, you know how to use this :duck:"
 )
 
+# General help message
 DEFAULT_HELP = (
-    "Duckbot is a general purpose slackbot for doing various things\n"
-    "To interact with it use <@{id:s}> <command>\n"
-    "Supported commands: {cmds:s}\n"
-    "Use <@{id:s}> HELP <command> for more details"
+    'Duckbot is a general purpose slackbot for doing various things\n'
+    'To interact with it use <@{{id}}> <command>\n'
+    'Supported commands: {}\n'
+    f'Use <@{{{id}}}> {NAMES[0]} <command> for more details'
 )
 
 # Command modules
@@ -34,10 +36,10 @@ def handle(**args):
         if command:  # Was a command
             response = command.getHelp(ops[1:])
         else:  # Invalid command
-            response = ops[0] + " is not a recognized command"
+            response = f'{ops[0]} is not a recognized command'
     else:  # Default help message
         command_names = [cmd.NAMES[0] for cmd in COMMANDS]
-        response = DEFAULT_HELP.format(cmds=", ".join(command_names))
+        response = DEFAULT_HELP.format(", ".join(command_names))
     return response
 
 # Retrieve help command message
@@ -46,11 +48,6 @@ def handle(**args):
 def getHelp(ops):
     return HELP
 
-#
-#            ,util.COMMANDS["CHECKBUX"] :\
-#                ("Check bank balance of yourself or others\n"
-#                "Usage: <@" + bot_id + "> CHECKBUX [target]\n"
-#                "No target defaults to yourself :duck:")
 #            ,util.COMMANDS["BET"] :\
 #                ("Bet on a game with bank balance to win big\n"
 #                "Usage: <@" + bot_id + "> BET <amount> <game> <game-options>\n"

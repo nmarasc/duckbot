@@ -7,11 +7,17 @@ NAMES = [
     'CHECKBUX'
 ]
 
+# Command help message
+HELP = (
+    'Check bank balance of yourself or others\n'
+    f'Usage: <@{{id}}> {NAMES[0]} [target]\n'
+    'No target defaults to yourself :duck:'
+)
+
 # Command responses
 RESPONSES = {
-    "SELF": f'You currently have {{}} {bank.CURRENCY}'
-    "TARGET": f'<@{{}}> currently has {{}} {bank.CURRENCY}'
-    "TARGET_BAD": '<@{}> is not currently registered for this system :duck:'
+    'SELF': f'You currently have {{}} {bank.CURRENCY}'
+    'TARGET': f'<@{{}}> currently has {{}} {bank.CURRENCY}'
 }
 
 # Check bank balance of a user
@@ -21,23 +27,37 @@ RESPONSES = {
 #   ops     - list containing target user
 # Return: String response from command
 def handle(**args):
-    user = args["user"]
-    ops = args["ops"]
+    user = args['user']
+    ops = args['ops']
     target = None
     if ops:  # Check text for target user
         target = matchUserId(ops[0])
     if target:  # Valid target id
-        return_code = bank.checkEligible(target)
-        if return_code == 0:  # Target is a member
-            balance = bank.balance(target)
-            response = RESPONSES["TARGET"].format(target, balance)
-        else:  # Target is not a member
-            response = bank.ERRORS["TARGET_NOT_A_MEMBER"].format(target)
-    else:  # No target
-        return_code = bank.checkEligible(user)
-        if return_code == 0:  # User is a member
-            balance = self.bank.balance(user)
-            response = RESPONSES["SELF"].format(balance)
-        else:  # User is not a member
-            response = bank.ERRORS["NOT_A_MEMBER"]
+        response = _checkUser(target, True)
+    else:  # Invalid or missing target id
+        response = _checkUser(user)
     return response
+
+# Retrieve command help message
+# Params: ops - help options, **unused**
+# Return: String help message
+def getHelp(ops):
+    return HELP
+
+# Determine eligibility of user id and get balance
+# Params: uid    - user id to get balance of
+#         target - True if user is a target
+def _checkUser(uid, target=False):
+    # Note: Channel is being omitted from this check since CHECKBUX
+    #   command is valid in any channel, so the related return code
+    #   does not need to be checked
+    return_code = checkEligible(uid)
+    if return_code == 0:  # User is a member
+        balance = bank.balance(uid)
+        if target:
+            result = RESPONSES['TARGET'].format(uid, balance)
+        else:
+            result = RESPONSES['SELF'].format(balance)
+    else:  # User is not a member
+        result = bank.ERROR['NOT_A_MEMBER'].format(uid)
+    return result

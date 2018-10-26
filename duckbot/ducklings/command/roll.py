@@ -13,43 +13,44 @@ NAMES = [
 
 # Command help message
 HELP = (
-    "Rolls dice based on parameters given\n"
-    "Usage: <@{id:s}> " + NAMES[0] + " ( [d]X | YdX )\n"
-    "Where X is the number of faces and Y is the number of dice"
+    'Rolls dice based on parameters given\n'
+    f'Usage: <@{{id}}> {NAMES[0]} ( [d]X | YdX )\n'
+    'Where X is the number of faces and Y is the number of dice'
 )
 
 # Valid character roll names
 NAMES_CHARACTER = [
-    "CHARACTER",
-    "CHAR",
-    ":DRAGON:"
+    'CHARACTER',
+    'CHAR',
+    ':DRAGON:'
 ]
 
 # Valid emoji number values
 EMOJI_ROLLS = {
-    ":ONE:"        : 1,
-    ":TWO:"        : 2,
-    ":THREE:"      : 3,
-    ":FOUR:"       : 4,
-    ":FIVE:"       : 5,
-    ":SIX:"        : 6,
-    ":SEVEN:"      : 7,
-    ":EIGHT:"      : 8,
-    ":NINE:"       : 9,
-    ":KEYCAP_TEN:" : 10,
-    ":100:"        : 100,
+    ':ONE:': 1,
+    ':TWO:': 2,
+    ':THREE:': 3,
+    ':FOUR:': 4,
+    ':FIVE:': 5,
+    ':SIX:': 6,
+    ':SEVEN:': 7,
+    ':EIGHT:': 8,
+    ':NINE:': 9,
+    ':KEYCAP_TEN:': 10,
+    ':100:': 100,
 }
 
 # Base emoji roll ratings
 BASE_RATINGS = {
-    1: ":hyperbleh:",
-    13: ":ghost:",
-    69: ":eggplant:",
-    420: ":herb:"
+    1: ':hyperbleh:',
+    13: ':ghost:',
+    69: ':eggplant:',
+    420: ':herb:'
 }
 
 # Regex used to determine a valid roll format of YdX or dX case
-ROLL_REGEX = "^(:[a-zA-Z0-9_-]+:|\d+)?D(:[a-zA-Z0-9_-]+:|\d+)$"
+# Don't look at it, it's gross
+ROLL_REGEX = '^(:[a-zA-Z0-9_-]+:|\d+)?D(:[a-zA-Z0-9_-]+:|\d+)$'
 # Range for amount of dice and number of sides per die allowed
 DIE_RANGE = range(1,101)
 
@@ -61,7 +62,7 @@ DIE_RANGE = range(1,101)
 # Return:  String containing the response from the command
 def handle(**args):
     # Grab command options
-    ops = args["ops"]
+    ops = args['ops']
     if not ops:
         response = "Can't roll without parameters, kweh! :duck:"
     # Check for character roll
@@ -82,6 +83,7 @@ def getHelp(ops):
 # Params: roll_str - String containing roll command operator
 # Return: String containing reponse from standard roll command
 def _defaultRoll(roll_str):
+    die_num = 1
     roll_upper = str.upper(roll_str)
     # Test parameter with regex for YdX or dX case
     regex_result = re.search(ROLL_REGEX, roll_upper)
@@ -89,47 +91,45 @@ def _defaultRoll(roll_str):
     if regex_result:  # There was a match
         if regex_result.group(1):  # Y value
             die_num = _parseNum(regex_result.group(1))
-        else:
-            die_num = 1
-
         # X value
         die_sides = _parseNum(regex_result.group(2))
 
-    else:             # No match, just a number
-        die_num = 1
+    else:  # No match, just a number
         die_sides = _parseNum(roll_upper)
 
     # Check that parameters are in the valid range
     if (die_num in DIE_RANGE and die_sides in DIE_RANGE):
-        response = "You rolled: "
         result = roll(die_sides, die_num)
-        if isinstance(result, list):
-            response += (", ".join(map(str, result)) +
-                         "\nYour total: " + str(sum(result)))
-        else:
-            response += str(result) + " " + _emojiRating(result, die_sides)
+        if isinstance(result, list):  # Rolled more than one number
+            response_head = ', '.join(map(str, result))
+            response_tail = f'\nYour total: {sum(result)}'
+        else:  # Rolled only one number
+            response_head = result
+            response_tail = _emojiRating(result, die_sides)
+        response = f'You rolled: {response_head} {response_tail}'
     # Invalid ranges
     else:
-        response = roll_str + " is not a valid roll."
+        response = f'{roll_str} is not a valid roll.'
     return response
 
 # Roll for dnd character stats
 # Params: None
 # Return: String containing response from character roll command
 def _characterRoll():
-    response = ''
     stats = []
+    results = []
     for i in range(0,6):  # For each stat
-        stat_group = roll(6,4)  # Roll 4d6
-        min_group = min(stat_group)
-        response += "\nYou rolled: " + ", ".join(map(str,stat_group))
-        response += "\nDropping " + str(min_group) + ", "
-        stat_group.remove(min_group)  # Remove the lowest value
-        stat = sum(stat_group)  # Get the stat total
-        stats.append(stat)
-        response += "Total: " + str(stat)
-    response += "\n\nYour stats are: " + ", ".join(map(str, stats))
-    return response
+        group = roll(6,4)  # Roll 4d6
+        group_min = min(group)
+        result = (
+            f"\nYou rolled: {', '.join(map(str, group))}"
+            f'\nDropping {group_min}, Total: {{}}'
+        )
+        group.remove(group_min)  # Remove the lowest value
+        stats.append(sum(group))  # Append sum to list of stats
+        results.append(result.format(stats[-1]))
+    results = '\n'.join(results)
+    return f"{results}\n\nYour stats are: {', '.join(map(str, stats))}"
 
 # Give emoji ratings based on roll score
 # Params: roll - roll score to rate
@@ -137,13 +137,13 @@ def _characterRoll():
 # Return: emoji string for rating
 def _emojiRating(roll, die):
     ratings = copy(BASE_RATINGS)
-    ratings[die] = ":partyparrot:"
+    ratings[die] = ':partyparrot:'
     emoji = ratings.get(roll, None)
     if emoji is None:
         if roll <= die/2:
-            emoji = ":bleh:"
+            emoji = ':bleh:'
         else:
-            emoji = ":ok_hand:"
+            emoji = ':ok_hand:'
     return emoji
 
 # Convert a string containing a number or an emoji to an int

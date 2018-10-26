@@ -4,12 +4,14 @@
 bin/syntax_check.py
 bin/version.sh
 duckbot/duckbot.py
+duckbot/ducklings/command/checkbux.py
 duckbot/ducklings/command/coin.py
 duckbot/ducklings/command/eightball.py
 duckbot/ducklings/command/factoid.py
 duckbot/ducklings/command/gamble.py
 duckbot/ducklings/command/help.py
 duckbot/ducklings/command/hi.py
+duckbot/ducklings/command/join.py
 duckbot/ducklings/command/pick.py
 duckbot/ducklings/command/roll.py
 duckbot/ducklings/event/message.py

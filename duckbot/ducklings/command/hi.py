@@ -1,20 +1,20 @@
 # Valid command names
 NAMES = [
-    "HI",
-    "HELLO"
+    'HI',
+    'HELLO'
 ]
 
 # Command help message
 HELP = (
-    "Legacy HI command\n"
-    "Usage: <@{id:s}> " + NAMES[0]
+    'Legacy HI command\n'
+    f'Usage: <@{{id}}> {NAMES[0]}'
 )
 
 # Say hello
 # Params: args - dict of arguments, **unused**
 # Return: String containing command response
 def handle(**args):
-    return "Kweh! :DUCK:"
+    return 'Kweh! :DUCK:'
 
 # Retrieve command help message
 # Params: ops - help options, **unused**
