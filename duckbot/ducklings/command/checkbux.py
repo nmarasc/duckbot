@@ -27,15 +27,22 @@ RESPONSES = {
 #   ops     - list containing target user
 # Return: String response from command
 def handle(**args):
-    user = args['user']
     ops = args['ops']
     target = None
     if ops:  # Check text for target user
         target = matchUserId(ops[0])
-    if target:  # Valid target id
-        response = _checkUser(target, True)
+
+    # TODO: Dodge comparisons or give up and add it
+    # temporary solution below
+    user = args['user'] if not target else target
+
+    balance = _checkUser(user)
+    if not balance:
+        response = bank.ERROR['NOT_A_MEMBER'].format(user)
+    elif target:  # Valid target id
+        response = RESPONSES['TARGET'].format(target, balance)
     else:  # Invalid or missing target id
-        response = _checkUser(user)
+        response = RESPONSES['SELF'].format(balance)
     return response
 
 # Retrieve command help message
@@ -45,19 +52,14 @@ def getHelp(ops):
     return HELP
 
 # Determine eligibility of user id and get balance
-# Params: uid    - user id to get balance of
-#         target - True if user is a target
-def _checkUser(uid, target=False):
+# Params: user - user id to check
+# Return: integer balance of user or None
+def _checkUser(user):
     # Note: Channel is being omitted from this check since CHECKBUX
     #   command is valid in any channel, so the related return code
     #   does not need to be checked
-    return_code = checkEligible(uid)
+    result = None
+    return_code = bank.checkEligible(user)
     if return_code == 0:  # User is a member
-        balance = bank.balance(uid)
-        if target:
-            result = RESPONSES['TARGET'].format(uid, balance)
-        else:
-            result = RESPONSES['SELF'].format(balance)
-    else:  # User is not a member
-        result = bank.ERROR['NOT_A_MEMBER'].format(uid)
+        result = bank.balance(user)
     return result
