@@ -11,13 +11,15 @@ HELP = (
 )
 
 # Generate a random ad lib fact
-# Params: args - dict of arguments, **unused**
+# Params: user     - user id issuing command, **unused**
+#         channel  - channel id command was issued from, **unused**
+#         cmd_args - list of command arguments, **unused**
 # Return: String containing response from command
-def handle(**args):
+def handle(user, channel, cmd_args):
     return 'Not yet. Kweh :duck:'
 
 # Retrieve command help message
-# Params: ops - help options, **unused**
+# Params: args - help arguments, **unused**
 # Return: String help message
-def getHelp(ops):
+def getHelp(args):
     return HELP

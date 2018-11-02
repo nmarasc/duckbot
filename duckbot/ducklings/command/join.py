@@ -1,5 +1,4 @@
 # Duckbot util modules
-from util.common import ERROR_CODES
 from util.common import bank
 
 # Valid command names
@@ -27,21 +26,17 @@ RESPONSES = {
 }
 
 # Add user to gamling system if not already
-# Params: args - dict containing:
-#   user    - user id of the command issuer
-#   channel - channel id command was issued from
-#   ops     - list of command options, **unused**
-# Return: Message to send to channel
-def handle(**args):
-    user = args['user']
-    channel = args['channel']
-
+# Params: user     - user id issuing command
+#         channel  - channel id command was issued from
+#         cmd_args - list of command arguments, **unused**
+# Return: String response from the command
+def handle(user, channel, cmd_args):
     return_code = bank.checkEligible(user, channel)
     if return_code == 0:  # User already a member
         response = RESPONSES['EXISTS'].format(bank.balance(user))
     elif return_code == 1:  # User not a member
-        self.bank.addUser(user)
+        bank.addUser(user)
         response = RESPONSES['ADDED']
     else:  # Invalid channel
-        response = bank.ERRORS['BAD_CHANNEL']
+        response = bank.ERROR['BAD_CHANNEL']
     return response

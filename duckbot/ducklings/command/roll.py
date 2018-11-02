@@ -1,7 +1,6 @@
 # Last Updated: 2.2
 # Python imports
 import re
-from copy import copy
 # Duckbot util modules
 from util.common import roll
 
@@ -18,70 +17,71 @@ HELP = (
     'Where X is the number of faces and Y is the number of dice'
 )
 
-# Valid character roll names
-NAMES_CHARACTER = [
-    'CHARACTER',
-    'CHAR',
-    ':DRAGON:'
-]
+# Valid special roll names
+NAMES_SPECIAL = {
+    'CHARACTER': [
+        'CHARACTER',
+        'CHAR',
+        ':DRAGON:'
+    ]
+}
 
 # Valid emoji number values
 EMOJI_ROLLS = {
-    ':ONE:': 1,
-    ':TWO:': 2,
-    ':THREE:': 3,
-    ':FOUR:': 4,
-    ':FIVE:': 5,
-    ':SIX:': 6,
-    ':SEVEN:': 7,
-    ':EIGHT:': 8,
-    ':NINE:': 9,
+           ':ONE:': 1,
+           ':TWO:': 2,
+         ':THREE:': 3,
+          ':FOUR:': 4,
+          ':FIVE:': 5,
+           ':SIX:': 6,
+         ':SEVEN:': 7,
+         ':EIGHT:': 8,
+          ':NINE:': 9,
     ':KEYCAP_TEN:': 10,
-    ':100:': 100,
+           ':100:': 100,
 }
 
 # Base emoji roll ratings
 BASE_RATINGS = {
-    1: ':hyperbleh:',
-    13: ':ghost:',
-    69: ':eggplant:',
+      1: ':hyperbleh:',
+     13: ':ghost:',
+     69: ':eggplant:',
     420: ':herb:'
 }
 
 # Regex used to determine a valid roll format of YdX or dX case
-# Don't look at it, it's gross
-ROLL_REGEX = '^(:[a-zA-Z0-9_-]+:|\d+)?D(:[a-zA-Z0-9_-]+:|\d+)$'
+# Don't look at it. It's gross, but it works
+EMOJI_REGEX = ':[a-zA-Z0-9_-+]+:'
+VALUE_REGEX = '{}|\d+'.format(EMOJI_REGEX)
+ROLL_REGEX = f'^({VALUE_REGEX})?D({VALUE_REGEX})$'
 # Range for amount of dice and number of sides per die allowed
 DIE_RANGE = range(1,101)
 
 # Get response from proper sub roll command
-# Params: args - dict of arguments containing:
-#   user    - user id of command issuer, **unused**
-#   channel - channel id command was issued from, **unused**
-#   ops     - list containing roll parameters
-# Return:  String containing the response from the command
-def handle(**args):
-    # Grab command options
-    ops = args['ops']
-    if not ops:
+# Params: user     - user id issuing command, **unused**
+#         channel  - channel id command was issued from, **unused**
+#         cmd_args - list of roll parameters
+# Return:  String response from the command
+def handle(user, channel, cmd_args):
+    if not cmd_args:
         response = "Can't roll without parameters, kweh! :duck:"
     # Check for character roll
-    elif str.upper(ops[0]) in NAMES_CHARACTER:
+    elif str.upper(cmd_args[0]) in NAMES_SPECIAL['CHARACTER']:
         response = _characterRoll()
     # Otherwise regular roll command
     else:
-        response = _defaultRoll(ops[0])
+        response = _defaultRoll(cmd_args[0])
     return response
 
 # Retrieve command help message
-# Params: ops - help options, **unused**
+# Params: args - help arguments, **unused**
 # Return: String help message
-def getHelp(ops):
+def getHelp(args):
     return HELP
 
 # Standard roll command
-# Params: roll_str - String containing roll command operator
-# Return: String containing reponse from standard roll command
+# Params: roll_str - String containing roll command argument
+# Return: String reponse from standard roll command
 def _defaultRoll(roll_str):
     die_num = 1
     roll_upper = str.upper(roll_str)
@@ -114,7 +114,7 @@ def _defaultRoll(roll_str):
 
 # Roll for dnd character stats
 # Params: None
-# Return: String containing response from character roll command
+# Return: String response from character roll command
 def _characterRoll():
     stats = []
     results = []
@@ -136,10 +136,10 @@ def _characterRoll():
 #         die  - total to compare score to
 # Return: emoji string for rating
 def _emojiRating(roll, die):
-    ratings = copy(BASE_RATINGS)
-    ratings[die] = ':partyparrot:'
-    emoji = ratings.get(roll, None)
-    if emoji is None:
+    emoji = BASE_RATINGS.get(roll, None)
+    if roll == die:
+        emoji = ':partyparrot:'
+    elif emoji is None:
         if roll <= die/2:
             emoji = ':bleh:'
         else:

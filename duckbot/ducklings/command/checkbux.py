@@ -1,5 +1,5 @@
 # Duckbot util modules
-from util.common import matchUserId
+from util.common import matchUserID
 from util.common import bank
 
 # Valid command names
@@ -21,34 +21,29 @@ RESPONSES = {
 }
 
 # Check bank balance of a user
-# Params: args - Dict of arguments containing:
-#   user    - user id requesting balance
-#   channel - channel id command was issed from, **unused**
-#   ops     - list containing target user
+# Params: user     - user id requesting a balance
+#         channel  - channel id command was issued from, **unused**
+#         cmd_args - list containing target user
 # Return: String response from command
-def handle(**args):
-    ops = args['ops']
+def handle(user, channel, cmd_args):
     target = None
-    if ops:  # Check text for target user
-        target = matchUserId(ops[0])
-
-    # TODO: Dodge comparisons or give up and add it
-    # temporary solution below
-    user = args['user'] if not target else target
-
+    if cmd_args:  # Check for target user option
+        target = matchUserID(cmd_args[0])
+        if target:
+            user = target
     balance = _checkUser(user)
-    if not balance:
+    if not balance:  # User was not a member
         response = bank.ERROR['NOT_A_MEMBER'].format(user)
-    elif target:  # Valid target id
+    elif target:  # User was a target
         response = RESPONSES['TARGET'].format(target, balance)
-    else:  # Invalid or missing target id
+    else:  # User was not a target
         response = RESPONSES['SELF'].format(balance)
     return response
 
 # Retrieve command help message
-# Params: ops - help options, **unused**
+# Params: args - help arguments, **unused**
 # Return: String help message
-def getHelp(ops):
+def getHelp(args):
     return HELP
 
 # Determine eligibility of user id and get balance

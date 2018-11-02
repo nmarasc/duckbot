@@ -39,14 +39,16 @@ MESSAGES = [
 ]
 
 # Randomly select an eightball message
-# Params: args - dict of arguments, **unused**
+# Params: user     - user id issuing command, **unused**
+#         channel  - channel id command was issued from, **unused**
+#         cmd_args - list of command arguments, **unused**
 # Return: String containing eightball message
-def handle(**args):
+def handle(user, channel, cmd_args):
     result = roll(len(MESSAGES))
     return MESSAGES[result-1]
 
 # Retrieve command help message
-# Params: ops - help options, **unused**
+# Params: args - help arguments, **unused**
 # Return: String help message
-def getHelp(ops):
+def getHelp(args):
     return HELP

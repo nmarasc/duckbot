@@ -13,9 +13,11 @@ HELP = (
 )
 
 # Flip a coin
-# Params: args - dict of arguments, **unused**
+# Params: user     - user id issuing command, **unused**
+#         channel  - channel id command was issued from, **unused**
+#         cmd_args - list of command arguments, **unused**
 # Return: String containing the response
-def handle(**args):
+def handle(user, channel, cmd_args):
     result = roll(2)
     # Save a branch half of the time by assuming one
     face = 'TAILS'
@@ -24,7 +26,7 @@ def handle(**args):
     return f'You got: {face}'
 
 # Retrieve command help message
-# Params: ops - help options, **unused**
+# Params: args - help arguments, **unused**
 # Return: String help message
-def getHelp(ops):
+def getHelp(args):
     return HELP

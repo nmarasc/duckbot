@@ -83,7 +83,7 @@ def sendMessage(channel, message, user = None):
 # Search for a user id in a string
 # Params: id_str - string to search for id
 # Return: user id if found, None otherwise
-def matchUserId(id_str):
+def matchUserID(id_str):
 #{{{
     matches = re.search(USER_REGEX,id_str)
     return matches.group(0) if matches else None

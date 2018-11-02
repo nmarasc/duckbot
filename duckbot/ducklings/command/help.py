@@ -20,32 +20,30 @@ DEFAULT_HELP = (
 )
 
 # Command modules
-# Since commands are loaded at runtime, this is set by the event manager
+# Since commands are loaded at runtime, this gets set by the event manager
 COMMANDS = {}
 
 # Get bot help messages
-# Params: args - dict of arguments containing:
-#   user    - user id of command issuer, **unused**
-#   channel - channel command issued from, **unused**
-#   ops     - list with command to get help of
+# Params: user     - user id issuing command, **unused**
+#         channel  - channel id command was issued from, **unused**
+#         cmd_args - list with command to get help of
 # Return: String containing command response
-def handle(**args):
-    ops = args["ops"]
-    if ops:  # Check for command
-        command = COMMANDS.get(str.upper(ops[0]), 0)
+def handle(user, channel, cmd_args):
+    if cmd_args:  # Check for command
+        command = COMMANDS.get(str.upper(cmd_args[0]), 0)
         if command:  # Was a command
-            response = command.getHelp(ops[1:])
+            response = command.getHelp(cmd_args[1:])
         else:  # Invalid command
-            response = f'{ops[0]} is not a recognized command'
+            response = f'{cmd_args[0]} is not a recognized command'
     else:  # Default help message
         command_names = [cmd.NAMES[0] for cmd in COMMANDS]
         response = DEFAULT_HELP.format(", ".join(command_names))
     return response
 
 # Retrieve help command message
-# Params: ops - help command options, **unused**
+# Params: args - help command arguments, **unused**
 # Return: String help message
-def getHelp(ops):
+def getHelp(args):
     return HELP
 
 #            ,util.COMMANDS["BET"] :\
