@@ -26,7 +26,7 @@ COMMANDS = {}
 # Get bot help messages
 # Params: user     - user id issuing command, **unused**
 #         channel  - channel id command was issued from, **unused**
-#         cmd_args - list with command to get help of
+#         cmd_args - list containing command argument text
 # Return: String containing command response
 def handle(user, channel, cmd_args):
     if cmd_args:  # Check for command

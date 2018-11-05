@@ -20,7 +20,7 @@ PICK_RANGE = range(2, 21)  # Pick between 2 and 20 things
 # Randomly pick from a list of specified items
 # Params: user     - user id issuing command, **unused**
 #         channel  - channel id command was issued from, **unused**
-#         cmd_args - list of items to pick from
+#         cmd_args - list containing command argument text
 # Return: String containing response from command
 def handle(user, channel, cmd_args):
     cmd_len = len(cmd_args)

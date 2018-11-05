@@ -1,16 +1,29 @@
 # Duckbot util modules
 from util.common import matchUserID
 from util.common import bank
+# Duckbot extension modules
+from ducklings.command.sub-check import balance
+from ducklings.command.sub-check import collection
 
 # Valid command names
 NAMES = [
-    'CHECKBUX'
+    'CHECK',
+    ':HEAVY_CHECK_MARK:',
+    ':WHITE_CHECK_MARK:',
+    ':BALLOT_BOX_WITH_CHECK:'
 ]
+
+# Valid subcommand names
+SUBCOMMANDS = {
+    **{key:balance for key in balance.NAMES},
+    **{key:collection for key in collection.NAMES}
+}
 
 # Command help message
 HELP = (
-    'Check bank balance of yourself or others\n'
-    f'Usage: <@{{id}}> {NAMES[0]} [target]\n'
+    'Check bank statistics of users\n'
+    f'Usage: <@{{id}}> {NAMES[0]} <subcommand> [target]\n'
+    'List of currently supported subcommands: {}\n'
     'No target defaults to yourself :duck:'
 )
 

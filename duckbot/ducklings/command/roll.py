@@ -60,7 +60,7 @@ DIE_RANGE = range(1,101)
 # Get response from proper sub roll command
 # Params: user     - user id issuing command, **unused**
 #         channel  - channel id command was issued from, **unused**
-#         cmd_args - list of roll parameters
+#         cmd_args - list containing command argument text
 # Return:  String response from the command
 def handle(user, channel, cmd_args):
     if not cmd_args:

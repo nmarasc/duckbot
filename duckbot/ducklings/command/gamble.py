@@ -15,16 +15,16 @@ class GambleHandler:
     PULL_RANGE = range(1,11)
     PULL_COST  = 10
     #{{{ - Gacha ranges
-    GACHA_RANGES = rangedict({
-         range(50,150)    : 0
-        ,range(150,600)   : 1
-        ,range(600,800)   : 2
-        ,range(800,900)   : 3
-        ,range(900,975)   : 4
-        ,range(975,990)   : 5
-        ,range(990,1000)  : 6
-        ,range(1000,1001) : 7
-    })
+GACHA_RANGES = rangedict({
+     range(50,150)    : 0
+    ,range(150,600)   : 1
+    ,range(600,800)   : 2
+    ,range(800,900)   : 3
+    ,range(900,975)   : 4
+    ,range(975,990)   : 5
+    ,range(990,1000)  : 6
+    ,range(1000,1001) : 7
+})
     #}}}
     #{{{ - Gacha names
     GACHA_NAMES = [
@@ -49,45 +49,6 @@ class GambleHandler:
         self.approved_channels = self._getApproved(channels)
         self.bank = Bank()
         self.pull_timer = self._getRefreshTime()
-    #}}}
-
-    # Check a user's gacha collection
-    # Params: user   - user id requesting
-    #         target - user id str to check
-    #                  default None gets user collection
-    # Return: Message containing collection
-    def checkPool(self, user, target = None):
-    #{{{
-        # Check for target
-        if target:
-            return_code, target = self._checkGambleStatus(target)
-            # Is a user and in bank
-            if return_code == 0:
-                pool = self.bank.getPool(target)
-                msg = "<@" + target + "> currently has:"
-                for pid in range(0,len(pool)):
-                    msg += "\n" + str(pool[pid]) + " " + self.GACHA_NAMES[pid]
-                return msg
-            # User not in bank
-            elif return_code == 2:
-                return "<@" + target + "> is not currently registered for this bank :duck:"
-
-        # Either no target or target was not a user
-        return_code, _ = self._checkGambleStatus(user)
-        # User in bank
-        if return_code == 0:
-            pool = self.bank.getPool(user)
-            msg = "You currently have:"
-            for pid in range(0,len(pool)):
-                msg += "\n" + str(pool[pid]) + " " + self.GACHA_NAMES[pid]
-            return msg
-        # Or not
-        elif return_code == 2:
-            return bank_msgs.NOT_A_MEMBER
-        # Illegal user id
-        else:
-            #TODO: Malformed user id
-            return None
     #}}}
 
     # Bet bucks on a game to win more
