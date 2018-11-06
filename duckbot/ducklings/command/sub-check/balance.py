@@ -1,0 +1,5 @@
+NAMES = [
+    'BUX',
+    'DOLANS',
+    'BALANCE'
+]

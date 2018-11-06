@@ -1,0 +1,4 @@
+NAMES = [
+    'POOL',
+    'COLLECTION',
+]
