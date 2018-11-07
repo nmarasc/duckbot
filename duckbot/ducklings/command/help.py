@@ -2,8 +2,11 @@
 
 # Valid command names
 NAMES = [
-    "HELP",
-    "HEP"
+    'HELP',
+    'HEP',
+    '?',
+    ':QUESTION:',
+    ':GREY_QUESTION:'
 ]
 
 # Command help message
