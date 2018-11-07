@@ -32,7 +32,11 @@ def handle(user, channel, cmd_args):
     if cmd_args:  # Check for command
         command = COMMANDS.get(str.upper(cmd_args[0]), 0)
         if command:  # Was a command
-            response = command.getHelp(cmd_args[1:])
+            try:
+                response = command.getHelp(cmd_args[1:])
+            except AttributeError:
+                # Somebody didn't define a help function :rage:
+                response = f'No help defined for command: {command.NAMES[0]}'
         else:  # Invalid command
             response = f'{cmd_args[0]} is not a recognized command'
     else:  # Default help message

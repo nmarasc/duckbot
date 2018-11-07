@@ -1,9 +1,10 @@
 # Duckbot util modules
+import util.moduleLoader as modloader
 from util.common import matchUserID
 from util.common import bank
 # Duckbot extension modules
-from ducklings.command.sub-check import balance
-from ducklings.command.sub-check import collection
+from ducklings.command.sub_check import balance
+from ducklings.command.sub_check import collection
 
 # Valid command names
 NAMES = [
@@ -14,10 +15,7 @@ NAMES = [
 ]
 
 # Valid subcommand names
-SUBCOMMANDS = {
-    **{key:balance for key in balance.NAMES},
-    **{key:collection for key in collection.NAMES}
-}
+SUBCOMMANDS = modloader.loadSubCommands('check')
 
 # Command help message
 HELP = (
@@ -29,7 +27,7 @@ HELP = (
 
 # Command responses
 RESPONSES = {
-    'SELF': f'You currently have {{}} {bank.CURRENCY}'
+    'SELF': f'You currently have {{}} {bank.CURRENCY}',
     'TARGET': f'<@{{}}> currently has {{}} {bank.CURRENCY}'
 }
 
