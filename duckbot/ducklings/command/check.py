@@ -1,10 +1,7 @@
 # Duckbot util modules
 import util.moduleLoader as modloader
 from util.common import matchUserID
-from util.common import bank
-# Duckbot extension modules
-from ducklings.command.sub_check import balance
-from ducklings.command.sub_check import collection
+# from util.common import bank
 
 # Valid command names
 NAMES = [
@@ -14,16 +11,24 @@ NAMES = [
     ':BALLOT_BOX_WITH_CHECK:'
 ]
 
-# Valid subcommand names
+# Subcommand modules for check
 SUBCOMMANDS = modloader.loadSubCommands('check')
+SUBCOMMAND_NAMES = list({SUBCOMMANDS[key].NAMES[0] for key in SUBCOMMANDS})
 
-# Command help message
-HELP = (
-    'Check bank statistics of users\n'
+# Command help variables
+PURPOSE = 'Check bank statistics of users\n'
+USAGE = (
     f'Usage: <@{{id}}> {NAMES[0]} <subcommand> [target]\n'
-    'List of currently supported subcommands: {}\n'
+    f"Currently supported subcommands: {', '.join(SUBCOMMAND_NAMES)}\n"
     'No target defaults to yourself :duck:'
 )
+HELP = f'{PURPOSE}{USAGE}'
+
+# Prebaked command responses
+RESPONSES = {
+    'BAD_SUB': f'{{}} is not a valid {NAMES[0]} subcommand\n{{}}',
+    'NO_ARGS': f'No arguments provided\n{USAGE}'
+}
 
 # Perform bank statistic checks for users
 # Params: user     - user id requesting a balance
@@ -31,34 +36,34 @@ HELP = (
 #         cmd_args - list containing argument text
 # Return: String response from command
 def handle(user, channel, cmd_args):
-    # bux|pool [target]
+    if len(cmd_args) > 1:  # Check for target user
+        target = matchUserID(cmd_args[1])
+        if target:
+            user = target
     try:
         subcmd = SUBCOMMANDS.get(str.upper(cmd_args[0]), None)
-        user = _checkUser(user, cmd_args[1])
-        response = subcmd.check(user)
-    except IndexError:  # No arguments or no target
-        if not cmd_args:
-            response = getHelp()
-    except AttributeError:  # Invalid command
-        response = None
+        if bank.checkEligible(user) == 0:  # OK return code
+            response = subcmd.check(user)
+        # Note: Channel is being omitted from this check since CHECK
+        #   commands are valid in any channel, so the related return
+        #   code does not need to be checked for
+        else:  # User not a member
+            response = bank.ERROR['NOT_A_MEMBER'].format(user)
+    except IndexError:  # No arguments given
+        response = RESPONSES['NO_ARGS']
+    except AttributeError:  # Invalid subcommand
+        response = RESPONSES['BAD_SUB'].format(args[0], USAGE)
     return response
 
 # Retrieve command help message
-# Params: args - help arguments, **unused**
+# Params: args - help arguments
 # Return: String help message
-def getHelp(args=None):
-    return HELP
-
-# Determine eligibility of user id and get balance
-# Params: user - user id to check
-# Return: integer balance of user or None
-def _checkUser(user, args):
-    # Note: Channel is being omitted from this check since CHECKBUX
-    #   command is valid in any channel, so the related return code
-    #   does not need to be checked
+def getHelp(args):
     try:
-        target = matchUserID(args[0])
-        user = target if target else user
-    except IndexError:
-        target = None
-    return not bank.checkEligible(user)
+        subcmd = SUBCOMMANDS.get(str.upper(args[0]), None)
+        response = subcmd.getHelp()
+    except IndexError:  # Empty argument list
+        response = HELP
+    except AttributeError:  # Invalid subcommand
+        response = RESPONSES['BAD_SUB'].format(args[0], USAGE)
+    return response

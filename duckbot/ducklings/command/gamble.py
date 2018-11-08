@@ -39,7 +39,7 @@ GACHA_RANGES = rangedict({
     ]
     #}}}
 
-    # Constructor for gamble handler
+    # Constructor for gamble hambler
     # Params: channels - list of channels to check for approved labels
     # Return: GambleHandler instance with approved channels added
     def __init__(self, channels):
