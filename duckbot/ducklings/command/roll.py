@@ -1,5 +1,6 @@
 # Last Updated: 2.2
 # Python imports
+import sys
 import re
 # Duckbot util modules
 from util.common import roll
@@ -54,8 +55,13 @@ BASE_RATINGS = {
 EMOJI_REGEX = ':[a-zA-Z0-9_-+]+:'
 VALUE_REGEX = '{}|\d+'.format(EMOJI_REGEX)
 ROLL_REGEX = f'^({VALUE_REGEX})?D({VALUE_REGEX})$'
-# Range for amount of dice and number of sides per die allowed
-DIE_RANGE = range(1,101)
+
+# Dice constants
+DIE_MAX_SIDES = sys.maxsize
+DIE_MAX_NUM = 111
+# Ranges for number of dice and number of sides per die
+DIE_RANGE_NUM = range(1, DIE_MAX_NUM)
+DIE_RANGE_SIDES = range(2, DIE_MAX_SIDES)
 
 # Get response from proper sub roll command
 # Params: user     - user id issuing command, **unused**
@@ -97,8 +103,12 @@ def _defaultRoll(roll_str):
     else:  # No match, just a number
         die_sides = _parseNum(roll_upper)
 
-    # Check that parameters are in the valid range
-    if (die_num in DIE_RANGE and die_sides in DIE_RANGE):
+    # Check values are in the valid ranges
+    if (die_num not in DIE_RANGE_NUM):  # Invalid number of dice
+        response = f'{die_num} is not in the valid range'
+    elif (die_sides not in DIE_RANGE_SIDES):  # Invalid number of sides
+        response = f'{die_sides} is not in the valid range'
+    else:  # Ready to roll
         result = roll(die_sides, die_num)
         if isinstance(result, list):  # Rolled more than one number
             response_head = ', '.join(map(str, result))
@@ -107,9 +117,6 @@ def _defaultRoll(roll_str):
             response_head = result
             response_tail = _emojiRating(result, die_sides)
         response = f'You rolled: {response_head} {response_tail}'
-    # Invalid ranges
-    else:
-        response = f'{roll_str} is not a valid roll.'
     return response
 
 # Roll for dnd character stats
