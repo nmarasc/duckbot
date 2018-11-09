@@ -5,10 +5,9 @@ NAMES = [
 ]
 
 # Command help message
-HELP = (
-    'Legacy HI command\n'
-    f'Usage: <@{{id}}> {NAMES[0]}'
-)
+PURPOSE = 'Legacy HI command\n'
+USAGE = f'Usage: <@{{id}}> {NAMES[0]}'
+HELP = f'{PURPOSE}{USAGE}'
 
 # Say hello
 # Params: user     - user id issuing command, **unused**

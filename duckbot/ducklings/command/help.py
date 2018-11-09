@@ -10,17 +10,22 @@ NAMES = [
 ]
 
 # Command help message
-HELP = (
-    "Don't get smart, you know how to use this :duck:"
-)
+HELP = "Don't get smart, you know how to use this :duck:"
 
 # General help message
-DEFAULT_HELP = (
-    'Duckbot is a general purpose slackbot for doing various things\n'
+PURPOSE = 'Duckbot is a general purpose slackbot for doing various things\n'
+USAGE = (
     'To interact with it use <@{{id}}> <command>\n'
     'Supported commands: {}\n'
     f'Use <@{{{id}}}> {NAMES[0]} <command> for more details'
 )
+DEFAULT_HELP = f'{PURPOSE}{USAGE}'
+
+# Command responses
+RESPONSES = {
+    'BAD_CMD': '{} is not a recognized command',
+    'NO_HELP': 'No help defined for command: {}'
+}
 
 # Command modules
 # Since commands are loaded at runtime, this gets set by the event manager
@@ -32,19 +37,17 @@ COMMANDS = {}
 #         cmd_args - list containing command argument text
 # Return: String containing command response
 def handle(user, channel, cmd_args):
-    if cmd_args:  # Check for command
-        command = COMMANDS.get(str.upper(cmd_args[0]), 0)
-        if command:  # Was a command
-            try:
-                response = command.getHelp(cmd_args[1:])
-            except AttributeError:
-                # Somebody didn't define a help function :rage:
-                response = f'No help defined for command: {command.NAMES[0]}'
-        else:  # Invalid command
-            response = f'{cmd_args[0]} is not a recognized command'
-    else:  # Default help message
+    try:
+        command = COMMANDS.get(str.upper(cmd_args[0]), None)
+        response = command.getHelp(cmd_args[1:])
+    except IndexError:  # No arguments, default help
         command_names = [cmd.NAMES[0] for cmd in COMMANDS]
         response = DEFAULT_HELP.format(", ".join(command_names))
+    except AttributeError:  # Invalid command or no help defined
+        if command:  # Command was invalid
+            response = RESPONSES['BAD_CMD'].format(cmd_args[0])
+        else:  # Somebody didn't define a help function :rage:
+            response = RESPONSES['NO_HELP'].format(command.NAMES[0])
     return response
 
 # Retrieve help command message
