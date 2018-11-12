@@ -12,7 +12,7 @@ NAMES = [
 # Command help message
 HELP = "Don't get smart, you know how to use this :duck:"
 
-# General help message
+# General help variables
 PURPOSE = 'Duckbot is a general purpose slackbot for doing various things\n'
 USAGE = (
     'To interact with it use <@{{id}}> <command>\n'

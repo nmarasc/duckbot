@@ -1,7 +1,7 @@
 # Duckbot util modules
 import util.moduleLoader as modloader
 from util.common import matchUserID
-# from util.common import bank
+from util.common import bank
 
 # Valid command names
 NAMES = [
@@ -26,8 +26,8 @@ HELP = f'{PURPOSE}{USAGE}'
 
 # Prebaked command responses
 RESPONSES = {
-    'BAD_SUB': f'{{}} is not a valid {NAMES[0]} subcommand\n{{}}',
-    'NO_ARGS': f'No arguments provided\n{USAGE}'
+    'BAD_SUB': f'{{}} is not a valid {NAMES[0]} subcommand',
+    'NO_ARGS': f'No arguments provided'
 }
 
 # Perform bank statistic checks for users
@@ -36,6 +36,7 @@ RESPONSES = {
 #         cmd_args - list containing argument text
 # Return: String response from command
 def handle(user, channel, cmd_args):
+    target = None
     if len(cmd_args) > 1:  # Check for target user
         target = matchUserID(cmd_args[1])
         if target:
@@ -43,16 +44,16 @@ def handle(user, channel, cmd_args):
     try:
         subcmd = SUBCOMMANDS.get(str.upper(cmd_args[0]), None)
         if bank.checkEligible(user) == 0:  # OK return code
-            response = subcmd.check(user)
+            response = subcmd.check(user, target is not None)
         # Note: Channel is being omitted from this check since CHECK
         #   commands are valid in any channel, so the related return
         #   code does not need to be checked for
         else:  # User not a member
             response = bank.ERROR['NOT_A_MEMBER'].format(user)
     except IndexError:  # No arguments given
-        response = RESPONSES['NO_ARGS']
+        response = f"{RESPONSES['NO_ARGS']}\n{USAGE}"
     except AttributeError:  # Invalid subcommand
-        response = RESPONSES['BAD_SUB'].format(args[0], USAGE)
+        response = f"{RESPONSES['BAD_SUB'].format(args[0])}\n{USAGE}"
     return response
 
 # Retrieve command help message
@@ -65,5 +66,5 @@ def getHelp(args):
     except IndexError:  # Empty argument list
         response = HELP
     except AttributeError:  # Invalid subcommand
-        response = RESPONSES['BAD_SUB'].format(args[0], USAGE)
+        response = f"{RESPONSES['BAD_SUB'].format(args[0])}\n{USAGE}"
     return response
