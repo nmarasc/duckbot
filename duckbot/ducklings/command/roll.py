@@ -4,6 +4,7 @@ import sys
 import re
 # Duckbot util modules
 from util.common import roll
+from util.common import parseNum
 
 # Valid command names
 NAMES = [
@@ -11,9 +12,9 @@ NAMES = [
     ':GAME_DIE:'
 ]
 
-# Command help message
-HELP = (
-    'Rolls dice based on parameters given\n'
+# Command help variables
+PURPOSE = 'Rolls dice based on parameters given'
+USAGE = (
     f'Usage: <@{{id}}> {NAMES[0]} ( [d]X | YdX )\n'
     'Where X is the number of faces and Y is the number of dice'
 )
@@ -25,21 +26,6 @@ NAMES_SPECIAL = {
         'CHAR',
         ':DRAGON:'
     ]
-}
-
-# Valid emoji number values
-EMOJI_ROLLS = {
-           ':ONE:': 1,
-           ':TWO:': 2,
-         ':THREE:': 3,
-          ':FOUR:': 4,
-          ':FIVE:': 5,
-           ':SIX:': 6,
-         ':SEVEN:': 7,
-         ':EIGHT:': 8,
-          ':NINE:': 9,
-    ':KEYCAP_TEN:': 10,
-           ':100:': 100,
 }
 
 # Base emoji roll ratings
@@ -83,7 +69,7 @@ def handle(user, channel, cmd_args):
 # Params: args - help arguments, **unused**
 # Return: String help message
 def getHelp(args):
-    return HELP
+    return f'{PURPOSE}\n{USAGE}'
 
 # Standard roll command
 # Params: roll_str - String containing roll command argument
@@ -96,12 +82,12 @@ def _defaultRoll(roll_str):
 
     if regex_result:  # There was a match
         if regex_result.group(1):  # Y value
-            die_num = _parseNum(regex_result.group(1))
+            die_num = parseNum(regex_result.group(1))
         # X value
-        die_sides = _parseNum(regex_result.group(2))
+        die_sides = parseNum(regex_result.group(2))
 
     else:  # No match, just a number
-        die_sides = _parseNum(roll_upper)
+        die_sides = parseNum(roll_upper)
 
     # Check values are in the valid ranges
     if (die_num not in DIE_RANGE_NUM):  # Invalid number of dice
@@ -153,15 +139,3 @@ def _emojiRating(roll, die):
             emoji = ':ok_hand:'
     return emoji
 
-# Convert a string containing a number or an emoji to an int
-# Params: str_val - String to parse
-# Return: int representing the string value, or -1 if invalid
-def _parseNum(str_val):
-    # Check for a numeric value
-    try:
-        int_val = int(str_val)
-    # Or an emoji value
-    # int_val is set to -1 if no emoji value was found
-    except ValueError:
-        int_val = EMOJI_ROLLS.get(str_val, -1)
-    return int_val

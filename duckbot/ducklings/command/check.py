@@ -16,13 +16,12 @@ SUBCOMMANDS = modloader.loadSubCommands('check')
 SUBCOMMAND_NAMES = list({SUBCOMMANDS[key].NAMES[0] for key in SUBCOMMANDS})
 
 # Command help variables
-PURPOSE = 'Check bank statistics of users\n'
+PURPOSE = 'Check bank statistics of users'
 USAGE = (
     f'Usage: <@{{id}}> {NAMES[0]} <subcommand> [target]\n'
     f"Currently supported subcommands: {', '.join(SUBCOMMAND_NAMES)}\n"
     'No target defaults to yourself :duck:'
 )
-HELP = f'{PURPOSE}{USAGE}'
 
 # Prebaked command responses
 RESPONSES = {
@@ -64,7 +63,7 @@ def getHelp(args):
         subcmd = SUBCOMMANDS.get(str.upper(args[0]), None)
         response = subcmd.getHelp()
     except IndexError:  # Empty argument list
-        response = HELP
+        response = f'{PURPOSE}\n{USAGE}'
     except AttributeError:  # Invalid subcommand
         response = f"{RESPONSES['BAD_SUB'].format(args[0])}\n{USAGE}"
     return response

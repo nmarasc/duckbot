@@ -6,11 +6,9 @@ NAMES = [
     'COIN'
 ]
 
-# Command help messsage
-HELP = (
-    'Flip a coin\n'
-    f'Usage: <@{{id}}> {NAMES[0]}'
-)
+# Command help variables
+PURPOSE = 'Flip a coin'
+USAGE = f'Usage: <@{{id}}> {NAMES[0]}'
 
 # Flip a coin
 # Params: user     - user id issuing command, **unused**
@@ -29,4 +27,4 @@ def handle(user, channel, cmd_args):
 # Params: args - help arguments, **unused**
 # Return: String help message
 def getHelp(args):
-    return HELP
+    return f'{PURPOSE}\n{USAGE}'

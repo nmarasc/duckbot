@@ -8,13 +8,14 @@ NAMES = [
     'PIKMIN'
 ]
 
-# Command help message
-HELP = (
-    'Randomly pick from a list of items\n'
+# Command help variables
+PURPOSE = 'Randomly pick from a list of items'
+USAGE = (
     f'Usage: <@{{id}}> {NAMES[0]} <item1> <item2> ...\n'
     'Use quotes to have items with spaces in them :duck:'
 )
 
+# Command constants
 PICK_RANGE = range(2, 21)  # Pick between 2 and 20 things
 
 # Randomly pick from a list of specified items
@@ -38,4 +39,4 @@ def handle(user, channel, cmd_args):
 # Params: args - help arguments, **unused**
 # Return: String help message
 def getHelp(arguments):
-    return HELP
+    return f'{PURPOSE}\n{USAGE}'

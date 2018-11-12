@@ -8,11 +8,9 @@ NAMES = [
     ':8BALL:'
 ]
 
-# Command help message
-HELP = (
-    'Shake the magic 8ball\n'
-    f'Usage: <@{{id}}> {NAMES[0]}'
-)
+# Command help variables
+PURPOSE = 'Shake the magic 8ball'
+USAGE = f'Usage: <@{{id}}> {NAMES[0]}'
 
 # Eightball response messages
 MESSAGES = [
@@ -51,4 +49,4 @@ def handle(user, channel, cmd_args):
 # Params: args - help arguments, **unused**
 # Return: String help message
 def getHelp(args):
-    return HELP
+    return f'{PURPOSE}\n{USAGE}'

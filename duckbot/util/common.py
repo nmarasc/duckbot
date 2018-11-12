@@ -56,6 +56,21 @@ LABELS = {
 }
 #}}}
 
+# Valid emoji number values
+EMOJI_ROLLS = {
+           ':ONE:': 1,
+           ':TWO:': 2,
+         ':THREE:': 3,
+          ':FOUR:': 4,
+          ':FIVE:': 5,
+           ':SIX:': 6,
+         ':SEVEN:': 7,
+         ':EIGHT:': 8,
+          ':NINE:': 9,
+    ':KEYCAP_TEN:': 10,
+           ':100:': 100,
+}
+
 # Util timers
 LOG_TIME        = 1800 # 30 minutes
 REGEN_TIME      = 300  #  5 minutes
@@ -147,6 +162,19 @@ def parseLabels(text):
             match = re.match(EMOJI_REGEX, text)
     return labels
 #}}}
+
+# Convert a string containing a number or an emoji to an int
+# Params: str_val - String to parse
+# Return: int representing the string value, or -1 if invalid
+def parseNum(str_val):
+    # Check for a numeric value
+    try:
+        int_val = int(str_val)
+    # Or an emoji value
+    # int_val is set to -1 if no emoji value was found
+    except ValueError:
+        int_val = EMOJI_ROLLS.get(str_val, -1)
+    return int_val
 
 # Rolls randomly with the parameters given and returns numbers in a list
 # Params: die_size - number of sides on the dice rolling

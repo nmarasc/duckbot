@@ -4,10 +4,9 @@ NAMES = [
     'HELLO'
 ]
 
-# Command help message
-PURPOSE = 'Legacy HI command\n'
+# Command help variables
+PURPOSE = 'Legacy HI command'
 USAGE = f'Usage: <@{{id}}> {NAMES[0]}'
-HELP = f'{PURPOSE}{USAGE}'
 
 # Say hello
 # Params: user     - user id issuing command, **unused**
@@ -21,4 +20,4 @@ def handle(user, channel, cmd_args):
 # Params: args - help arguments, **unused**
 # Return: String help message
 def getHelp(args):
-    return HELP
+    return f'{PURPOSE}\n{USAGE}'

@@ -6,9 +6,9 @@ NAMES = [
     'JOIN'
 ]
 
-# Command help message
-HELP = (
-    'Add yourself to the gambling system\n'
+# Command help variables
+PURPOSE = 'Add yourself to the gambling system'
+USAGE = (
     f'Usage: <@{{id}}> {NAMES[0]}\n'
     'Can only be used in gambling approved channels :duck:'
 )
@@ -40,3 +40,9 @@ def handle(user, channel, cmd_args):
     else:  # Invalid channel
         response = bank.ERROR['BAD_CHANNEL']
     return response
+
+# Retrieve command help message
+# Params: args - help arguments, **unused**
+# Return: String help message
+def getHelp(args):
+    return f'{PURPOSE}\n{USAGE}'

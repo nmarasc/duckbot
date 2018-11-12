@@ -6,6 +6,7 @@ bin/version.sh
 Dockerfile
 duckbot/ducklings/__init__.py
 duckbot/ducklings/command/__init__.py
+duckbot/ducklings/command/bet.py
 duckbot/ducklings/command/checkbux.py
 duckbot/ducklings/command/coin.py
 duckbot/ducklings/command/eightball.py

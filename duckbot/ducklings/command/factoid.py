@@ -1,14 +1,12 @@
-
 # Valid command names
 NAMES = [
     'FACT',
     'FACTOID'
 ]
 
-HELP = (
-    'Pull out a random and totally true fact\n'
-    f'Usage: <@{{id}}> {NAMES[0]}'
-)
+# Command help variables
+PURPOSE = 'Pull out a random and totally true fact'
+USAGE = f'Usage: <@{{id}}> {NAMES[0]}'
 
 # Generate a random ad lib fact
 # Params: user     - user id issuing command, **unused**
@@ -22,4 +20,4 @@ def handle(user, channel, cmd_args):
 # Params: args - help arguments, **unused**
 # Return: String help message
 def getHelp(args):
-    return HELP
+    return f'{PURPOSE}\n{USAGE}'

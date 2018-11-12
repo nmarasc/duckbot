@@ -13,13 +13,12 @@ NAMES = [
 HELP = "Don't get smart, you know how to use this :duck:"
 
 # General help variables
-PURPOSE = 'Duckbot is a general purpose slackbot for doing various things\n'
+PURPOSE = 'Duckbot is a general purpose slackbot for doing various things'
 USAGE = (
     'To interact with it use <@{{id}}> <command>\n'
     'Supported commands: {}\n'
     f'Use <@{{{id}}}> {NAMES[0]} <command> for more details'
 )
-DEFAULT_HELP = f'{PURPOSE}{USAGE}'
 
 # Command responses
 RESPONSES = {
@@ -42,7 +41,7 @@ def handle(user, channel, cmd_args):
         response = command.getHelp(cmd_args[1:])
     except IndexError:  # No arguments, default help
         command_names = [cmd.NAMES[0] for cmd in COMMANDS]
-        response = DEFAULT_HELP.format(", ".join(command_names))
+        response = f'{PURPOSE}\n{USAGE}'.format(', '.join(command_names))
     except AttributeError:  # Invalid command or no help defined
         if command:  # Command was invalid
             response = RESPONSES['BAD_CMD'].format(cmd_args[0])
@@ -55,16 +54,3 @@ def handle(user, channel, cmd_args):
 # Return: String help message
 def getHelp(args):
     return HELP
-
-#            ,util.COMMANDS["BET"] :\
-#                ("Bet on a game with bank balance to win big\n"
-#                "Usage: <@" + bot_id + "> BET <amount> <game> <game-options>\n"
-#                "List of currently supported games: " + ", ".join(util.GAMES) + "\n"
-#                "Use HELP BET <game> for details on options")
-#        self.game_help_messages = {
-#             util.GAMES["COIN"] :\
-#                ("Flip a coin and call it\n"
-#                "Usage options: COIN ( H[EADS] | T[AILS] )")
-#            ,util.GAMES["DICE"] :\
-#                ("Roll the dice and guess even or odd\n"
-#                "Usage options: DICE ( E[VENS] | O[DDS] )")

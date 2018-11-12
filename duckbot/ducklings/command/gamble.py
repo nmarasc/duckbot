@@ -51,60 +51,6 @@ GACHA_RANGES = rangedict({
         self.pull_timer = self._getRefreshTime()
     #}}}
 
-    # Bet bucks on a game to win more
-    # Params: user    - user id of player
-    #         channel - channel id playing from
-    #         bet_ops - bet options (amount, game, game_ops)
-    # Return: Message containing results
-    def bet(self, user, channel, bet_ops):
-    #{{{
-        # See if betting even allowed
-        return_code, _ = self._checkGambleStatus(user, channel)
-        # RC=4, RC=5 and RC=6 imply bad channel
-        if return_code > 4:
-            return bank_msgs.BAD_CHANNEL
-        # RC=2 is just not a member
-        elif return_code == 2:
-            return bank_msgs.NOT_A_MEMBER
-        elif return_code != 0:
-            # TODO: Malformed user id
-            return None
-
-        # Check parameters
-        return_code, bet_ops = self._parseBetOps(bet_ops)
-        # RC=1, missing parameters
-        if return_code == 1:
-            return bank_msgs.BET_PARMS
-        # RC=2, bad bet amount
-        elif return_code == 2:
-            return ("Invalid betting amount: " + bet_ops)
-        # RC=3, bad game type
-        elif return_code == 3:
-            return ("Invalid game type: " + bet_ops)
-
-        amount, game, game_ops = bet_ops
-        # Check bank balance
-        if self.bank.balance(user) < amount:
-            return ("Your balance is too low to make this bet"
-                   "\n" + self.checkbux(user))
-
-        return_code, response = self.GAMES[game](game_ops)
-        # Lost
-        if return_code == 0:
-            self.bank.balance(user, -amount)
-            return (response + "\nYou lost! You're down"
-                   " " + str(amount) + " " + self.CURRENCY + " "
-                   "\n" + self.checkbux(user))
-        # Won
-        elif return_code == 1:
-            self.bank.balance(user, amount)
-            return (response + "\nYou won! You've gained"
-                   " " + str(2*amount) + " " + self.CURRENCY + " "
-                   "\n" + self.checkbux(user))
-        # Option error
-        else:
-            return "Game option error: " + response
-    #}}}
 
     # Buy a gacha pull
     # Params: user    - uid of player
@@ -250,31 +196,6 @@ GACHA_RANGES = rangedict({
             if util.LABELS["GAMBLE"] in channel["labels"]:
                 approved.append(channel["id"])
         return approved
-    #}}}
-
-    # Parse needed values out of bet options
-    # Params: bet_ops - list of options to parse out
-    # Return: return code and converted bet_ops list
-    def _parseBetOps(self, bet_ops):
-    #{{{
-        # Check for missing options
-        if len(bet_ops) < 2:
-            return 1, None
-        # Grab the options
-        u_ops = [x.upper() for x in bet_ops]
-        bet_amount, game, *game_ops = u_ops
-        # Check bet amount
-        try:
-            bet_amount = int(bet_amount)
-        except ValueError:
-            bet_amount = util.EMOJI_ROLLS.get(bet_amount,-1)
-        if bet_amount < 1:
-            return 2, bet_ops[0]
-        # Check game
-        if game not in self.GAMES:
-            return 3, bet_ops[1]
-        # Return everything
-        return 0, [bet_amount, game, game_ops]
     #}}}
 
     # Get the seconds until next pull refresh
