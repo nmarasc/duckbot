@@ -1,4 +1,4 @@
-from util.moduleLoader import ModuleLoader
+import util.moduleLoader as modloader
 
 class EventManager:
 

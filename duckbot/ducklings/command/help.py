@@ -43,7 +43,7 @@ def handle(user, channel, cmd_args):
         command_names = [cmd.NAMES[0] for cmd in COMMANDS]
         response = f'{PURPOSE}\n{USAGE}'.format(', '.join(command_names))
     except AttributeError:  # Invalid command or no help defined
-        if command:  # Command was invalid
+        if not command:  # Command was invalid
             response = RESPONSES['BAD_CMD'].format(cmd_args[0])
         else:  # Somebody didn't define a help function :rage:
             response = RESPONSES['NO_HELP'].format(command.NAMES[0])

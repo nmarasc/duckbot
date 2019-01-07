@@ -10,7 +10,6 @@ import util.games as Games
 
 # Gambling handler class
 class GambleHandler:
-    CURRENCY = "dux"
     REFRESH_TIME = datetime(1,1,1,12)
     PULL_RANGE = range(1,11)
     PULL_COST  = 10
@@ -207,22 +206,4 @@ GACHA_RANGES = rangedict({
         current_time = datetime.now().replace(year = 1, month = 1, day = 1)
         # Send back diff
         return (self.REFRESH_TIME - current_time).seconds
-    #}}}
-
-    # Do the gacha pull
-    # Params: None
-    # Return: Result from gacha ranges
-    def _doPull(self, user):
-    #{{{
-        roll = util.doRolls(1000)[0]
-        # Nuke time
-        if roll == 1:
-            return -2
-        # Lost one
-        elif roll < 50:
-            return -1
-        # Actual roll
-        else:
-            return self.GACHA_RANGES[roll]
-        return None
     #}}}

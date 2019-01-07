@@ -3,8 +3,8 @@
 import re
 import random
 # Project imports
+import util.bank
 from util.bidict import bidict
-
 # Util constants
 RTM_READ_DELAY = 1
 USER_REGEX = "U[A-Z0-9]{8}"
@@ -79,8 +79,8 @@ SAVE_STATE_TIME = 3600 # 60 minutes
 # Slackclient, Logger instance
 # debug and permanent bank flag
 global sc, debug, bank_file
-global bank
 global logger
+global bank
 
 # Send message to designated channel, and notify user if present
 # Params: channel - channel id to send message to

@@ -8,12 +8,11 @@ NAMES = [
 ]
 
 # Command help variables
-PURPOSE = 'Check the gacha pool of yourself or a user\n'
+PURPOSE = 'Check the gacha pool of yourself or a user'
 USAGE = (
-    f'Usage <{{id}}> {NAMES[0]} [target]\n'
+    f'Usage {NAMES[0]} [target]\n'
     'No target defaults to yourself :duck:'
 )
-HELP = f'{PURPOSE}{USAGE}'
 
 # Command responses
 RESPONSES = {
@@ -39,4 +38,4 @@ def check(user, target):
 # Params: None
 # Return: String help message
 def getHelp():
-    return HELP
+    return f'{PURPOSE}\n{USAGE}'

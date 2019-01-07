@@ -22,10 +22,6 @@ USAGE = (
     f"Currently supported games: {', '.join(GAME_NAMES)}\n"
     f'Use HELP {NAMES[0]} <game> for details on game arguments'
 )
-#        self.game_help_messages = {
-#             util.GAMES["COIN"] :\
-#                ("Flip a coin and call it\n"
-#                "Usage options: COIN ( H[EADS] | T[AILS] )")
 #            ,util.GAMES["DICE"] :\
 #                ("Roll the dice and guess even or odd\n"
 #                "Usage options: DICE ( E[VENS] | O[DDS] )")
@@ -68,15 +64,15 @@ def handle(user, channel, cmd_args):
 # Return:
 def _bet(user, amount, game, game_args):
     # Verify balance
-    if bank.balance(user) >= amount:
+    if bank.getBalance(user) >= amount:
         return_code, result = GAMES[game].play(game_ops)
         # Lost
         if return_code == 0:
-            self.bank.balance(user, -amount)
+            self.bank.deduct(user, amount)
             response = RESPONSE['LOSE'].format(result, amount)
         # Won
         elif return_code == 1:
-            self.bank.balance(user, amount)
+            self.bank.deposit(user, amount)
             response = RESPONSE['WIN'].format(result, amount)
         # Option error
         else:
@@ -123,7 +119,7 @@ def _checkBetArgs(args):
         if args[0] < 1:
             status = ERROR['BAD_AMOUNT'].format(amount)
         # Check for an invalid game type
-        elif args[1] is not in GAMES:
+        elif args[1] not in GAMES:
             status = ERROR['BAD_GAME'].format(game)
     # Error if args was None, meaning there were arguments missing
     except TypeError:

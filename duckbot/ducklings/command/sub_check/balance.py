@@ -12,16 +12,15 @@ NAMES = [
 ]
 
 # Command help variables
-PURPOSE = 'Check bank balance of yourself or others\n'
+PURPOSE = 'Check bank balance of yourself or others'
 USAGE = (
-    f'Usage: <@{{id}}> {NAMES[0]} [target]\n'
+    f'Usage: {NAMES[0]} [target]\n'
     'No target defaults to yourself :duck:'
 )
-HELP = f'{PURPOSE}{USAGE}'
 
 # Command responses
 RESPONSES = {
-    'SELF': f'You currently have {{}} {bank.CURRENCY}'
+    'SELF': f'You currently have {{}} {bank.CURRENCY}',
     'TARGET': f'<@{{}}> currently has {{}} {bank.CURRENCY}'
 }
 
@@ -41,4 +40,4 @@ def check(user, target):
 # Params: None
 # Return: String help message
 def getHelp():
-    return HELP
+    return f'{PURPOSE}\n{USAGE}'
