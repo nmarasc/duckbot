@@ -10,7 +10,7 @@ NAMES = [
 # Command help variables
 PURPOSE = 'Check the gacha pool of yourself or a user'
 USAGE = (
-    f'Usage {NAMES[0]} [target]\n'
+    f'Usage: {NAMES[0]} [target]\n'
     'No target defaults to yourself :duck:'
 )
 

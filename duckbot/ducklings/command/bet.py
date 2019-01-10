@@ -35,6 +35,7 @@ RESPONSE = {
 ERROR = {
     'BAD_BET': 'Invalid bet amount: {}',
     'BAD_GAME': 'Invalid game type: {}',
+    'BAD_SUB': f'{{}} is not a valid {NAMES[0]} subcommand',
     'MISSING_ARGS': 'Not enough arguments: expected at least 2, got {}',
     'LOW_BALANCE': 'Your balance is too low to make this bet',
     'GAME_ARG': 'Game option error: {}'
@@ -56,6 +57,19 @@ def handle(user, channel, cmd_args):
         response = _bet(user, *bet_args)
     return response
 
+# Retrieve command help message
+# Params: args - help arguments
+# Return: String help message
+def getHelp(args):
+    try:
+        subcmd = SUBCOMMANDS.get(str.upper(args[0]), None)
+        response = subcmd.getHelp()
+    except IndexError:  # Empty argument list
+        response = f'{PURPOSE}\n{USAGE}'
+    except AttributeError:  # Invalid subcommand
+        response = f"{ERROR['BAD_SUB'].format(args[0])}\n{USAGE}"
+    return response
+
 # Make the bet on the game
 # Params: user      - user playing the game
 #         amount    - amount being bet
@@ -65,7 +79,7 @@ def handle(user, channel, cmd_args):
 def _bet(user, amount, game, game_args):
     # Verify balance
     if bank.getBalance(user) >= amount:
-        return_code, result = GAMES[game].play(game_ops)
+        return_code, result = GAMES[game].play(game_args)
         # Lost
         if return_code == 0:
             self.bank.deduct(user, amount)
@@ -76,7 +90,7 @@ def _bet(user, amount, game, game_args):
             response = RESPONSE['WIN'].format(result, amount)
         # Option error
         else:
-            response = ERROR['GAME_ARG'].format(response)
+            response = ERROR['GAME_ARG'].format(result)
     # Balance too low
     else:
         response = f"{ERROR['LOW_BALANCE']}\n{balance.check(user)}"
