@@ -23,20 +23,20 @@ USAGE = (
 )
 
 # Play the coin game
-# Params: game_args - list of arguments for game
+# Params: game_args - list of string arguments for game
 # Return:  0 and result string on loss
 #          1 and result string on win
 #         -1 and error string otherwise
 def play(game_args):
-    # Process game options
+    # Process game arguments
     return_code, processed_val = _processArgs(game_args)
     if return_code == 0:
         # Flip the coin and get result
         roll_val = roll(2)
-        response = "You got: " + RESULTS[roll_val - 1]
-        if processed_val == roll_val:
+        response = f'You got: {RESULTS[roll_val - 1]}'
+        if processed_val == roll_val: # Win condition, otherwise lost
             return_code = 1
-    else:
+    else: # Error condition
         response = processed_val
     return return_code, response
 
