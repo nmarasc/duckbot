@@ -54,11 +54,8 @@ def loadFrom(package):
 def _getModuleNames(path):
     # Get file names contained in the path
     _, _, filenames = next(os.walk(path))
-    # Remove file extensions
-    modules = [fn.replace('.py', '') for fn in filenames]
-    # Remove init since it isn't a real module and never will be
-    # This line can go when it finally proves itself
-    modules.remove('__init__')
+    # Remove file extensions and modules starting with '_'
+    modules = [f[:f.index('.')] for f in filenames if not f.startswith('_')]
     return modules
 
 # Import modules and map them to their names in a dictionary

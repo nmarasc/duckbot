@@ -12,8 +12,10 @@ NAMES = [
 ]
 
 # Game modules for bet
-GAMES = modLoader.loadSubCommands('bet')
-GAME_NAMES = list({GAMES[key].NAMES[0] for key in GAMES})
+GAMES = modloader.loadSubCommands('bet')
+GAME_NAMES = list({
+    GAMES[key].NAMES[0] for key in GAMES if hasattr(GAMES[key],'NAMES')
+})
 
 # Command help variables
 PURPOSE = 'Bet on a game to win big'
@@ -22,9 +24,7 @@ USAGE = (
     f"Currently supported games: {', '.join(GAME_NAMES)}\n"
     f'Use HELP {NAMES[0]} <game> for details on game arguments'
 )
-#            ,util.GAMES["DICE"] :\
-#                ("Roll the dice and guess even or odd\n"
-#                "Usage options: DICE ( E[VENS] | O[DDS] )")
+
 # Command responses
 RESPONSE = {
     'LOSE': f"{{}}\nYou lost! You're down {{}} {bank.CURRENCY}",
@@ -62,7 +62,7 @@ def handle(user, channel, cmd_args):
 # Return: String help message
 def getHelp(args):
     try:
-        subcmd = SUBCOMMANDS.get(str.upper(args[0]), None)
+        subcmd = GAMES.get(str.upper(args[0]), None)
         response = subcmd.getHelp()
     except IndexError:  # Empty argument list
         response = f'{PURPOSE}\n{USAGE}'
@@ -96,18 +96,6 @@ def _bet(user, amount, game, game_args):
         response = f"{ERROR['LOW_BALANCE']}\n{balance.check(user)}"
     return response
 
-# Parse argument string for bet arguments
-# Params: args - list of options to parse out
-# Return: parsed argument list
-def _parseBetArgs(args):
-    upper_args = [a.upper() for a in args]
-    if len(upper_args) < 2:
-        result = None
-    else:
-        amount, game, *game_args = upper_args
-        result = [parseNum(amount), GAMES.get(game, None), game_args]
-    return result
-
 # Check the eligibilty of user and channel for this command
 # Params: user    - user id issuing command
 #         channel - channel id command issued from
@@ -139,3 +127,15 @@ def _checkBetArgs(args):
     except TypeError:
         status = ERROR['MISSING_ARGS'].format(len(args))
     return status
+
+# Parse argument string for bet arguments
+# Params: args - list of options to parse out
+# Return: parsed argument list
+def _parseBetArgs(args):
+    upper_args = [a.upper() for a in args]
+    if len(upper_args) < 2:
+        result = None
+    else:
+        amount, game, *game_args = upper_args
+        result = [parseNum(amount), GAMES.get(game, None), game_args]
+    return result

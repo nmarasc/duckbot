@@ -24,9 +24,9 @@ ODD_RGX = [
 RESULTS = ['EVEN','ODD']
 
 # Command help variables
-PURPOSE = 'Flip a coin and call it'
+PURPOSE = 'Roll a pair of dice and call the outcome'
 USAGE = (
-    f'Usage: {NAMES[0]} <coin-arg>\n'
+    f'Usage: {NAMES[0]} <dice-arg>\n'
     f"Valid command arguments include: {', '.join(RESULTS)}"
 )
 
@@ -38,7 +38,7 @@ USAGE = (
 def play(game_args):
     # Process game arguments
     return_code, processed_val = _processArgs(game_args)
-    if return_code = 0:
+    if return_code == 0:
         # Roll dice and get result
         roll_val = sum(roll(6,2)) % 2
         response = f'You got: {RESULTS[roll_val]}'
