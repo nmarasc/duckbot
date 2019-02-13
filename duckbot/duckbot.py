@@ -67,61 +67,65 @@ class Duckbot:
     #         2 - bot needs to update
     def handleEvent(self, event_p):
     #{{{
+        response = event_manager.dispatch(event_p)
+        #TODO: Decide who issues message, possible rc checking
+        return response
+###
 #         print(event_p)
-        # Create standardized event
-        event = Event(event_p)
-
-        # No event type, get out
-        if event.type == None:
-            return 0
-
-        # Message event, pass to message handler
-        elif event.type == "message":
-        #{{{
-            # Display user and their message
-            if event.text:
-                self.logger.log(DiagMessage("BOT0010U",event.user,event.text))
-            response = self.msg_handler.act(event)
-
-            # Send message if one was returned
-            if response:
-                util.sendMessage(event.channel, response, event.user)
-                return 0
-            # None response signals an update needed
-            elif response == None:
-                util.sendMessage(event.channel,
-                    "Shutting down for update. Kweh! :duckbot:")
-                return 2
-            # Otherwise do nothing
-            else:
-                return 0
-        #}}}
-
-        # Bot message event
-        elif event.type == "bot_message":
-        #{{{
-            self.bot_handler.checkBotId(event.user)
-            # Do something sassy with the bot
-            if not self.cooldown_g:
-                self.cooldown_g = 120
-                self.bot_handler.act(event)
-            return 0
-        #}}}
-
-        # Update event, respond based on the event subtype
-        elif event.type == "update":
-        #{{{
-            # channel_purpose and channel_joined require channel list update
-            if (event.subtype == "channel_purpose" or
-                event.subtype == "channel_joined"):
-                self._channelListUpdate(event)
-            return 0
-        #}}}
-
-        # Unhandled event type
-        else:
-            # Don't do anything right now
-            return 0
+#       # Create standardized event
+#       event = Event(event_p)
+#
+#       # No event type, get out
+#       if event.type == None:
+#           return 0
+###
+#         # Message event, pass to message handler
+#         elif event.type == "message":
+#         #{{{
+#             # Display user and their message
+#             if event.text:
+#                 self.logger.log(DiagMessage("BOT0010U",event.user,event.text))
+#             response = self.msg_handler.act(event)
+#
+#             # Send message if one was returned
+#             if response:
+#                 util.sendMessage(event.channel, response, event.user)
+#                 return 0
+#             # None response signals an update needed
+#             elif response == None:
+#                 util.sendMessage(event.channel,
+#                     "Shutting down for update. Kweh! :duckbot:")
+#                 return 2
+#             # Otherwise do nothing
+#             else:
+#                 return 0
+#         #}}}
+#
+#         # Bot message event
+#         elif event.type == "bot_message":
+#         #{{{
+#             self.bot_handler.checkBotId(event.user)
+#             # Do something sassy with the bot
+#             if not self.cooldown_g:
+#                 self.cooldown_g = 120
+#                 self.bot_handler.act(event)
+#             return 0
+#         #}}}
+#
+#         # Update event, respond based on the event subtype
+#         elif event.type == "update":
+#         #{{{
+#             # channel_purpose and channel_joined require channel list update
+#             if (event.subtype == "channel_purpose" or
+#                 event.subtype == "channel_joined"):
+#                 self._channelListUpdate(event)
+#             return 0
+#         #}}}
+#
+#         # Unhandled event type
+#         else:
+#             # Don't do anything right now
+#             return 0
     #}}}
 
     # Handle tick based bot functions
