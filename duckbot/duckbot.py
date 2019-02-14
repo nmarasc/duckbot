@@ -40,14 +40,8 @@ class Duckbot:
         self._getWishTime()
 
         self.logger.log(DiagMessage("BOT0000I"))
-        # Create command handlers
-        self.roll_handler = RollHandler()
-        util.logger.log(DiagMessage("BOT0001D","Roll")) if util.debug else None
-        self.help_handler = HelpHandler(bot_id)
-        util.logger.log(DiagMessage("BOT0001D","Help")) if util.debug else None
-        self.gamble_handler = GambleHandler(bot_channels)
-        util.logger.log(DiagMessage("BOT0001D","Gamble")) if util.debug else None
         # Create event handlers
+        self.event_manager = EventManager()
         self.msg_handler = MessageHandler(
             bot_id,
             gamble_handler=self.gamble_handler,
@@ -60,21 +54,13 @@ class Duckbot:
         self.logger.log(DiagMessage("BOT0002I"))
     #}}}
 
-    # Handles incoming events, calling event specific handlers as needed
-    # Params: event_p - incoming event to process
-    # Return: 0 - everything processed successfully
-    #         1 - an error was found
-    #         2 - bot needs to update
-    def handleEvent(self, event_p):
-    #{{{
-        response = event_manager.dispatch(event_p)
-        #TODO: Decide who issues message, possible rc checking
+    # Receives events and passes them to the event manager
+    # Params: event - incoming event to process
+    # Return: dict with return code and message to issue
+    def handleEvent(self, event):
+        response = self.event_manager.dispatch(event)
         return response
-###
-#         print(event_p)
-#       # Create standardized event
-#       event = Event(event_p)
-#
+
 #       # No event type, get out
 #       if event.type == None:
 #           return 0
