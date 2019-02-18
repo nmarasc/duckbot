@@ -31,6 +31,8 @@ class EventManager:
         except KeyError: # Unrecognized event type, ignore
             response['return_code'] = -1
             response['message'] = None
+        except AttributeError: # No process function defined
+            response['return_code'] = 1
         return response
 
     # Loads and initializes bot commands
