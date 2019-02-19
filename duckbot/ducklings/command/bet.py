@@ -51,7 +51,7 @@ def handle(user, channel, cmd_args):
     bet_args = _parseBetArgs(cmd_args)
     # Check gambling eligibility and argument validity
     status = _checkStatus(user, channel, bet_args)
-    if status:  # Some error with status check
+    if status['return_code']:  # Some error with status check
         response = status
     else:  # No status error, make bet
         response = _bet(user, *bet_args)
@@ -99,23 +99,24 @@ def _bet(user, amount, game, game_args):
 # Check the eligibilty of user and channel for this command
 # Params: user    - user id issuing command
 #         channel - channel id command issued from
-# Return: String error message or None
+# Return: dict with return code and status message
 def _checkStatus(user, channel, bet_args):
-    status = None
+    message = ''
     return_code = bank.checkEligible(user, channel)
     if return_code == 1:  # Not a member
-        status = bank.ERROR['NOT_A_MEMBER'].format(user)
+        message = bank.ERROR['NOT_A_MEMBER'].format(user)
     elif return_code == 2:  # Bad channel
-        status = bank.ERROR['BAD_CHANNEL'].format(channel)
+        message = bank.ERROR['BAD_CHANNEL'].format(channel)
     else:
-        status = _checkBetArgs(bet_args)
-    return status
+        return_code, message = _checkBetArgs(bet_args)
+    return {'return_code': return_code, 'message': message}
 
 # Validate betting arguments
 # Params: args - list of parsed bet arguments
 # Return: String error message or None
 def _checkBetArgs(args):
-    status = None
+    return_code = 0
+    message = ''
     try:
         # Check for an invalid betting amount
         if args[0] < 1:
