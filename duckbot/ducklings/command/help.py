@@ -4,6 +4,7 @@
 NAMES = [
     'HELP',
     'HEP',
+    'HALP',
     '?',
     ':QUESTION:',
     ':GREY_QUESTION:'

@@ -1,3 +1,16 @@
+"""
+This module provides the coin game functionality for the bet command.
+
+Functions
+---------
+play     Coin game.
+get_help Subcommand help message.
+
+Attributes
+---------------
+NAMES    Subcommand names.
+
+"""
 # Duckbot bet subcommand common module
 from ducklings.command.sub_bet.common import ERROR
 # Duckbot util modules
@@ -26,18 +39,19 @@ USAGE = (
 # Params: game_args - list of string arguments for game
 # Return: result dict with return code and message
 def play(game_args):
-    result = {'return_code': 0, 'message': '', 'error': ''}
+    retcode, message, error = 0, '', ''
     # Process game arguments
     processed = _processArgs(game_args)
     if processed['return_code'] == 0:
         # Flip the coin and get result
         roll_val = roll(2)
-        result['message'] = f'You got: {RESULTS[roll_val - 1]}'
+        message = f'You got: {RESULTS[roll_val - 1]}'
         if processed['choice'] == roll_val: # Win condition, else lost
-            result['return_code'] = 1
+            retcode = 1
     else: # Error condition
-        result['error'] = processed['error']
-    return result
+        retcode = processed['return_code']
+        error = processed['error']
+    return {'return_code': retcode, 'message': message, 'error': error}
 
 # Retrieve command help message
 # Params: None
