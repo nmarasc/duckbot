@@ -2,9 +2,9 @@
 import importlib
 import os
 
-SRC_ROOT = os.getcwd()
+UTL_ROOT = os.path.dirname(os.path.realpath(__file__))
+SRC_ROOT = os.path.dirname(UTL_ROOT)
 MOD_ROOT = os.path.join(SRC_ROOT, 'ducklings')
-UTL_ROOT = os.path.join(SRC_ROOT, 'util')
 CMD_ROOT = os.path.join(MOD_ROOT, 'command')
 EVT_ROOT = os.path.join(MOD_ROOT, 'event')
 
