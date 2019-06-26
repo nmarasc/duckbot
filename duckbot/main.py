@@ -84,7 +84,7 @@ def duckboot():
 
     # Get bot info
     bot_str, bot_channels = util.getBotInfo(bot_token)
-    bot_id = util.matchUserId(bot_str)
+    bot_id = util.matchUserID(bot_str)
     if not bot_id:
         util.logger.log(DiagMessage("INI0030E",bot_str))
         return util.EXIT_CODES["INVALID_BOT_ID"], None

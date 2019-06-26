@@ -6,13 +6,13 @@ from util.event import Event
 from datetime import datetime
 # Event handler imports
 from ducklings.event.base import EventManager
-from ducklings.event.message import MessageHandler
-from ducklings.event.bot import BotHandler
+# from ducklings.event.message import MessageHandler
+# from ducklings.event.bot import BotHandler
 
 # Command handler imports
-from ducklings.command.roll import RollHandler
-from ducklings.command.help import HelpHandler
-from ducklings.command.gamble import GambleHandler
+# from ducklings.command.roll import RollHandler
+# from ducklings.command.help import HelpHandler
+# from ducklings.command.gamble import GambleHandler
 
 
 # Duckbot class delegates event handlers and keeps track of time
@@ -42,14 +42,14 @@ class Duckbot:
         self.logger.log(DiagMessage("BOT0000I"))
         # Create event handlers
         self.event_manager = EventManager()
-        self.msg_handler = MessageHandler(
-            bot_id,
-            gamble_handler=self.gamble_handler,
-            help_handler=self.help_handler,
-            roll_handler=self.roll_handler
-        )
+#         self.msg_handler = MessageHandler(
+#             bot_id,
+#             gamble_handler=self.gamble_handler,
+#             help_handler=self.help_handler,
+#             roll_handler=self.roll_handler
+#         )
         self.logger.log(DiagMessage("BOT0001D","Message")) if self.debug else None
-        self.bot_handler = BotHandler()
+#         self.bot_handler = BotHandler()
         self.logger.log(DiagMessage("BOT0001D","Bot")) if self.debug else None
         self.logger.log(DiagMessage("BOT0002I"))
     #}}}

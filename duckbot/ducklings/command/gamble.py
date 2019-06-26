@@ -11,32 +11,6 @@ import util.games as Games
 # Gambling handler class
 class GambleHandler:
     REFRESH_TIME = datetime(1,1,1,12)
-    PULL_RANGE = range(1,11)
-    PULL_COST  = 10
-    #{{{ - Gacha ranges
-    GACHA_RANGES = rangedict({
-         range(50,150)    : 0
-        ,range(150,600)   : 1
-        ,range(600,800)   : 2
-        ,range(800,900)   : 3
-        ,range(900,975)   : 4
-        ,range(975,990)   : 5
-        ,range(990,1000)  : 6
-        ,range(1000,1001) : 7
-    })
-    #}}}
-    #{{{ - Gacha names
-    GACHA_NAMES = [
-         "Trash"
-        ,"Common"
-        ,"Uncommon"
-        ,"Rare"
-        ,"Super Rare"
-        ,"Ultra Rare"
-        ,"SS Ultra Secret Rare"
-        ,"1000-chan"
-    ]
-    #}}}
 
     # Constructor for gamble hambler
     # Params: channels - list of channels to check for approved labels
