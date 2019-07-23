@@ -1,3 +1,5 @@
+from util.common import roll
+
 # Valid command names
 NAMES = [
     'PULL'
@@ -11,8 +13,16 @@ USAGE = (
 )
 
 # Module constants
-PULL_RANGE = range(1, 11)
-PULL_COST = 10
+GACHA_NAMES = [
+        'Trash',
+        'Common',
+        'Uncommon',
+        'Rare',
+        'Super Rare',
+        'Ultra Rare',
+        'SS Ultra Secret Rare',
+        '1000-chan'
+]
 GACHA_RANGES = rangedict({
     range(50, 150): 0,
     range(150, 600): 1,
@@ -23,23 +33,26 @@ GACHA_RANGES = rangedict({
     range(990, 1000): 6,
     range(1000, 1001): 7
 })
-GACHA_NAMES = [
-    'Trash',
-    'Common',
-    'Uncommon',
-    'Rare',
-    'Super Rare',
-    'Ultra Rare',
-    'SS Ultra Secret Rare',
-    '1000-chan'
-]
+PULL_MAX = max(max(GACHA_RANGES, key=lambda key: max(key)))
+PULL_RANGE = range(1, 11)
+PULL_COST = 10
+
+ERROR = {
+    'BAD_PULL': (
+        'Invalid number of pulls: {}\n'
+        f'Allowed range is {min(PULL_RANGE)} to {max(PULL_RANGE)}'
+    )
+}
 
 # Spend on gacha draws
 # Params: user     - user id of player
 #         channel  - channel id playing from
 #         cmd_args - list containing argument text
 # Return: String response from command
+
+
 def handle(user, channel, cmd_args):
+
     # Parse out bet arguments
     amount = _parseBetArgs(cmd_args)
     # Check gambling eligibility and argument validity
@@ -53,6 +66,8 @@ def handle(user, channel, cmd_args):
 # Retrieve command help message
 # Params: args - help arguments
 # Return: String help message
+
+
 def getHelp(args):
     return f'{PURPOSE}\n{USAGE}'
 
@@ -60,70 +75,62 @@ def getHelp(args):
 # Params: user    - uid of player
 #         amount  - number of pulls to do
 # Return: Message containing results
+
+
 def _pull(user, amount):
-    # Check amount and total cost
-    if amount not in self.PULL_RANGE:
-        return (bank_msgs.PULL_RANGE + "\nAllowed range is from"
-                " " + str(min(self.PULL_RANGE)) + " to"
-                " " + str(max(self.PULL_RANGE)))
+    message = ''
 
-        response = ""
-    # Check balance for free pull
-    if (self.bank.hasFreePull(user) and
-            (amount - 1) * self.PULL_COST <= self.bank.balance(user)):
+    if bank.hasFreePull(user):  # Free daily pull available
+        bank.setFreePull(False, user)
+        message = f'Free daily pull results: {_doPull()}\n\n'
 
-        self.bank.balance(user, -((amount - 1) * self.PULL_COST))
-        response += "Free pull was available, -1 pull cost\n"
-        self.bank.setFreePull(False, user)
-    # Check balance for no free pull
-    elif (not self.bank.hasFreePull(user) and
-        amount * self.PULL_COST <= self.bank.balance(user)):
-
-    self.bank.balance(user, -(amount * self.PULL_COST))
-    # Not enough funds
-    else:
-        return bank_msgs.INSUFFICIENT_FUNDS
-
-    response += "Your pull results: "
-    for i in range(0,amount):
-        pull_id = self._doPull(user)
-        # Nuked
-        if pull_id == -2:
-            self.bank.nuke()
-            return bank_msgs.NUKE
-        # Bad pull
-        if pull_id == -1:
-            pull_id = self.bank.removeBest(user)
-
-            # Didn't have anything to lose
-            if pull_id < 0:
-                response += bank_msgs.NO_LOSS
-
-            else:
-                pull_name = self.GACHA_NAMES[pull_id]
-            # Lost the big one
-                if pull_id == self.GACHA_RANGES[1000]:
-                    response += (
-                            "\nYou have diappointed " + pull_name + ". "
-                            "She returns back to the pool"
-                            )
-                    # Lost your best
-                else:
-                    response += "\nYou lost a " + pull_name
-
-        # Good pull
+    # Check range and total cost
+    if amount in PULL_RANGE:
+        if amount * PULL_COST <= balance.check(user):
+            bank.deduct(user, amount * PULL_COST)
+            message += f'Your pull results: {_doPull(amount)}'
         else:
-            pull_name = self.GACHA_NAMES[pull_id]
-                result = self.bank.addPool(pull_id, user)
-                if result:
-                    if result == user:
-                        response += "\nYou have received a " + pull_name
-                    else:
-                        response += ("\nYou have stolen a " + pull_name + " "
-                                "from <@" + result + ">")
-                else:
-                    response += "\nThere were no more " + pull_name
+            message += (
+                f"{bank.ERROR['LOW_BALANCE']}\n"
+                f'{balance.check(user)}'
+            )
+    else:
+        message += ERROR['BAD_PULL'].format(amount)
 
+    return message
+
+
+def _doPull(amount=1):
+    result = ''
+    nuked = False
+    while amount and nuked = False:
+        pull = roll(PULL_MAX)
+        if pull >= 50:  # Good pull
+            name = GACHA_NAMES[pull]
+            taken = bank.addPool(pull, user)
+            if taken == user:  # Normal accquire
+                result += '\nYou have received a {name}'
+            elif taken:  # Stolen
+                result += '\nYou have stolen a {name} from <@{taken}>'
+            else:  # None available
+                result += '\nThere were no more {name} available'
+        elif pull > 1:  # Pull is less than 50
+            removed = bank.removeBest(user)
+            if removed < 0:  # Nothing to lose
+                response += bank.MESSAGE['NO_LOSS']
+            else:
+                name = GACHA_NAMES[removed]
+                if pull == GACHA_RANGES[PULL_MAX]:  # Lost big
+                    result += (
+                        '\nYou have disappointed {name}. '
+                        'She returns back to the pool'
+                    )
+                else:  # Lost best
+                    result += '\nYou lost a {name}'
+        else:  # Rolled a 1
+            bank.nuke()
+            result = bank.MESSAGE['NUKE']
+            nuked = True
     # Send back results
     return response
 
