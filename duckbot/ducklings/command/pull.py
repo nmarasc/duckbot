@@ -1,4 +1,6 @@
 from util.common import roll
+from util.rangeDict import rangedict
+from util.common import bank
 
 # Valid command names
 NAMES = [
@@ -54,7 +56,7 @@ ERROR = {
 def handle(user, channel, cmd_args):
 
     # Parse out bet arguments
-    amount = _parseBetArgs(cmd_args)
+    amount = _parsePullArgs(cmd_args)
     # Check gambling eligibility and argument validity
     status = _checkStatus(user, channel)
     if status['return_code']:  # Some error with status check
@@ -103,7 +105,7 @@ def _pull(user, amount):
 def _doPull(amount=1):
     result = ''
     nuked = False
-    while amount and nuked = False:
+    while amount and nuked == False:
         pull = roll(PULL_MAX)
         if pull >= 50:  # Good pull
             name = GACHA_NAMES[pull]
@@ -132,7 +134,7 @@ def _doPull(amount=1):
             result = bank.MESSAGE['NUKE']
             nuked = True
     # Send back results
-    return response
+    return result
 
 # Parse argument string for pull arguments
 # Params: args - list of options to parse out
@@ -143,7 +145,8 @@ def _parsePullArgs(args):
         #     this function, it may need to be changed later
         result = parseNum(args[0])
         # Just ignore the problem for now
-        result = 1 if result == -1
+        if result == -1:
+            result = 1
     except IndexError:  # Empty args
         result = 1
     return result
