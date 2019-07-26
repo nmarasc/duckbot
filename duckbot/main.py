@@ -132,7 +132,6 @@ def connect():
 # Params: duckbot - Duckbot instance
 # Return: Bot exit code (documented in util.py)
 def run(duckbot):
-#{{{
     if util.debug:
         util.logger.log(DiagMessage("INI0050D"))
     else:
@@ -142,7 +141,6 @@ def run(duckbot):
     return_code = 0
     # Keep going until bot signals to stop
     while running:
-    # {{{
         # Pause between reads to reduce the cycles spent spinning
         # Delay may need to be adjusted if bot feels sluggish to respond
         time.sleep(util.RTM_READ_DELAY)
@@ -151,15 +149,20 @@ def run(duckbot):
         if event_list and not return_code:
             # Process all the events returned
             for event in event_list:
-                return_code = duckbot.handleEvent(event)
+                return_code, message = duckbot.handleEvent(event)
+                if return_code == 0:
+                    messenger.send(message)
+                elif return_code == 1:
+                    print(message)
+                else:
+                    # Ignore unknown event type
+                    return_code = 0
         # Tick bot internal counter
         duckbot.tick()
         if return_code:
             running = False
-    # }}}
     # Bot signalled to stop, return to mainline
     return return_code
-#}}}
 
 # Attempt an rtm_read, catching errors on failure
 # Params: None

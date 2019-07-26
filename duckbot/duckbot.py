@@ -127,19 +127,19 @@ class Duckbot:
         if self.ticks % util.LOG_TIME == 0:
             self.logger.log(DiagMessage("LOG0010I"), flush=True)
         # Save bank data timer
-        if util.bank_file and self.ticks % util.SAVE_STATE_TIME == 0:
-            self.gamble_handler.saveState()
+#         if util.bank_file and self.ticks % util.SAVE_STATE_TIME == 0:
+#             self.gamble_handler.saveState()
         # Tick down the global cooldown
         if self.cooldown_g:
             self.cooldown_g -= 1
         # Regen some bux for the poor people
-        if self.ticks % util.REGEN_TIME == 0:
-            self.gamble_handler.regenBux()
+#         if self.ticks % util.REGEN_TIME == 0:
+#             self.gamble_handler.regenBux()
         # Refresh the free pulls
-        if self.gamble_handler.pull_timer:
-            self.gamble_handler.pull_timer -= 1
-        else:
-            self.gamble_handler.refreshPulls()
+#         if self.gamble_handler.pull_timer:
+#             self.gamble_handler.pull_timer -= 1
+#         else:
+#             self.gamble_handler.refreshPulls()
         # Wonderful day wish
         if self.wish_timer:
             self.wish_timer -= 1

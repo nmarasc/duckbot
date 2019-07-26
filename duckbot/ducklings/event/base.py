@@ -7,6 +7,11 @@ from util.event import Event
 # different types and dispatched to specific handlers
 class EventManager:
 
+    ERROR = {
+        'NO_PROCESS_FN' :
+            'no process function defined for event type: {}'
+    }
+
     # Constructor for event manager
     # Params: None
     # Return: EventManager instance
@@ -33,6 +38,8 @@ class EventManager:
             response['message'] = None
         except AttributeError: # No process function defined
             response['return_code'] = 1
+            error = self.ERROR['NO_PROCESS_FN'].format(event.type)
+            response['message'] = error
         return response
 
     # Loads and initializes bot commands
