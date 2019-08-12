@@ -1,4 +1,11 @@
-# Last Updated: 2.2
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""Main driver script for Duckbot.
+
+This script parses the command line arguments, reads the config file
+and starts Duckbot.
+"""
+# Last Updated: 1.0
 # Python imports
 import sys
 import os
@@ -20,14 +27,12 @@ from duckbot import Duckbot
 # Params: None
 # Return: Bot exit code (documented in util.py)
 def main():
-#{{{
     initProgram()
     return_code, duckbot = duckboot()
     if not return_code:
         return_code = run(duckbot)
     util.logger.log(DiagMessage("LOG0011I"), flush=True)
     return return_code
-#}}}
 
 # Initial program set up
 #   - Command line parsing and directory changing
