@@ -1,9 +1,8 @@
-'''Keep a log of new and modified files.
+"""Keep a log of new and modified files.
 
-Scrape the output of git status for new and modified files and append
-those results to a log for latter recall.
-
-'''
+Scrape the output of git status for new and modified files then append
+those results to a log for later recall.
+"""
 import os
 import subprocess
 from pathlib import Path

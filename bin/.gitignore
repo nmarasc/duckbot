@@ -3,3 +3,4 @@
 # Allow patterns and specifc files
 !.gitignore
 !version_log.py
+!version_update.sh
