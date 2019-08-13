@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """Main driver script for Duckbot.
 
-This script parses the command line arguments, reads the config file
-and starts Duckbot.
+This script handles program setup (commmand line parsing, config file
+reading, etc) and then starts up Duckbot.
 """
 # Last Updated: 1.0
 # Python imports
@@ -22,11 +22,18 @@ from util.logger import Logger
 
 from duckbot import Duckbot
 
-# Mainline code
-# Create a Duckbot and start running it
-# Params: None
-# Return: Bot exit code (documented in util.py)
+
 def main():
+    """Mainline entry point.
+
+    Create and run a Duckbot instance with supplied command line
+    arguments and config file options.
+
+    Returns
+    -------
+    int
+        Exit code from the bot (documented in ##FIXME)
+    """
     initProgram()
     return_code, duckbot = duckboot()
     if not return_code:
