@@ -1,6 +1,6 @@
 # Duckbot util modules
-import util.moduleLoader as modloader
-from util.event import Event
+import duckbot.util.moduleLoader as modloader
+from duckbot.util.event import Event
 
 # Event management class
 # Receives and handles events for Duckbot. Events are classified into

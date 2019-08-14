@@ -1,11 +1,12 @@
 # Last Updated: 2.3.0
-# Project imports
-import util.common as util
-from util.diagMessage import DiagMessage
-from util.event import Event
+# Python imports
 from datetime import datetime
+
+# Project imports
+from .util.diagMessage import DiagMessage
+from .util.event import Event
 # Event handler imports
-from ducklings.event.base import EventManager
+from .ducklings.event.base import EventManager
 # from ducklings.event.message import MessageHandler
 # from ducklings.event.bot import BotHandler
 

@@ -1,5 +1,5 @@
 # Last Updated: 2.2
-from util.diagCodes import DIAG_CODES
+from .diagCodes import DIAG_CODES
 
 # Diag Message class
 class DiagMessage:

@@ -3,8 +3,8 @@
 import re
 import random
 # Project imports
-from util.bank import Bank as bank
-from util.bidict import bidict
+from .bank import Bank as bank
+from .bidict import bidict
 # Util constants
 RTM_READ_DELAY = 1
 USER_REGEX = "U[A-Z0-9]{8}"

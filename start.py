@@ -3,7 +3,7 @@
 """Main driver script for Duckbot.
 
 This script handles program setup (commmand line parsing, config file
-reading, etc) and then starts up Duckbot.
+reading, etc) and then starts Duckbot.
 """
 # Last Updated: 1.0
 # Python imports
@@ -16,11 +16,11 @@ import argparse
 from slackclient import SlackClient
 
 # Project imports
-import util.common as util
-from util.diagMessage import DiagMessage
-from util.logger import Logger
+import duckbot.util.common as util
+from duckbot.util.diagMessage import DiagMessage
+from duckbot.util.logger import Logger
 
-from duckbot import Duckbot
+from duckbot.core import Duckbot
 
 
 def main():
@@ -34,6 +34,8 @@ def main():
     int
         Exit code from the bot (documented in ##FIXME)
     """
+    bot_args = parseCommandLine()
+    bot_conf = parseConfig()
     initProgram()
     return_code, duckbot = duckboot()
     if not return_code:

@@ -1,7 +1,7 @@
 # Last Updated: 2.3.0
 import random
 import copy
-import util.choiceFunctions as cFunc
+from . import choiceFunctions as cFunc
 
 
 # Bank class
