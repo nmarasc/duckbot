@@ -43,21 +43,32 @@ def main():
     util.logger.log(DiagMessage("LOG0011I"), flush=True)
     return return_code
 
+
+def parseCommandLine():
+    """Parsing function for command line arguments.
+
+    Utilize the ``argparse`` package to handle gathering and parsing
+    of command line arguments.
+
+    Returns
+    -------
+    dict
+        Command lines arguments with their values
+    """
+    # Construct command line parser and get arguements
+    cl_parser = argparse.ArgumentParser(description=__doc__)
+    cl_parser.add_argument('--debug', action='store_true')
+    cl_parser.add_argument('--nolog', dest='log', action='store_false', default=True)
+    cl_parser.add_argument('--nobnk', dest='bnk', action='store_false', default=True)
+    args = cl_parser.parse_args()
+
+
 # Initial program set up
 #   - Command line parsing and directory changing
 # Params: None
 # Return: None
 def initProgram():
 #{{{
-    # Change context directory to the running one
-    os.chdir(os.path.dirname(os.path.realpath(__file__)))
-
-    # Construct command line parser and get arguements
-    cl_parser = argparse.ArgumentParser(description='Start up Duckbot')
-    cl_parser.add_argument('--debug', action='store_true')
-    cl_parser.add_argument('--nolog', dest='log', action='store_false', default=True)
-    cl_parser.add_argument('--nobnk', dest='bnk', action='store_false', default=True)
-    args = cl_parser.parse_args()
     util.debug = args.debug
     util.bank_file = args.bnk
 
