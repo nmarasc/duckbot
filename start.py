@@ -11,16 +11,23 @@ import sys
 import os
 import time
 import argparse
+import logging
 
 # Slack import
 from slackclient import SlackClient
 
 # Project imports
+from config.logger import loggerConfigDict
+
 import duckbot.util.common as util
-from duckbot.util.diagMessage import DiagMessage
-from duckbot.util.logger import Logger
+# from duckbot.util.diagMessage import DiagMessage
+# from duckbot.util.logger import Logger
 
 from duckbot.core import Duckbot
+
+# The logger is allowed to be global to the module, everything uses it
+global logger
+
 
 
 def main():
@@ -34,8 +41,8 @@ def main():
     int
         Exit code from the bot (documented in ##FIXME)
     """
-    bot_args = parseCommandLine()
-    bot_conf = parseConfig()
+#     bot_args = parseCommandLine()
+#     bot_conf = parseConfig()
     initProgram()
     return_code, duckbot = duckboot()
     if not return_code:
@@ -53,14 +60,26 @@ def parseCommandLine():
     Returns
     -------
     dict
-        Command lines arguments with their values
+        Command line arguments with their values
     """
-    # Construct command line parser and get arguements
-    cl_parser = argparse.ArgumentParser(description=__doc__)
-    cl_parser.add_argument('--debug', action='store_true')
-    cl_parser.add_argument('--nolog', dest='log', action='store_false', default=True)
-    cl_parser.add_argument('--nobnk', dest='bnk', action='store_false', default=True)
-    args = cl_parser.parse_args()
+    # Use the script's docstring as part of the usage message
+    cl_parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+    cl_parser.add_argument(
+        '-d', '--debug', action='store_true',
+        help='\tadd debug messages to the log')
+    cl_parser.add_argument(
+        '-v', '--verbose', action='store_true',
+        help='\tprint log messages to the console')
+    cl_parser.add_argument(
+        '-t', '--temporary', action='store_true',
+        help='\tdo not write values out to disk')
+#     cl_parser.add_argument('--debug', action='store_true')
+#     cl_parser.add_argument('--nolog', dest='log', action='store_false', default=True)
+#     cl_parser.add_argument('--nobnk', dest='bnk', action='store_false', default=True)
+    return cl_parser.parse_args()
 
 
 # Initial program set up
