@@ -10,9 +10,10 @@ reading, etc) and then starts Duckbot.
 import sys
 import os
 import time
-import argparse
+import re
 import logging
-import configparser
+import argparse
+from configparser import ConfigParser, ExtendedInterpolation
 
 # Slack import
 from slackclient import SlackClient
@@ -27,7 +28,6 @@ from duckbot.core import Duckbot
 global logger
 
 
-
 def main():
     """Mainline entry point.
 
@@ -37,9 +37,10 @@ def main():
     Returns
     -------
     int
-        Exit code from the bot (documented in ##FIXME)
+        Exit code from the bot (documented in ##TODO)
     """
-#     bot_args = parseCommandLine()
+    cli_args = parseCommandLine()
+    configureLogging(cli_args)
 #     bot_conf = parseConfig()
     initProgram()
     return_code, duckbot = duckboot()
@@ -49,7 +50,28 @@ def main():
     return return_code
 
 
-def parseCommandLine():
+def configureLogging(args: dict):
+    """Configuration function for bot logging.
+
+    Parse logging config file with ``configparse`` and build a
+    dictionary to configure ``logging``.
+
+    Parameters
+    ----------
+    args
+        Command line arguments that can affect logging configuration
+    """
+    parser = ConfigParser(
+        interpolation=ExtendedInterpolation(),
+        allow_no_value=True
+    )
+    parser.read('config/logging.conf')
+    loggingConfig = {**parser['general']}
+
+#     formatter_keys = re.split(',\s*', parser['formatters']['keys']
+
+
+def parseCommandLine() -> dict:
     """Parsing function for command line arguments.
 
     Utilize the ``argparse`` package to handle gathering and parsing
