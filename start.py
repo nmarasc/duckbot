@@ -12,12 +12,10 @@ import os
 import time
 import argparse
 import logging
+import configparser
 
 # Slack import
 from slackclient import SlackClient
-
-# Project imports
-from config.logger import loggerConfigDict
 
 import duckbot.util.common as util
 # from duckbot.util.diagMessage import DiagMessage
