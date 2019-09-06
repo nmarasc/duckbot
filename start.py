@@ -17,17 +17,13 @@ import logging.config
 import argparse
 from configparser import ConfigParser, ExtendedInterpolation
 
-# Slack import
-from slackclient import SlackClient
-
 import duckbot.util.common as util
-# from duckbot.util.diagMessage import DiagMessage
-# from duckbot.util.logger import Logger
 
 from duckbot.core import Duckbot
 
-# The logger is allowed to be global to the module, everything uses it
-global logger
+# Configuration file paths
+CONFPATH_LOG = '.config/logging.conf'
+CONFPATH_BOT = '.config/bot.conf'
 
 
 def main() -> int:
@@ -41,34 +37,55 @@ def main() -> int:
     int
         Exit code from the bot (documented in ##TODO)
     """
-    cli_args = parseCommandLine()
-    configureLogging(cli_args)
-#     bot_conf = parseConfig()
-#     initProgram()
-#     return_code, duckbot = duckboot()
+    # The logger is allowed to be global to the module, since
+    # everything uses it.
+    global logger
+
+    args = parseCommandLine()
+
+    config_parser = ConfigParser(
+            interpolation=ExtendedInterpolation(),
+            allow_no_value=True
+    )
+    config_parser.optionxform = str
+
+    log_conf = parseLogConfig(args, config_parser)
+    logging.config.dictConfig(log_conf)
+    logger = logging.getLogger(__name__)
+    logger.info('Logging configured and initialized')
+
+    bot_conf = parseBotConfig(args, config_parser)
+    duckbot = duckboot({})
+#     logger.info('Duckbot created and configured')
 #     if not return_code:
 #         return_code = run(duckbot)
 #     util.logger.log(DiagMessage("LOG0011I"), flush=True)
 #     return return_code
 
 
-def configureLogging(args: dict):
-    """Configuration function for bot logging.
+def parseLogConfig(args: dict, parser: ConfigParser) -> dict:
+    """Parse config file for logging.
 
-    Parse logging config file with ``configparse`` and build a
-    dictionary to configure ``logging``.
+    Use the provided parser to gather logging configuration data and
+    then massage the data into a valid format. Any command line flags
+    that affect logging configuration are read and handlers are
+    adjusted. The log directory specified is created if it does not
+    already exist.
 
     Parameters
     ----------
     args
-        Command line arguments that can affect logging configuration
+        Command line arguments
+    parser
+        ``ConfigParser`` instance to use
+
+    Returns
+    -------
+    dict
+        Logging configuration data
     """
-    parser = ConfigParser(
-        interpolation=ExtendedInterpolation(),
-        allow_no_value=True,
-    )
-    parser.optionxform=str
-    parser.read('config/logging.conf')
+    parser.read(CONFPATH_LOG)
+
     logConfig = _valueize(parser['general'])
     logConfig['root'] = {**parser['root']}
     logConfig['root']['handlers'] = re.split(
@@ -87,10 +104,33 @@ def configureLogging(args: dict):
     if args.temporary:
         logConfig['root']['handlers'].remove('default')
 
+    # The log file is created at config time, so the path has to exist
+    # before configuration happens
     os.makedirs(parser['paths']['log_dir'], exist_ok=True)
-    logging.config.dictConfig(logConfig)
-    logger = logging.getLogger(__name__)
-    logger.debug('Logging configured and initialized')
+    return logConfig
+
+
+def parseBotConfig(args: dict, parser: ConfigParser) -> dict:
+    """Parse config file for bot.
+
+    Use the provided ``ConfigParser`` to gather bot configuration data
+    and then massage the data into a valid format.
+
+    Parameters
+    ----------
+    args
+        Command line arguments
+    parser
+        ``ConfigParser`` instance to use
+
+    Returns
+    -------
+    dict
+        Bot configuration data
+    """
+    parser.read(CONFPATH_BOT)
+    # This will be expanded on when more options are added
+    return _valueize(parser['clients'])
 
 
 def parseCommandLine() -> dict:
@@ -118,9 +158,6 @@ def parseCommandLine() -> dict:
     cl_parser.add_argument(
         '-t', '--temporary', action='store_true',
         help='\tdo not write values out to disk')
-#     cl_parser.add_argument('--debug', action='store_true')
-#     cl_parser.add_argument('--nolog', dest='log', action='store_false', default=True)
-#     cl_parser.add_argument('--nobnk', dest='bnk', action='store_false', default=True)
     return cl_parser.parse_args()
 
 
@@ -142,7 +179,7 @@ def _parseSubsection(section: str, parser: ConfigParser) -> dict:
     dict
         Dictionary of all subsections and their data
     """
-    parsed = {};
+    parsed = {}
     if parser[section]['keys'] is not None:
         section_keys = re.split(',\s*', parser[section]['keys'])
     else:
@@ -161,8 +198,8 @@ def _valueize(old: dict) -> dict:
     """Convert string values in a dictionary to other primitive types.
 
     Use ``ast.literal_eval()`` to safely parse string values in a dict
-    into other primitive types, such as int and bool. If a value cannot
-    be converted, it is left as is.
+    into other primitive types, such as int and bool. If a value fails
+    to be converted, it is left as is.
 
     Parameters
     ----------
@@ -187,64 +224,82 @@ def _valueize(old: dict) -> dict:
     return new
 
 
-# Initial program set up
-#   - Command line parsing and directory changing
-# Params: None
-# Return: None
-def initProgram():
-#{{{
-    util.debug = args.debug
-    util.bank_file = args.bnk
+def duckboot(config: dict) -> Duckbot:
+    """Create a Duckbot instance.
 
-    # Start the logger with logging mode
-    util.logger = Logger(log=args.log)
-    util.logger.log(DiagMessage("INI0000I"))
-#}}}
+    Configure and instantiate a bot with the provided options. Search
+    for client tokens in the config parameter, a ``.env`` file in the
+    current directory, or from environment variables. If no tokens are
+    found, the bot is not created.
 
-# Set up and start the bot
-# Params: None
-# Return: 0 return code and Duckbot instance on success
-#         Non 0 return code and None on failure
-# Credit: Name courtesy of Katie. What a thinker, what a genius, wow
-def duckboot():
-    # Check for environment variable
-    try:
-        bot_token = os.environ["BOT_TOKEN"]
-        print("Got token from env")
-    except KeyError:
-        # TODO: Log env variable not found
-        try:
-            # Get bot token from the env file
-            with open("../.env") as env_file:
-                bot_token = env_file.readline().rstrip().split("=")[1]
-            print("Got token from file")
-        # Can't open file or doesn't exist
-        except OSError:
-            # Exit because there is no token to connect with
-            # TODO: Make no token error code
-            print("No token found")
-            return -1, None
+    Parameters
+    ----------
+    config
+        Config file options for the bot
 
-    util.logger.log(DiagMessage("INI0010I", bot_token))
+    Returns
+    -------
+    Duckbot
+        Configured Duckbot instance or None on failure
+    """
+    discord_token = _findToken('DISCORD_TOKEN', config)
+    slack_token = _findToken('SLACK_TOKEN', config)
 
-    # Create the slack client
-    util.sc = SlackClient(bot_token)
-    util.logger.log(DiagMessage("INI0020I"))
+#     util.logger.log(DiagMessage("INI0010I", bot_token))
+#     # Create the slack client
+#     util.sc = SlackClient(bot_token)
+#     util.logger.log(DiagMessage("INI0020I"))
+#     # Get bot info
+#     bot_str, bot_channels = util.getBotInfo(bot_token)
+#     bot_id = util.matchUserID(bot_str)
+#     if not bot_id:
+#         util.logger.log(DiagMessage("INI0030E",bot_str))
+#         return util.EXIT_CODES["INVALID_BOT_ID"], None
+#     util.logger.log(DiagMessage("INI0030I",bot_id))
+#     # Connect to rtm and create bot if successful
+#     return_code = connect()
+#     if return_code:
+#         return return_code, None
+#     else:
+#         return return_code, Duckbot(bot_id, bot_channels)
 
-    # Get bot info
-    bot_str, bot_channels = util.getBotInfo(bot_token)
-    bot_id = util.matchUserID(bot_str)
-    if not bot_id:
-        util.logger.log(DiagMessage("INI0030E",bot_str))
-        return util.EXIT_CODES["INVALID_BOT_ID"], None
-    util.logger.log(DiagMessage("INI0030I",bot_id))
 
-    # Connect to rtm and create bot if successful
-    return_code = connect()
-    if return_code:
-        return return_code, None
+def _findToken(name: str, config: dict) -> str:
+    """Search sources for client token.
+
+    Check provided config, environment and .env file for token.
+
+    Parameters
+    ----------
+    name
+        Token name to search for
+    config
+        Bot config options
+
+    Returns
+    -------
+    str
+        Client token or None if no token was found
+    """
+    token = None
+    if name in config:
+        logger.info(f'{name} found in config options')
+        token = config[name]
+    elif name in os.environ:
+        logger.info(f'{name} found in environment')
+        token = os.environ[name]
     else:
-        return return_code, Duckbot(bot_id, bot_channels)
+        try:
+            with open('.env') as envfile:
+                for line in envfile:
+                    line = line.strip().split('=')
+                    if line[0] == name:
+                        token = line[1]
+                        logger.info(f'{name} found in .env file')
+        except (OSError, IndexError):
+            logger.critical(f'{name} was not found!')
+    return token
+
 
 # Connect to the rtm and test connection
 # Params: None
@@ -277,7 +332,7 @@ def connect():
         return util.EXIT_CODES["RTM_CONNECT_FAILED"]
 #}}}
 
-# Running loop, polls for events and hands them to the bot, then ticks the bot
+# Running loop, polls for events and hands them to the bot, ticks
 # Params: duckbot - Duckbot instance
 # Return: Bot exit code (documented in util.py)
 def run(duckbot):
