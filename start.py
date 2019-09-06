@@ -11,11 +11,11 @@ import sys
 import os
 import time
 import re
+import ast
 import logging
 import logging.config
 import argparse
 from configparser import ConfigParser, ExtendedInterpolation
-import ast
 
 # Slack import
 from slackclient import SlackClient
@@ -70,41 +70,28 @@ def configureLogging(args: dict):
     parser.optionxform=str
     parser.read('config/logging.conf')
     logConfig = _valueize(parser['general'])
+    logConfig['root'] = {**parser['root']}
+    logConfig['root']['handlers'] = re.split(
+        ',\s*',
+        logConfig['root']['handlers']
+    )
     logConfig['formatters'] = _parseSubsection('formatters', parser)
     logConfig['handlers'] = _parseSubsection('handlers', parser)
     logConfig['loggers'] = _parseSubsection('loggers', parser)
 
+    if args.debug:
+        logConfig['handlers']['default']['level'] = 'DEBUG'
+        logConfig['handlers']['console']['level'] = 'DEBUG'
+    if args.verbose:
+        logConfig['root']['handlers'].append('console')
+    if args.temporary:
+        logConfig['root']['handlers'].remove('default')
+
     os.makedirs(parser['paths']['log_dir'], exist_ok=True)
     logging.config.dictConfig(logConfig)
+    logger = logging.getLogger(__name__)
+    logger.debug('Logging configured and initialized')
 
-def _parseSubsection(section: str, parser: ConfigParser) -> dict:
-    """
-    """
-    parsed = {};
-    if parser[section]['keys'] is not None:
-        section_keys = re.split(',\s*', parser[section]['keys'])
-    else:
-        section_keys = []
-    for item in parser.sections():
-        splist = item.split('.')
-        try:
-            if splist[0] == section and splist[1] in section_keys:
-                parsed[splist[1]] = _valueize(parser[item])
-        except IndexError:
-            pass
-    return parsed
-
-
-def _valueize(old: dict) -> dict:
-    """
-    """
-    new = {}
-    for key, value in old.items():
-        try:
-            new[key] = ast.literal_eval(value)
-        except (ValueError, SyntaxError):
-            new[key] = value
-    return new
 
 def parseCommandLine() -> dict:
     """Parsing function for command line arguments.
@@ -135,6 +122,69 @@ def parseCommandLine() -> dict:
 #     cl_parser.add_argument('--nolog', dest='log', action='store_false', default=True)
 #     cl_parser.add_argument('--nobnk', dest='bnk', action='store_false', default=True)
     return cl_parser.parse_args()
+
+
+def _parseSubsection(section: str, parser: ConfigParser) -> dict:
+    """Aggragate subsection data from the parser.
+
+    Use the ``keys`` field of a section to determine subsections and
+    gather all subsections into a single dictionary.
+
+    Parameters
+    ----------
+    section
+        Name of section to find subsections for
+    parser
+        ``ConfigParser`` instance that has read config data
+
+    Returns
+    -------
+    dict
+        Dictionary of all subsections and their data
+    """
+    parsed = {};
+    if parser[section]['keys'] is not None:
+        section_keys = re.split(',\s*', parser[section]['keys'])
+    else:
+        section_keys = []
+    for item in parser.sections():
+        splist = item.split('.')
+        try:
+            if splist[0] == section and splist[1] in section_keys:
+                parsed[splist[1]] = _valueize(parser[item])
+        except IndexError:
+            pass
+    return parsed
+
+
+def _valueize(old: dict) -> dict:
+    """Convert string values in a dictionary to other primitive types.
+
+    Use ``ast.literal_eval()`` to safely parse string values in a dict
+    into other primitive types, such as int and bool. If a value cannot
+    be converted, it is left as is.
+
+    Parameters
+    ----------
+    old
+        Dictionary of values to convert
+
+    Returns
+    -------
+    dict
+        Dictionary of converted values
+
+    Notes
+    -----
+    Does not recursively convert nested dictionaries
+    """
+    new = {}
+    for key, value in old.items():
+        try:
+            new[key] = ast.literal_eval(value)
+        except (ValueError, SyntaxError):
+            new[key] = value
+    return new
 
 
 # Initial program set up
