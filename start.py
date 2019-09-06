@@ -12,8 +12,10 @@ import os
 import time
 import re
 import logging
+import logging.config
 import argparse
 from configparser import ConfigParser, ExtendedInterpolation
+import ast
 
 # Slack import
 from slackclient import SlackClient
@@ -28,7 +30,7 @@ from duckbot.core import Duckbot
 global logger
 
 
-def main():
+def main() -> int:
     """Mainline entry point.
 
     Create and run a Duckbot instance with supplied command line
@@ -42,12 +44,12 @@ def main():
     cli_args = parseCommandLine()
     configureLogging(cli_args)
 #     bot_conf = parseConfig()
-    initProgram()
-    return_code, duckbot = duckboot()
-    if not return_code:
-        return_code = run(duckbot)
-    util.logger.log(DiagMessage("LOG0011I"), flush=True)
-    return return_code
+#     initProgram()
+#     return_code, duckbot = duckboot()
+#     if not return_code:
+#         return_code = run(duckbot)
+#     util.logger.log(DiagMessage("LOG0011I"), flush=True)
+#     return return_code
 
 
 def configureLogging(args: dict):
@@ -63,13 +65,46 @@ def configureLogging(args: dict):
     """
     parser = ConfigParser(
         interpolation=ExtendedInterpolation(),
-        allow_no_value=True
+        allow_no_value=True,
     )
+    parser.optionxform=str
     parser.read('config/logging.conf')
-    loggingConfig = {**parser['general']}
+    logConfig = _valueize(parser['general'])
+    logConfig['formatters'] = _parseSubsection('formatters', parser)
+    logConfig['handlers'] = _parseSubsection('handlers', parser)
+    logConfig['loggers'] = _parseSubsection('loggers', parser)
 
-#     formatter_keys = re.split(',\s*', parser['formatters']['keys']
+    os.makedirs(parser['paths']['log_dir'], exist_ok=True)
+    logging.config.dictConfig(logConfig)
 
+def _parseSubsection(section: str, parser: ConfigParser) -> dict:
+    """
+    """
+    parsed = {};
+    if parser[section]['keys'] is not None:
+        section_keys = re.split(',\s*', parser[section]['keys'])
+    else:
+        section_keys = []
+    for item in parser.sections():
+        splist = item.split('.')
+        try:
+            if splist[0] == section and splist[1] in section_keys:
+                parsed[splist[1]] = _valueize(parser[item])
+        except IndexError:
+            pass
+    return parsed
+
+
+def _valueize(old: dict) -> dict:
+    """
+    """
+    new = {}
+    for key, value in old.items():
+        try:
+            new[key] = ast.literal_eval(value)
+        except (ValueError, SyntaxError):
+            new[key] = value
+    return new
 
 def parseCommandLine() -> dict:
     """Parsing function for command line arguments.
