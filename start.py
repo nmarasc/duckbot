@@ -1,24 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Main driver script for Duckbot.
+r"""Main driver script for Duckbot.
 
 This script handles program setup (commmand line parsing, config file
 reading, etc) and then starts Duckbot.
 """
 # Last Updated: 1.0
 # Python imports
-import sys
-import os
-import time
-import re
-import ast
-import logging
-import logging.config
+import sys, os
+import time, re, ast
+import logging, logging.config
 import argparse
 from configparser import ConfigParser, ExtendedInterpolation
 
+# Duckbot imports
 import duckbot.util.common as util
-
 from duckbot.core import Duckbot
 
 # Configuration file paths
@@ -27,7 +23,7 @@ CONFPATH_BOT = '.config/bot.conf'
 
 
 def main() -> int:
-    """Mainline entry point.
+    r"""Mainline entry point.
 
     Create and run a Duckbot instance with supplied command line
     arguments and config file options.
@@ -55,16 +51,73 @@ def main() -> int:
     logger.info('Logging configured and initialized')
 
     bot_conf = parseBotConfig(args, config_parser)
-    duckbot = duckboot({})
-#     logger.info('Duckbot created and configured')
-#     if not return_code:
-#         return_code = run(duckbot)
-#     util.logger.log(DiagMessage("LOG0011I"), flush=True)
-#     return return_code
+    duckbot = duckboot(bot_conf)
+
+    if duckbot is None:
+        exit_code = util.EXIT_CODES['BAD_INIT']
+    else:
+        logger.info('Duckbot created and configured')
+        exit_code = duckbot.run()
+
+    if exit_code != 0:
+        logger.critical('Duckbot failed with exit code: {exit_code}')
+    else:
+        logger.info('Duckbot shut down successfully')
+    return exit_code
+
+
+def duckboot(config: dict) -> Duckbot:
+    r"""Create a Duckbot instance.
+
+    Configure and instantiate a bot with the provided options. Search
+    for client tokens in the config parameter, a ``.env`` file in the
+    current directory, or from environment variables. If no tokens are
+    found or requested, the bot is not created.
+
+    Parameters
+    ----------
+    config
+        Config file options for the bot
+
+    Returns
+    -------
+    Duckbot
+        Configured Duckbot instance or None on failure
+    """
+    duckbot = None
+    slack_token = None
+    discord_token = None
+    error = False
+
+    if config['slack']:
+        slack_token = _findToken('SLACK_TOKEN', config)
+        if slack_token is None:
+            logger.critical(
+                'Slack connection requested and no token was found!'
+            )
+            error = True
+    if config['discord']:
+        discord_token = _findToken('DISCORD_TOKEN', config)
+        if discord_token is None:
+            logger.critical(
+                'Discord connection requested and no token was found!'
+            )
+            error = True
+
+    if not config['slack'] and not config['discord']:
+        logger.warning(
+                'No client connection was requested.'
+                )
+    elif not error:
+        config['slack_token'] = slack_token
+        config['discord_token'] = discord_token
+        duckbot = Duckbot(config)
+
+    return duckbot
 
 
 def parseLogConfig(args: dict, parser: ConfigParser) -> dict:
-    """Parse config file for logging.
+    r"""Parse config file for logging.
 
     Use the provided parser to gather logging configuration data and
     then massage the data into a valid format. Any command line flags
@@ -111,7 +164,7 @@ def parseLogConfig(args: dict, parser: ConfigParser) -> dict:
 
 
 def parseBotConfig(args: dict, parser: ConfigParser) -> dict:
-    """Parse config file for bot.
+    r"""Parse config file for bot.
 
     Use the provided ``ConfigParser`` to gather bot configuration data
     and then massage the data into a valid format.
@@ -134,7 +187,7 @@ def parseBotConfig(args: dict, parser: ConfigParser) -> dict:
 
 
 def parseCommandLine() -> dict:
-    """Parsing function for command line arguments.
+    r"""Parsing function for command line arguments.
 
     Utilize the ``argparse`` package to handle gathering and parsing
     of command line arguments.
@@ -144,11 +197,13 @@ def parseCommandLine() -> dict:
     dict
         Command line arguments with their values
     """
-    # Use the script's docstring as part of the usage message
+    # Use the script docstring as part of the usage message
     cl_parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter
     )
+    # Possibly change verbosity to a count and make the default level
+    # WARNING if the INFO messages get too chatty
     cl_parser.add_argument(
         '-d', '--debug', action='store_true',
         help='\tadd debug messages to the log')
@@ -162,7 +217,7 @@ def parseCommandLine() -> dict:
 
 
 def _parseSubsection(section: str, parser: ConfigParser) -> dict:
-    """Aggragate subsection data from the parser.
+    r"""Aggragate subsection data from the parser.
 
     Use the ``keys`` field of a section to determine subsections and
     gather all subsections into a single dictionary.
@@ -194,78 +249,8 @@ def _parseSubsection(section: str, parser: ConfigParser) -> dict:
     return parsed
 
 
-def _valueize(old: dict) -> dict:
-    """Convert string values in a dictionary to other primitive types.
-
-    Use ``ast.literal_eval()`` to safely parse string values in a dict
-    into other primitive types, such as int and bool. If a value fails
-    to be converted, it is left as is.
-
-    Parameters
-    ----------
-    old
-        Dictionary of values to convert
-
-    Returns
-    -------
-    dict
-        Dictionary of converted values
-
-    Notes
-    -----
-    Does not recursively convert nested dictionaries
-    """
-    new = {}
-    for key, value in old.items():
-        try:
-            new[key] = ast.literal_eval(value)
-        except (ValueError, SyntaxError):
-            new[key] = value
-    return new
-
-
-def duckboot(config: dict) -> Duckbot:
-    """Create a Duckbot instance.
-
-    Configure and instantiate a bot with the provided options. Search
-    for client tokens in the config parameter, a ``.env`` file in the
-    current directory, or from environment variables. If no tokens are
-    found, the bot is not created.
-
-    Parameters
-    ----------
-    config
-        Config file options for the bot
-
-    Returns
-    -------
-    Duckbot
-        Configured Duckbot instance or None on failure
-    """
-    discord_token = _findToken('DISCORD_TOKEN', config)
-    slack_token = _findToken('SLACK_TOKEN', config)
-
-#     util.logger.log(DiagMessage("INI0010I", bot_token))
-#     # Create the slack client
-#     util.sc = SlackClient(bot_token)
-#     util.logger.log(DiagMessage("INI0020I"))
-#     # Get bot info
-#     bot_str, bot_channels = util.getBotInfo(bot_token)
-#     bot_id = util.matchUserID(bot_str)
-#     if not bot_id:
-#         util.logger.log(DiagMessage("INI0030E",bot_str))
-#         return util.EXIT_CODES["INVALID_BOT_ID"], None
-#     util.logger.log(DiagMessage("INI0030I",bot_id))
-#     # Connect to rtm and create bot if successful
-#     return_code = connect()
-#     if return_code:
-#         return return_code, None
-#     else:
-#         return return_code, Duckbot(bot_id, bot_channels)
-
-
 def _findToken(name: str, config: dict) -> str:
-    """Search sources for client token.
+    r"""Search sources for client token.
 
     Check provided config, environment and .env file for token.
 
@@ -297,8 +282,38 @@ def _findToken(name: str, config: dict) -> str:
                         token = line[1]
                         logger.info(f'{name} found in .env file')
         except (OSError, IndexError):
-            logger.critical(f'{name} was not found!')
+            logger.warning(f'{name} was not found!')
     return token
+
+
+def _valueize(old: dict) -> dict:
+    r"""Convert string values in a dictionary to other primitive types.
+
+    Use ``ast.literal_eval()`` to safely parse string values in a dict
+    into other primitive types, such as int and bool. If a value fails
+    to be converted, it is left as is.
+
+    Parameters
+    ----------
+    old
+        Dictionary of values to convert
+
+    Returns
+    -------
+    dict
+        Dictionary of converted values
+
+    Notes
+    -----
+    Does not recursively convert nested dictionaries
+    """
+    new = {}
+    for key, value in old.items():
+        try:
+            new[key] = ast.literal_eval(value)
+        except (ValueError, SyntaxError):
+            new[key] = value
+    return new
 
 
 # Connect to the rtm and test connection
@@ -346,7 +361,7 @@ def run(duckbot):
     # Keep going until bot signals to stop
     while running:
         # Pause between reads to reduce the cycles spent spinning
-        # Delay may need to be adjusted if bot feels sluggish to respond
+        # Delay may need to be adjusted if bot feels sluggish
         time.sleep(util.RTM_READ_DELAY)
 
         return_code, event_list = doRead()

@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+r"""Main module containing the Duckbot class.
+
+The Duckbot class is contained within this module. Any functions or
+variables that are deemed crucial to the user are also kept here.
+"""
 # Last Updated: 2.3.0
 # Python imports
 from datetime import datetime
@@ -7,17 +13,32 @@ from .util.diagMessage import DiagMessage
 from .util.event import Event
 # Event handler imports
 from .ducklings.event.base import EventManager
-# from ducklings.event.message import MessageHandler
-# from ducklings.event.bot import BotHandler
-
-# Command handler imports
-# from ducklings.command.roll import RollHandler
-# from ducklings.command.help import HelpHandler
-# from ducklings.command.gamble import GambleHandler
 
 
-# Duckbot class delegates event handlers and keeps track of time
 class Duckbot:
+    r"""Duck themed chat bot.
+
+    Chat bot with support for both slack and discord clients
+    simultaneously.
+
+    Parameters
+    ----------
+    config : dict
+        Configuration options for the bot.
+
+        See `Configuration Dictionary`_ for details.
+
+    Attributes
+    ----------
+    ##TODO
+
+    Configuration Dictionary
+    ------------------------
+    slack_token : str
+        Slack client token
+    discord_token : str
+        Discord client token
+    """
 
     TICK_ROLLOVER = 3600  # 60 minutes
     WISH_TIME     = datetime(1,1,1,16)  # 16:00
@@ -27,8 +48,7 @@ class Duckbot:
     # Params: bot_id       - bot user id, used to detect mentions
     #         bot_channels - dict containing channel ids to channel data
     # Return: Duckbot instance
-    def __init__(self, bot_id, bot_channels):
-    #{{{
+    def __init__(self, config: dict) -> None:
         # Param fields
         self.id = bot_id
         self.channels = bot_channels
@@ -53,7 +73,6 @@ class Duckbot:
 #         self.bot_handler = BotHandler()
         self.logger.log(DiagMessage("BOT0001D","Bot")) if self.debug else None
         self.logger.log(DiagMessage("BOT0002I"))
-    #}}}
 
     # Receives events and passes them to the event manager
     # Params: event - incoming event to process
