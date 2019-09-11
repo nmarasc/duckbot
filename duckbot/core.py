@@ -6,14 +6,22 @@ variables that are deemed crucial to the user are also kept here.
 """
 # Last Updated: 2.3.0
 # Python imports
+import logging
 from datetime import datetime
 
-# Project imports
-from .util.diagMessage import DiagMessage
-from .util.event import Event
-# Event handler imports
-from .ducklings.event.base import EventManager
+__all__ = ['Duckbot', 'EXIT_CODES']
 
+logger = logging.getLogger(__name__)
+
+EXIT_CODES = {
+    'BAD_INIT': 10,
+#     'INVALID_BOT_ID': 11,
+#     'RTM_CONNECT_FAILED': 12,
+#     'RTM_BAD_CONNECTION': 13,
+#     'RTM_GENERIC_ERROR': 20,
+#     'RTM_TIMEOUT_ERROR': 21,
+#     'MALFORMED_USER_ID': 30
+}
 
 class Duckbot:
     r"""Duck themed chat bot.

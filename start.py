@@ -14,8 +14,8 @@ import argparse
 from configparser import ConfigParser, ExtendedInterpolation
 
 # Duckbot imports
-import duckbot.util.common as util
-from duckbot.core import Duckbot
+from duckbot import Duckbot
+from duckbot import EXIT_CODES
 
 # Configuration file paths
 CONFPATH_LOG = '.config/logging.conf'
@@ -54,7 +54,7 @@ def main() -> int:
     duckbot = duckboot(bot_conf)
 
     if duckbot is None:
-        exit_code = util.EXIT_CODES['BAD_INIT']
+        exit_code = EXIT_CODES['BAD_INIT']
     else:
         logger.info('Duckbot created and configured')
         exit_code = duckbot.run()

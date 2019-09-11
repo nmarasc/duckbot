@@ -22,14 +22,17 @@ from duckbot import __license__ as LICENSE
 REQUIRES_PYTHON = '>=3.6.0'
 
 # What packages are required for this module to be executed?
+# Only include direct dependencies, transitive dependencies should be
+# handled automatically.
 REQUIRED = [
-        # 'requests', 'maya', 'records',
-        ]
+    'slackclient', 'discord'
+]
 
 # What packages are optional?
+# Development environment includes packages for testing
 EXTRAS = {
-        # 'fancy feature': ['django'],
-        }
+    'dev': ['pytest', 'flake8']
+}
 
 # The rest you shouldn't have to touch too much :)
 # ------------------------------------------------
@@ -93,7 +96,6 @@ class UploadCommand(Command):
         sys.exit()
 
 
-# Where the magic happens:
 setup(
         name=NAME,
         version=VERSION,
@@ -105,12 +107,6 @@ setup(
         python_requires=REQUIRES_PYTHON,
         url=URL,
         packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
-        # If your package is a single module, use this instead of 'packages':
-        # py_modules=['mypackage'],
-
-        # entry_points={
-        #     'console_scripts': ['mycli=mymodule:cli'],
-        # },
         install_requires=REQUIRED,
         extras_require=EXTRAS,
         include_package_data=True,

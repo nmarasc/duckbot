@@ -10,16 +10,6 @@ RTM_READ_DELAY = 1
 USER_REGEX = "U[A-Z0-9]{8}"
 LABEL_REGEX = "\[:LABEL:(:.+:)+\]"
 EMOJI_REGEX = ":.+?:"
-ERROR_CODES = {
-     "INVALID_BOT_ID"     : 10
-    ,"RTM_CONNECT_FAILED" : 11
-    ,"RTM_BAD_CONNECTION" : 12
-    ,"RTM_GENERIC_ERROR"  : 20
-    ,"RTM_TIMEOUT_ERROR"  : 21
-    ,"MALFORMED_USER_ID"  : 30
-}
-#{{{ - Emoji rolls
-#}}}
 #{{{ - Commands
 COMMANDS = bidict({
     'HI'        :  1,
