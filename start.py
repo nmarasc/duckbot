@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 r"""Main driver script for Duckbot.
 
-This script handles program setup (commmand line parsing, config file
-reading, etc) and then starts Duckbot.
+This script handles program setup (commmand line parsing, logging
+config, etc) and then starts Duckbot.
 """
 # Last Updated: 1.0
 # Python imports
@@ -16,6 +16,8 @@ from configparser import ConfigParser, ExtendedInterpolation
 # Duckbot imports
 from duckbot import Duckbot
 from duckbot import EXIT_CODES
+##FIXME don't reach into the bowels of the package
+from duckbot.util.config import _valueize
 
 # Configuration file paths
 CONFPATH_LOG = '.config/logging.conf'
@@ -39,19 +41,12 @@ def main() -> int:
 
     args = parseCommandLine()
 
-    config_parser = ConfigParser(
-            interpolation=ExtendedInterpolation(),
-            allow_no_value=True
-    )
-    config_parser.optionxform = str
-
-    log_conf = parseLogConfig(args, config_parser)
+    log_conf = parseLogConfig(args)
     logging.config.dictConfig(log_conf)
     logger = logging.getLogger(__name__)
     logger.info('Logging configured and initialized')
 
-    bot_conf = parseBotConfig(args, config_parser)
-    duckbot = duckboot(bot_conf)
+    duckbot = duckboot()
 
     if duckbot is None:
         exit_code = EXIT_CODES['BAD_INIT']
@@ -66,77 +61,55 @@ def main() -> int:
     return exit_code
 
 
-def duckboot(config: dict) -> Duckbot:
+def duckboot() -> Duckbot:
     r"""Create a Duckbot instance.
 
-    Configure and instantiate a bot with the provided options. Search
-    for client tokens in the config parameter, a ``.env`` file in the
-    current directory, or from environment variables. If no tokens are
-    found or requested, the bot is not created.
-
-    Parameters
-    ----------
-    config
-        Config file options for the bot
+    Search for client tokens and instantiate a bot instance. If no
+    tokens are found, the bot is not created.
 
     Returns
     -------
     Duckbot
-        Configured Duckbot instance or None on failure
+        Duckbot instance or None on failure
     """
-    duckbot = None
-    slack_token = None
-    discord_token = None
-    error = False
+    config = {
+        'slack' = CONNECT_SLACK,
+        'discord' = CONNECT_DISCORD
+    }
 
-    if config['slack']:
-        slack_token = _findToken('SLACK_TOKEN', config)
-        if slack_token is None:
-            logger.critical(
-                'Slack connection requested and no token was found!'
-            )
-            error = True
-    if config['discord']:
-        discord_token = _findToken('DISCORD_TOKEN', config)
-        if discord_token is None:
-            logger.critical(
-                'Discord connection requested and no token was found!'
-            )
-            error = True
+    if CONNECT_SLACK:
+        config['slack_token'] = _findToken('SLACK_TOKEN')
+    if CONNECT_DISCORD:
+        config['discord_token'] = _findToken('DISCORD_TOKEN')
 
-    if not config['slack'] and not config['discord']:
-        logger.warning(
-                'No client connection was requested.'
-                )
-    elif not error:
-        config['slack_token'] = slack_token
-        config['discord_token'] = discord_token
-        duckbot = Duckbot(config)
+    duckbot = Duckbot(config)
 
     return duckbot
 
 
-def parseLogConfig(args: dict, parser: ConfigParser) -> dict:
+def parseLogConfig(args: dict) -> dict:
     r"""Parse config file for logging.
 
-    Use the provided parser to gather logging configuration data and
-    then massage the data into a valid format. Any command line flags
-    that affect logging configuration are read and handlers are
-    adjusted. The log directory specified is created if it does not
-    already exist.
+    Gather logging configuration data and then massage the data into a
+    valid format. Any command line flags that affect logging
+    configuration are read and handlers are adjusted. The log
+    directory specified is created if it does not already exist.
 
     Parameters
     ----------
     args
         Command line arguments
-    parser
-        ``ConfigParser`` instance to use
 
     Returns
     -------
     dict
         Logging configuration data
     """
+    parser = ConfigParser(
+        interpolation=ExtendedInterpolation(),
+        allow_no_value=True
+    )
+    parser.optionxform = str
     parser.read(CONFPATH_LOG)
 
     logConfig = _valueize(parser['general'])
@@ -161,29 +134,6 @@ def parseLogConfig(args: dict, parser: ConfigParser) -> dict:
     # before configuration happens
     os.makedirs(parser['paths']['log_dir'], exist_ok=True)
     return logConfig
-
-
-def parseBotConfig(args: dict, parser: ConfigParser) -> dict:
-    r"""Parse config file for bot.
-
-    Use the provided ``ConfigParser`` to gather bot configuration data
-    and then massage the data into a valid format.
-
-    Parameters
-    ----------
-    args
-        Command line arguments
-    parser
-        ``ConfigParser`` instance to use
-
-    Returns
-    -------
-    dict
-        Bot configuration data
-    """
-    parser.read(CONFPATH_BOT)
-    # This will be expanded on when more options are added
-    return _valueize(parser['clients'])
 
 
 def parseCommandLine() -> dict:
@@ -284,36 +234,6 @@ def _findToken(name: str, config: dict) -> str:
         except (OSError, IndexError):
             logger.warning(f'{name} was not found!')
     return token
-
-
-def _valueize(old: dict) -> dict:
-    r"""Convert string values in a dictionary to other primitive types.
-
-    Use ``ast.literal_eval()`` to safely parse string values in a dict
-    into other primitive types, such as int and bool. If a value fails
-    to be converted, it is left as is.
-
-    Parameters
-    ----------
-    old
-        Dictionary of values to convert
-
-    Returns
-    -------
-    dict
-        Dictionary of converted values
-
-    Notes
-    -----
-    Does not recursively convert nested dictionaries
-    """
-    new = {}
-    for key, value in old.items():
-        try:
-            new[key] = ast.literal_eval(value)
-        except (ValueError, SyntaxError):
-            new[key] = value
-    return new
 
 
 # Connect to the rtm and test connection
