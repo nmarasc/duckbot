@@ -2,41 +2,46 @@
 # -*- coding: utf-8 -*-
 r"""Main driver script for Duckbot.
 
-This script handles program setup (commmand line parsing, logging
-config, etc) and then starts Duckbot.
+This script handles program setup (commmand line parsing, logging config,
+etc) and then starts Duckbot.
 """
-# Last Updated: 1.0
 # Python imports
-import sys, os
-import time, re, ast
-import logging, logging.config
+import sys
+import os
+import re
+import logging
+import logging.config
 import argparse
 from configparser import ConfigParser, ExtendedInterpolation
 
 # Duckbot imports
 from duckbot import Duckbot
 from duckbot import EXIT_CODES
-##FIXME don't reach into the bowels of the package
+# ##FIXME don't reach into the bowels of the package
 from duckbot.util.config import _valueize
 
 # Configuration file paths
 CONFPATH_LOG = '.config/logging.conf'
 CONFPATH_BOT = '.config/bot.conf'
 
+# Which clients to connect to
+CONNECT_DISCORD = True
+CONNECT_SLACK = False
+
 
 def main() -> int:
     r"""Mainline entry point.
 
-    Create and run a Duckbot instance with supplied command line
-    arguments and config file options.
+    Create and run a Duckbot instance with supplied command line arguments
+    and config file options.
 
     Returns
     -------
     int
-        Exit code from the bot (documented in ##TODO)
+        Exit code from the bot (documented in duckbot.core)
     """
-    # The logger is allowed to be global to the module, since
-    # everything uses it.
+    # The logger is allowed to be global to the module, since everything
+    # uses it.
     global logger
 
     args = parseCommandLine()
@@ -64,8 +69,8 @@ def main() -> int:
 def duckboot() -> Duckbot:
     r"""Create a Duckbot instance.
 
-    Search for client tokens and instantiate a bot instance. If no
-    tokens are found, the bot is not created.
+    Search for client tokens and instantiate a bot instance. If no tokens
+    are found, the bot is not created.
 
     Returns
     -------
@@ -73,8 +78,9 @@ def duckboot() -> Duckbot:
         Duckbot instance or None on failure
     """
     config = {
-        'slack' = CONNECT_SLACK,
-        'discord' = CONNECT_DISCORD
+        'slack': CONNECT_SLACK,
+        'discord': CONNECT_DISCORD
+        'save': False
     }
 
     if CONNECT_SLACK:
@@ -83,7 +89,6 @@ def duckboot() -> Duckbot:
         config['discord_token'] = _findToken('DISCORD_TOKEN')
 
     duckbot = Duckbot(config)
-
     return duckbot
 
 
@@ -91,9 +96,9 @@ def parseLogConfig(args: dict) -> dict:
     r"""Parse config file for logging.
 
     Gather logging configuration data and then massage the data into a
-    valid format. Any command line flags that affect logging
-    configuration are read and handlers are adjusted. The log
-    directory specified is created if it does not already exist.
+    valid format. Any command line flags that affect logging configuration
+    are read and handlers are adjusted. The log directory specified is
+    created if it does not already exist.
 
     Parameters
     ----------
@@ -112,35 +117,35 @@ def parseLogConfig(args: dict) -> dict:
     parser.optionxform = str
     parser.read(CONFPATH_LOG)
 
-    logConfig = _valueize(parser['general'])
-    logConfig['root'] = {**parser['root']}
-    logConfig['root']['handlers'] = re.split(
-        ',\s*',
-        logConfig['root']['handlers']
+    config = _valueize(parser['general'])
+    config['root'] = {**parser['root']}
+    config['root']['handlers'] = re.split(
+        r',\s*',
+        config['root']['handlers']
     )
-    logConfig['formatters'] = _parseSubsection('formatters', parser)
-    logConfig['handlers'] = _parseSubsection('handlers', parser)
-    logConfig['loggers'] = _parseSubsection('loggers', parser)
+    config['formatters'] = _parseSubsection('formatters', parser)
+    config['handlers'] = _parseSubsection('handlers', parser)
+    config['loggers'] = _parseSubsection('loggers', parser)
 
     if args.debug:
-        logConfig['handlers']['default']['level'] = 'DEBUG'
-        logConfig['handlers']['console']['level'] = 'DEBUG'
+        config['handlers']['default']['level'] = 'DEBUG'
+        config['handlers']['console']['level'] = 'DEBUG'
     if args.verbose:
-        logConfig['root']['handlers'].append('console')
+        config['root']['handlers'].append('console')
     if args.temporary:
-        logConfig['root']['handlers'].remove('default')
+        config['root']['handlers'].remove('default')
 
     # The log file is created at config time, so the path has to exist
     # before configuration happens
     os.makedirs(parser['paths']['log_dir'], exist_ok=True)
-    return logConfig
+    return config
 
 
 def parseCommandLine() -> dict:
     r"""Parsing function for command line arguments.
 
-    Utilize the ``argparse`` package to handle gathering and parsing
-    of command line arguments.
+    Utilize the ``argparse`` package to handle gathering and parsing of
+    command line arguments.
 
     Returns
     -------
@@ -160,6 +165,7 @@ def parseCommandLine() -> dict:
     cl_parser.add_argument(
         '-v', '--verbose', action='store_true',
         help='\tprint log messages to the console')
+    # ##TODO bot should have a seperate temp flag from logging
     cl_parser.add_argument(
         '-t', '--temporary', action='store_true',
         help='\tdo not write values out to disk')
@@ -169,8 +175,8 @@ def parseCommandLine() -> dict:
 def _parseSubsection(section: str, parser: ConfigParser) -> dict:
     r"""Aggragate subsection data from the parser.
 
-    Use the ``keys`` field of a section to determine subsections and
-    gather all subsections into a single dictionary.
+    Use the keys field of a section to determine subsections and gather all
+    subsections into a single dictionary.
 
     Parameters
     ----------
@@ -186,7 +192,7 @@ def _parseSubsection(section: str, parser: ConfigParser) -> dict:
     """
     parsed = {}
     if parser[section]['keys'] is not None:
-        section_keys = re.split(',\s*', parser[section]['keys'])
+        section_keys = re.split(r',\s*', parser[section]['keys'])
     else:
         section_keys = []
     for item in parser.sections():
@@ -199,17 +205,15 @@ def _parseSubsection(section: str, parser: ConfigParser) -> dict:
     return parsed
 
 
-def _findToken(name: str, config: dict) -> str:
+def _findToken(name: str) -> str:
     r"""Search sources for client token.
 
-    Check provided config, environment and .env file for token.
+    Check environment and .env file for token.
 
     Parameters
     ----------
     name
         Token name to search for
-    config
-        Bot config options
 
     Returns
     -------
@@ -217,10 +221,7 @@ def _findToken(name: str, config: dict) -> str:
         Client token or None if no token was found
     """
     token = None
-    if name in config:
-        logger.info(f'{name} found in config options')
-        token = config[name]
-    elif name in os.environ:
+    if name in os.environ:
         logger.info(f'{name} found in environment')
         token = os.environ[name]
     else:
@@ -232,7 +233,9 @@ def _findToken(name: str, config: dict) -> str:
                         token = line[1]
                         logger.info(f'{name} found in .env file')
         except (OSError, IndexError):
-            logger.warning(f'{name} was not found!')
+            pass
+    if token is None:
+        logger.warning(f'{name} was not found!')
     return token
 
 

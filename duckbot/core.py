@@ -3,9 +3,19 @@ r"""Main module containing the Duckbot class.
 
 The Duckbot class is contained within this module. Any functions or
 variables that are deemed crucial to the user are also kept here.
+
+Classes
+-------
+Duckbot
+    Duck themed chat bot.
+
+Attributes
+----------
+EXIT_CODES : dict
+    Exit reasons and their associated numeric value
 """
-# Last Updated: 2.3.0
 # Python imports
+from typing import Union
 import logging
 from datetime import datetime
 
@@ -31,33 +41,55 @@ class Duckbot:
 
     Parameters
     ----------
-    config : dict
-        Configuration options for the bot.
+    config : dict or str
+        Configuration options or path to config file
 
         See `Configuration Dictionary`_ for details.
 
     Attributes
     ----------
-    ##TODO
+    slack_token : str
+        Slack client bot token
+    discord_token : str
+        Discord client bot token
+
+    Raises
+    ------
+    ValueError
+        A client connection was requested with no token
 
     Configuration Dictionary
     ------------------------
+    slack : bool
+        True if connecting to Slack
+    discord : bool
+        True if connecting to Discord
+    save : bool
+        True if bot state should be saved
     slack_token : str
         Slack client token
     discord_token : str
         Discord client token
     """
+#     TICK_ROLLOVER = 3600  # 60 minutes
+#     WISH_TIME     = datetime(1,1,1,16)  # 16:00
+#     WISH_CHANNEL  = 'random'
+    def __init__(self, config: Union[dict, str]) -> None:
+        r"""Duckbot initialization."""
+        self.slack_token = config['slack_token']
+        self.discord_token = config['discord_token']
 
-    TICK_ROLLOVER = 3600  # 60 minutes
-    WISH_TIME     = datetime(1,1,1,16)  # 16:00
-    WISH_CHANNEL  = 'random'
+        if config['slack'] and self.slack_token is None:
+            logger.critical(
+                'Slack connection requested, but no token was provided!'
+            )
+            raise ValueError('No slack token provided')
+        if config['discord'] and self.discord_token is None:
+            logger.critical(
+                'Discord connection requested, but no token was provided!'
+            )
+            raise ValueError('No discord token provided')
 
-    # Constructor for the bot
-    # Params: bot_id       - bot user id, used to detect mentions
-    #         bot_channels - dict containing channel ids to channel data
-    # Return: Duckbot instance
-    def __init__(self, config: dict) -> None:
-        # Param fields
         self.id = bot_id
         self.channels = bot_channels
 

@@ -1,5 +1,7 @@
+import ast
+from configparser import ConfigParser, ExtendedInterpolation
 
-def parseBotConfig(args: dict, parser: ConfigParser) -> dict:
+def parseBotConfig(args: dict) -> dict:
     r"""Parse config file for bot.
 
     Use the provided ``ConfigParser`` to gather bot configuration data
@@ -17,6 +19,11 @@ def parseBotConfig(args: dict, parser: ConfigParser) -> dict:
     dict
         Bot configuration data
     """
+    parser = ConfigParser(
+            interpolation=ExtendedInterpolation(),
+            allow_no_value=True
+            )
+    parser.optionxform = str
     parser.read(CONFPATH_BOT)
     # This will be expanded on when more options are added
     return _valueize(parser['clients'])
