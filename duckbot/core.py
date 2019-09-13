@@ -19,6 +19,8 @@ from typing import Union
 import logging
 from datetime import datetime
 
+import discord
+
 __all__ = ['Duckbot', 'EXIT_CODES']
 
 logger = logging.getLogger(__name__)
@@ -52,6 +54,10 @@ class Duckbot:
         Slack client bot token
     discord_token : str
         Discord client bot token
+    temporary : bool
+        True if not saving bot state
+    listen : bool
+        True if not replying to messages
 
     Raises
     ------
@@ -73,35 +79,60 @@ class Duckbot:
     listen : bool
         True if bot should not respond to messages
     """
-#     TICK_ROLLOVER = 3600  # 60 minutes
-#     WISH_TIME     = datetime(1,1,1,16)  # 16:00
-#     WISH_CHANNEL  = 'random'
+
+    # ##FIXME move this to its own file
+    class DuckDiscordClient(discord.Client):
+
+        async def on_ready(self):
+            r"""Gather information when logged into client."""
+            logger.info(
+                f'Duckbot logged into discord as {self.user}'
+            )
+
+
     def __init__(self, config: Union[dict, str]) -> None:
         r"""Duckbot initialization."""
-        self.slack_token = config['slack_token']
-        self.discord_token = config['discord_token']
-
-        if config['slack'] and self.slack_token is None:
-            logger.critical(
-                'Slack connection requested, but no token was provided!'
-            )
-            raise ValueError('No slack token provided')
-        if config['discord'] and self.discord_token is None:
-            logger.critical(
-                'Discord connection requested, but no token was provided!'
-            )
-            raise ValueError('No discord token provided')
-
         self.temporary = config['temporary']
         self.listen = config['listen']
 
-        self.id = bot_id
-        self.channels = bot_channels
+        self.tokens = {
+            'slack': config['slack_token'],
+            'discord': config['discord_token']
+        }
+        self.clients = {}
+        self.ids = {}
+#         self.channels = []
 
-        self.ticks = 0
-        self.cooldown_g = 0
+#         self.cooldown = 0
+#         self.ticks = 0
+#         self.tick_rollover = 3600
+#         self.wish_countdown = 0
+#         self.wish_time = datetime(1,1,1,16)
+#         self.wish_channel = 'random'
 
-        self._getWishTime()
+        if config['slack']:
+            if self.tokens['slack']:
+                self.clients['slack'] = 'No slackclient yet'
+            else:
+                logger.critical(
+                        'Slack connection requested, but no token was '
+                        'provided!'
+                        )
+                raise ValueError('No slack token provided')
+
+        if config['discord']:
+            if self.tokens['discord']:
+                client = self.DuckDiscordClient()
+                # ##FIXME move to own run function
+                client.run(self.tokens['discord'])
+                self.clients['discord'] = client
+                logger.info('Discord client created')
+            else:
+                logger.critical(
+                        'Discord connection requested, but no token was '
+                        'provided!'
+                        )
+                raise ValueError('No discord token provided')
 
 
     # Receives events and passes them to the event manager
