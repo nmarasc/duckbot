@@ -118,7 +118,6 @@ venv.bak/
 
 ### venv ###
 # Linux
-bin/
 include/
 share/
 
@@ -131,6 +130,7 @@ Scripts/
 pyvenv.cfg
 pip-selfcheck.json
 
+lib64
 
 ### Vim ###
 # swap
@@ -167,10 +167,6 @@ $RECYCLE.BIN/
 # End of https://www.gitignore.io/api/vim,venv,linux,python,windows
 
 log.txt
-test.py
-test.sh
 error.txt
 bash.exe.stackdump
-updateVersion.sh
-modified.txt
-new.txt
+.log/

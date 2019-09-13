@@ -1,11 +1,16 @@
 # Last Updated: 2.3.0
 import random
 import copy
-import util.choiceFunctions as cFunc
-import util.common as util
+from . import choiceFunctions as cFunc
+
 
 # Bank class
+# Manages user accounts and the gacha reserve
+# External functions:
+#
+#   addUser - Create account for an id
 class Bank:
+    CURRENCY = "dux"
     DEFAULT_POOL  = [-1,-1,500,100,50,10,3,1]
     STARTING_POOL = [0,0,0,0,0,0,0,0]
     STARTING_BUX  = 100
@@ -34,16 +39,33 @@ class Bank:
         }
     #}}}
 
+    # Get balance of user
+    # Params: user - user id to get balance of
+    # Return: integer balance of user
+    def getBalance(self, user):
+        return self._userBalance(user, 0)
+
+    # Add value to user's bank balance
+    # Params: user   - user id to adjust
+    #         amount - integer amount to adjust by
+    # Return: None
+    def deposit(self, user, amount):
+        self._userBalance(user, amount)
+
+    # Remove value from user's bank balance
+    # Params: user   - user id to adjust
+    #         amount - integer amount to remove
+    # Return: None
+    def deduct(self, user, amount):
+        self._userBalance(user, -amount)
+
     # Get balance of user and adjust
     # Params: user   - user to get balance of
     #         adjust - amount to adjust user balance
-    # Return: int val of user balance
-    def balance(self, user, adjust = 0):
-    #{{{
-        if adjust:
-            self.players[user]["balance"] += adjust
+    # Return: int val of user balance after adjusting
+    def _userBalance(self, user, adjust):
+        self.players[user]["balance"] += adjust
         return self.players[user]["balance"]
-    #}}}
 
     # Get pool of user
     # Params: user - user to get pool of
@@ -193,6 +215,18 @@ class Bank:
             for player in self.players:
                 self.players[player]["pull"] = value
     #}}}
+
+    # Check if user and channel are valid for gambling
+    # Params: user    - user id to check for bank entry
+    #         channel - channel id to check for approval
+    # Return: integer return code
+    def checkEligible(self, user, channel = None):
+        return_code = 0
+        if not self.isMember(user):
+            return_code = 1
+        if channel and channel not in self.approved_channels:
+            return_code = 2
+        return return_code
 
     # Parse player data of line
     # Params: data - line data

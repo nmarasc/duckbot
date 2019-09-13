@@ -3,39 +3,13 @@
 import re
 import random
 # Project imports
-from util.bidict import bidict
-
+from .bank import Bank as bank
+from .bidict import bidict
 # Util constants
 RTM_READ_DELAY = 1
 USER_REGEX = "U[A-Z0-9]{8}"
 LABEL_REGEX = "\[:LABEL:(:.+:)+\]"
 EMOJI_REGEX = ":.+?:"
-#{{{ - Exit codes
-EXIT_CODES = {
-         "INVALID_BOT_ID"     : 10
-        ,"RTM_CONNECT_FAILED" : 11
-        ,"RTM_BAD_CONNECTION" : 12
-        ,"RTM_GENERIC_ERROR"  : 20
-        ,"RTM_TIMEOUT_ERROR"  : 21
-        ,"MALFORMED_USER_ID"  : 30
-        }
-#}}}
-#{{{ - Emoji rolls
-EMOJI_ROLLS={
-         ":ONE:"        : 1
-        ,":TWO:"        : 2
-        ,":THREE:"      : 3
-        ,":FOUR:"       : 4
-        ,":FIVE:"       : 5
-        ,":SIX:"        : 6
-        ,":SEVEN:"      : 7
-        ,":EIGHT:"      : 8
-        ,":NINE:"       : 9
-        ,":KEYCAP_TEN:" : 10
-        ,":100:"        : 100
-        ,":HERB:"       : 420
-        }
-#}}}
 #{{{ - Commands
 COMMANDS = bidict({
     'HI'        :  1,
@@ -65,36 +39,27 @@ GAMES = {
     'DICE' : 2,
 }
 #}}}
-#{{{ - Eightball Responses
-EIGHTBALL_RESPONSES = [
-     "It is certain"
-    ,"It is decidedly so"
-    ,"Without a doubt"
-    ,"Yes, definitely"
-    ,"You may rely on it"
-    ,"As I see it, yes"
-    ,"Most likely"
-    ,"Outlook good"
-    ,"Yes"
-    ,"Signs point to yes"
-    ,"Reply hazy, try again"
-    ,"Ask again later"
-    ,"Better not tell you now"
-    ,"Cannot predict now"
-    ,"Concentrate and ask again"
-    ,"Don't count on it"
-    ,"My reply is no"
-    ,"My sources say no"
-    ,"Outlook not so good"
-    ,"Very doubtful"
-    ]
-#}}}
 #{{{ - Channel labels
 LABELS = {
      'DUCKBOT' : ':DUCKBOT:'
     ,'GAMBLE'  : ':SLOT_MACHINE:'
 }
 #}}}
+
+# Valid emoji number values
+EMOJI_ROLLS = {
+           ':ONE:': 1,
+           ':TWO:': 2,
+         ':THREE:': 3,
+          ':FOUR:': 4,
+          ':FIVE:': 5,
+           ':SIX:': 6,
+         ':SEVEN:': 7,
+         ':EIGHT:': 8,
+          ':NINE:': 9,
+    ':KEYCAP_TEN:': 10,
+           ':100:': 100,
+}
 
 # Util timers
 LOG_TIME        = 1800 # 30 minutes
@@ -103,7 +68,9 @@ SAVE_STATE_TIME = 3600 # 60 minutes
 
 # Slackclient, Logger instance
 # debug and permanent bank flag
-global sc, logger, debug, bank_file
+global sc, debug, bank_file
+global logger
+global bank
 
 # Send message to designated channel, and notify user if present
 # Params: channel - channel id to send message to
@@ -121,7 +88,7 @@ def sendMessage(channel, message, user = None):
 # Search for a user id in a string
 # Params: id_str - string to search for id
 # Return: user id if found, None otherwise
-def matchUserId(id_str):
+def matchUserID(id_str):
 #{{{
     matches = re.search(USER_REGEX,id_str)
     return matches.group(0) if matches else None
@@ -186,14 +153,27 @@ def parseLabels(text):
     return labels
 #}}}
 
+# Convert a string containing a number or an emoji to an int
+# Params: str_val - String to parse
+# Return: int representing the string value, or -1 if invalid
+def parseNum(str_val):
+    # Check for a numeric value
+    try:
+        int_val = int(str_val)
+    # Or an emoji value
+    # int_val is set to -1 if no emoji value was found
+    except ValueError:
+        int_val = EMOJI_ROLLS.get(str_val, -1)
+    return int_val
+
 # Rolls randomly with the parameters given and returns numbers in a list
 # Params: die_size - number of sides on the dice rolling
 #         die_num  - number of times to roll the dice
-# Return: list of rolls
-def doRolls(die_size, die_num = 1):
-#{{{
+# Return: roll value or list of rolls if more than one
+def roll(die_size, die_num = 1):
     rolls = []
     for i in range(die_num):
         rolls.append(random.randint(1,die_size))
+    if len(rolls) == 1:
+        return rolls[0]
     return rolls
-#}}}
