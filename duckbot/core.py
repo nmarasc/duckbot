@@ -62,14 +62,16 @@ class Duckbot:
     ------------------------
     slack : bool
         True if connecting to Slack
-    discord : bool
-        True if connecting to Discord
-    save : bool
-        True if bot state should be saved
     slack_token : str
         Slack client token
+    discord : bool
+        True if connecting to Discord
     discord_token : str
         Discord client token
+    temporary : bool
+        True if bot state should not be saved
+    listen : bool
+        True if bot should not respond to messages
     """
 #     TICK_ROLLOVER = 3600  # 60 minutes
 #     WISH_TIME     = datetime(1,1,1,16)  # 16:00
@@ -90,29 +92,17 @@ class Duckbot:
             )
             raise ValueError('No discord token provided')
 
+        self.temporary = config['temporary']
+        self.listen = config['listen']
+
         self.id = bot_id
         self.channels = bot_channels
 
-        self.debug = util.debug
-        self.logger = util.logger
         self.ticks = 0
         self.cooldown_g = 0
 
         self._getWishTime()
 
-        self.logger.log(DiagMessage("BOT0000I"))
-        # Create event handlers
-        self.event_manager = EventManager()
-#         self.msg_handler = MessageHandler(
-#             bot_id,
-#             gamble_handler=self.gamble_handler,
-#             help_handler=self.help_handler,
-#             roll_handler=self.roll_handler
-#         )
-        self.logger.log(DiagMessage("BOT0001D","Message")) if self.debug else None
-#         self.bot_handler = BotHandler()
-        self.logger.log(DiagMessage("BOT0001D","Bot")) if self.debug else None
-        self.logger.log(DiagMessage("BOT0002I"))
 
     # Receives events and passes them to the event manager
     # Params: event - incoming event to process

@@ -31,7 +31,7 @@ REQUIRED = [
 # What packages are optional?
 # Development environment includes packages for testing
 EXTRAS = {
-    'dev': ['pytest', 'flake8']
+    'dev': ['pytest', 'flake8', 'mypy']
 }
 
 # The rest you shouldn't have to touch too much :)

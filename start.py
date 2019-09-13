@@ -51,7 +51,7 @@ def main() -> int:
     logger = logging.getLogger(__name__)
     logger.info('Logging configured and initialized')
 
-    duckbot = duckboot()
+    duckbot = duckboot(args)
 
     if duckbot is None:
         exit_code = EXIT_CODES['BAD_INIT']
@@ -66,11 +66,17 @@ def main() -> int:
     return exit_code
 
 
-def duckboot() -> Duckbot:
+def duckboot(args: dict) -> Duckbot:
     r"""Create a Duckbot instance.
 
-    Search for client tokens and instantiate a bot instance. If no tokens
-    are found, the bot is not created.
+    Search for client tokens and instantiate a bot instance. The bot will
+    fail to be created if connections are requested, but no tokens are
+    found.
+
+    Parameters
+    ----------
+    args
+        Command line arguments
 
     Returns
     -------
@@ -79,17 +85,64 @@ def duckboot() -> Duckbot:
     """
     config = {
         'slack': CONNECT_SLACK,
-        'discord': CONNECT_DISCORD
-        'save': False
+        'slack_token': None,
+        'discord': CONNECT_DISCORD,
+        'discord_token': None,
+        'temporary': False,
+        'listen': args.listen
     }
 
     if CONNECT_SLACK:
         config['slack_token'] = _findToken('SLACK_TOKEN')
     if CONNECT_DISCORD:
         config['discord_token'] = _findToken('DISCORD_TOKEN')
+    if args.temporary in ['all', 'bot']:
+        config['temporary'] = True
 
     duckbot = Duckbot(config)
     return duckbot
+
+
+def parseCommandLine() -> dict:
+    r"""Parsing function for command line arguments.
+
+    Utilize the ``argparse`` package to handle gathering and parsing of
+    command line arguments.
+
+    Returns
+    -------
+    dict
+        Command line arguments with their values
+    """
+    # Use the script docstring as part of the usage message
+    cl_parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=('options:\n'
+            '  log\tlogging messages are temporary\n'
+            '  bot\tbot state is temporary\n'
+            '  all\tall of the above are temporary, default for no option'
+        )
+    )
+    # Possibly change verbosity to a count and make the default level
+    # WARNING if the INFO messages get too chatty
+    cl_parser.add_argument(
+        '-d', '--debug', action='store_true',
+        help='\tadd debug messages to the log')
+    cl_parser.add_argument(
+        '-v', '--verbose', action='store_true',
+        help='\tprint log messages to the console')
+    cl_parser.add_argument(
+        '-l', '--listen', action='store_true', default=False,
+        help='\ttell bot not to respond to messages')
+    cl_parser.add_argument(
+        '-t', '--temporary', action='store', const='all',
+        nargs='?', metavar='option',
+        help='\tdo not write values out to disk')
+    args = cl_parser.parse_args()
+    if args.temporary not in [None, 'all', 'bot', 'log']:
+        raise ValueError(f'option not recognized: {args.temporary}')
+    return args
 
 
 def parseLogConfig(args: dict) -> dict:
@@ -132,7 +185,7 @@ def parseLogConfig(args: dict) -> dict:
         config['handlers']['console']['level'] = 'DEBUG'
     if args.verbose:
         config['root']['handlers'].append('console')
-    if args.temporary:
+    if args.temporary in ['all', 'log']:
         config['root']['handlers'].remove('default')
 
     # The log file is created at config time, so the path has to exist
@@ -141,39 +194,8 @@ def parseLogConfig(args: dict) -> dict:
     return config
 
 
-def parseCommandLine() -> dict:
-    r"""Parsing function for command line arguments.
-
-    Utilize the ``argparse`` package to handle gathering and parsing of
-    command line arguments.
-
-    Returns
-    -------
-    dict
-        Command line arguments with their values
-    """
-    # Use the script docstring as part of the usage message
-    cl_parser = argparse.ArgumentParser(
-        description=__doc__,
-        formatter_class=argparse.RawDescriptionHelpFormatter
-    )
-    # Possibly change verbosity to a count and make the default level
-    # WARNING if the INFO messages get too chatty
-    cl_parser.add_argument(
-        '-d', '--debug', action='store_true',
-        help='\tadd debug messages to the log')
-    cl_parser.add_argument(
-        '-v', '--verbose', action='store_true',
-        help='\tprint log messages to the console')
-    # ##TODO bot should have a seperate temp flag from logging
-    cl_parser.add_argument(
-        '-t', '--temporary', action='store_true',
-        help='\tdo not write values out to disk')
-    return cl_parser.parse_args()
-
-
 def _parseSubsection(section: str, parser: ConfigParser) -> dict:
-    r"""Aggragate subsection data from the parser.
+    r"""Aggregate subsection data from the parser.
 
     Use the keys field of a section to determine subsections and gather all
     subsections into a single dictionary.
