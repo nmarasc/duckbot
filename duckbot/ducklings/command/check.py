@@ -1,7 +1,7 @@
 # Duckbot util modules
-import util.moduleLoader as modloader
-from util.common import matchUserID
-from util.common import bank
+import duckbot.util.moduleLoader as modloader
+from duckbot.util.common import matchUserID
+from duckbot.util.common import bank
 
 # Valid command names
 NAMES = [

@@ -1,6 +1,6 @@
 # Last Updated: 2.2
-import util.common as util
-from util.bidict import bidict
+import duckbot.util.common as util
+from duckbot.util.bidict import bidict
 
 GAME_OPS = {
     #{{{ - Coin options

@@ -2,9 +2,12 @@
 # Python imports
 import sys
 import re
+import logging
 # Duckbot util modules
-from util.common import roll
-from util.common import parseNum
+from duckbot.util.common import roll
+from duckbot.util.common import parseNum
+
+logger = logging.getLogger(__name__)
 
 # Valid command names
 NAMES = [
@@ -38,7 +41,7 @@ BASE_RATINGS = {
 
 # Regex used to determine a valid roll format of YdX or dX case
 # Don't look at it. It's gross, but it works
-EMOJI_REGEX = ':[a-zA-Z0-9_-+]+:'
+EMOJI_REGEX = ':[a-zA-Z0-9_\-+]+:'
 VALUE_REGEX = '{}|\d+'.format(EMOJI_REGEX)
 ROLL_REGEX = f'^({VALUE_REGEX})?D({VALUE_REGEX})$'
 
@@ -78,6 +81,7 @@ def _defaultRoll(roll_str):
     die_num = 1
     roll_upper = str.upper(roll_str)
     # Test parameter with regex for YdX or dX case
+    logger.info(f'{ROLL_REGEX} {roll_upper}')
     regex_result = re.search(ROLL_REGEX, roll_upper)
 
     if regex_result:  # There was a match
@@ -103,6 +107,7 @@ def _defaultRoll(roll_str):
             response_head = result
             response_tail = _emojiRating(result, die_sides)
         response = f'You rolled: {response_head} {response_tail}'
+    logger.info(f'response: {response}')
     return response
 
 # Roll for dnd character stats

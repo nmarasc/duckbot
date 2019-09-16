@@ -181,6 +181,7 @@ def parseLogConfig(args: dict) -> dict:
     config['loggers'] = _parseSubsection('loggers', parser)
 
     if args.debug:
+        config['root']['level'] = 'DEBUG'
         config['handlers']['default']['level'] = 'DEBUG'
         config['handlers']['console']['level'] = 'DEBUG'
     if args.verbose:

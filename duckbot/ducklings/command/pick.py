@@ -1,5 +1,5 @@
 # Duckbot util modules
-from util.common import roll
+from duckbot.util.common import roll
 
 # Valid command names
 NAMES = [

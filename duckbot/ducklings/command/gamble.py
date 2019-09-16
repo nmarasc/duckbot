@@ -2,11 +2,11 @@
 # Python imports
 from datetime import datetime
 # Project imports
-import util.common as util
-from util.rangeDict import rangedict
-from util.bank import Bank
-import util.bankMessage as bank_msgs
-import util.games as Games
+import duckbot.util.common as util
+from duckbot.util.rangeDict import rangedict
+from duckbot.util.bank import Bank
+import duckbot.util.bankMessage as bank_msgs
+import duckbot.util.games as Games
 
 # Gambling handler class
 class GambleHandler:

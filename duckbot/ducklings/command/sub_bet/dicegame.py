@@ -1,7 +1,7 @@
 # Duckbot bet subcommand common module
-from ducklings.command.sub_bet.common import ERROR
+from duckbot.ducklings.command.sub_bet.common import ERROR
 # Duckbot util modules
-from util.common import roll
+from duckbot.util.common import roll
 # Python imports
 import re
 

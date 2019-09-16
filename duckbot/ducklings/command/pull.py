@@ -1,6 +1,6 @@
-from util.common import roll
-from util.rangeDict import rangedict
-from util.common import bank
+from duckbot.util.common import roll
+from duckbot.util.rangeDict import rangedict
+from duckbot.util.common import bank
 
 # Valid command names
 NAMES = [

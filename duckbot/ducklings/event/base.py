@@ -1,5 +1,4 @@
 # Duckbot util modules
-import duckbot.util.moduleLoader as modloader
 from duckbot.util.event import Event
 
 # Event management class
@@ -18,8 +17,6 @@ class EventManager:
     def __init__(self):
         # Load event handlers
         self.event_handlers = modloader.loadFrom('ducklings.event')
-        # Initialize bot commands
-        command_modules = self._initCommands()
         # Give command references to message handler
         self.event_handlers['message'].COMMANDS = command_modules
 
@@ -27,26 +24,4 @@ class EventManager:
     # Params: event - non standardized event
     # Return: String response from event handlers
     def dispatch(self, event):
-        response = {'return_code': 0}
-        # Create standardized event
-        event = Event(event)
-        try: # Call event handler for event type
-            response = self.event_handlers[event.type].process(event)
-            #TODO: Check rc maybe
-        except KeyError: # Unrecognized event type, ignore
-            response['return_code'] = -1
-            response['message'] = None
-        except AttributeError: # No process function defined
-            response['return_code'] = 1
-            error = self.ERROR['NO_PROCESS_FN'].format(event.type)
-            response['message'] = error
-        return response
 
-    # Loads and initializes bot commands
-    # Params: None
-    # Return: Dictionary of module names mapped to their modules
-    def _initCommands(self):
-        # Load in command modules
-        mods = modloader.loadBotCommands()
-        # Give HELP command access to modules for help messages
-        mods['HELP'].COMMANDS = mods

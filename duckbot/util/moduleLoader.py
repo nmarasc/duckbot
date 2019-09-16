@@ -12,7 +12,8 @@ EVT_ROOT = os.path.join(MOD_ROOT, 'event')
 # Params: None
 # Return: Dictionary containing command names mapped to modules
 def loadBotCommands():
-    path = '{}.{}'.format(
+    path = '{}.{}.{}'.format(
+        os.path.basename(SRC_ROOT),
         os.path.basename(MOD_ROOT),
         os.path.basename(CMD_ROOT)
     )
@@ -23,19 +24,19 @@ def loadBotCommands():
 # Return: Dictionary with modules mapped to their names or
 #         None if the package does not exist
 def loadSubCommands(package):
-    path = f'{{}}.{{}}.sub_{package}'.format(
+    path = f'{{}}.{{}}.{{}}.sub_{package}'.format(
+        os.path.basename(SRC_ROOT),
         os.path.basename(MOD_ROOT),
         os.path.basename(CMD_ROOT)
     )
     return loadFrom(path)
 
 # Load modules from a specific package
-# Params: package - dot qualified package path, e.g. ducklings.command
+# Params: package - dot qualified path, e.g. duckbot.ducklings.command
 # Return: Dictionary with module defined names mapped to modules
 def loadFrom(package):
     # Build os path from package path
     pkg_path = os.path.join(*package.split('.'))
-    pkg_path = os.path.join(SRC_ROOT, pkg_path)
     if os.path.isdir(pkg_path):  # Confirm package exists
         # Get contained module names
         module_names = _getModuleNames(pkg_path)

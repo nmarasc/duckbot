@@ -1,5 +1,5 @@
 # Duckbot util modules
-from util.common import bank
+from duckbot.util.common import bank
 
 # Valid command names
 NAMES = [
