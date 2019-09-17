@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
-r"""
+r"""Duckbot chat clients.
+
+Class extensions for chat clients to allow for better control of event
+handling.
 """
+from typing import List
+from types import ModuleType
 import re
 import logging
 import discord
@@ -14,6 +19,12 @@ class DuckDiscordClient(discord.Client):
 
     Parameters
     ----------
+    commands : List[ModuleType]
+        Command modules
+    prefixes : List[str]
+    listen : bool
+        ``True`` if bot should not respond to messages
+
     Inherited from ``discord.Client``
 
     Attributes
@@ -25,73 +36,78 @@ class DuckDiscordClient(discord.Client):
     on_ready
         Called when successfully logged into client
 
+    on_message
+        Called when client receives a message event
+
     Inherited from ``discord.Client``
 
     Raises
     ------
     Inherited from ``discord.Client``
     """
-    def __init__(self, listen, commands):
-        self.listen = listen
+    def __init__(self, commands: List[ModuleType], prefixes: List[str],
+                 listen: bool):
         self.commands = commands
+        self.prefixes = prefixes
+        self.listen = listen
         super().__init__()
 
     async def on_ready(self):
         r"""Gather information when logged into client."""
+        self.prefixes.append(self.user.mention)
         logger.info(f'Duckbot logged into discord as {self.user}')
 
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message):
         r"""Discord message handler.
 
         Called when a message is received from Discord. Process the message
-        and give the appropriate response, which may be nothing.
+        and send the appropriate response, which may be nothing. If
+        `self.listen` is ``True``, no message will be sent.
 
         Parameters
         ----------
-        message
+        message : discord.Message
             Message event from Discord
         """
-#         logger.info(f'Message event: {message}')
+        response = None
         message.content = emoji.demojize(message.content)
         logger.info(f'Message from {message.author}: {message.content}')
 
-        response = {'return_code': 0}
-        logger.info(f'author: {message.author} user: {self.user}')
         if message.author != self.user:
-            # Extract command from event text
-            logger.info(message.content)
-            cmd, cmd_args = self._getCommand(message.content)
-            try: # Attempt to call command handler
+            cmd, args = self._getCommand(message.content)
+            logger.info(f'cmd: {cmd}')
+            try:
                 response = self.commands[cmd].handle(
                     message.author.id,
                     message.channel.id,
-                    cmd_args
+                    args
                 )
-                #TODO: check rc maybe
-            except KeyError: # No command or unrecognized, ignore
-                response['return_code'] = -1
-                response['message'] = None
-            logger.info(f"Response: {response['message']}")
+            except KeyError:
+                pass
+            if cmd in self.commands['HELP'].NAMES and response:
+                response = response.format(bot=self.user.mention)
+            logger.info(f"Response: {response}")
 
     def _getCommand(self, text):
-        # Message event with no text? Don't even know if it's possible
-        # But I'll stop it if it is
-        if not text:
-            return None, None
+        r"""Split command prefix from args.
 
-        # Break up the text and try to match the trigger with the bot_id
-        text_arr = re.split(r'\s+',text.strip())
-        trigger = text_arr.pop(0).upper()
-        id_str = re.sub('[<@>]','',trigger)
-        logger.info(f'trigger: {trigger} id_str: {id_str}')
+        Check for valid command prefix and split message text.
 
-        # Check for mention from id or trigger, then get command
-        logger.info(f'{id_str == self.user.id}')
-        if ((id_str == str(self.user.id)) or
-            (trigger   == ":DUCKBOT:")) and text_arr:
-            c_word = text_arr.pop(0).upper()
-            return c_word, text_arr
+        Parameters
+        ----------
+        text
+            Message text from discord
 
-        # No mention or no command word, ignore
-        else:
-            return None, None
+        Returns
+        -------
+        str
+            Command word
+        List[str]
+            Command arguments
+        """
+        cmd = None
+        args = re.split(r'\s+', text.strip())
+        prefix = args.pop(0).upper()
+        if prefix in self.prefixes and args:
+            cmd = args.pop(0).upper()
+        return cmd, args

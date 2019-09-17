@@ -84,9 +84,7 @@ def duckboot(args: dict) -> Duckbot:
         Duckbot instance or None on failure
     """
     config = {
-        'slack': CONNECT_SLACK,
         'slack_token': None,
-        'discord': CONNECT_DISCORD,
         'discord_token': None,
         'temporary': False,
         'listen': args.listen

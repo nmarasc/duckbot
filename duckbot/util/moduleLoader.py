@@ -67,8 +67,10 @@ def _loadModules(mod_paths):
     for path in mod_paths:
         # Import the module
         module = importlib.import_module(path)
-        try:  # See if the module defined its own names
-            loaded = {**{name:module for name in module.NAMES}, **loaded}
-        except AttributeError:  # Otherwise use the path basename
-            loaded[path.split('.')[-1]] = module
+        if not hasattr(module, 'DISABLED') or not module.DISABLED:
+            try:  # See if the module defined its own names
+                new = {name:module for name in module.NAMES}
+                loaded = {**new, **loaded}
+            except AttributeError:  # Otherwise use the path basename
+                loaded[path.split('.')[-1]] = module
     return loaded

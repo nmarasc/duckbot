@@ -81,7 +81,6 @@ def _defaultRoll(roll_str):
     die_num = 1
     roll_upper = str.upper(roll_str)
     # Test parameter with regex for YdX or dX case
-    logger.info(f'{ROLL_REGEX} {roll_upper}')
     regex_result = re.search(ROLL_REGEX, roll_upper)
 
     if regex_result:  # There was a match

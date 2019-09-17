@@ -54,37 +54,49 @@ class Duckbot:
 
     Attributes
     ----------
-    slack_token : str
-        Slack client bot token
-    discord_token : str
-        Discord client bot token
+    loop : asyncio.AbstractEventLoop
+        Event loop for bot
     temporary : bool
-        True if not saving bot state
+        ``True`` if not saving bot state
     listen : bool
-        True if not replying to messages
+        ``True`` if not replying to messages
+    tokens : dict
+        Bot tokens for Slack and Discord
+    clients : dict
+        Chat client instances
+
+    Methods
+    -------
+    run
+        Schedule bot tasks and start the event loop
 
     Raises
     ------
     ValueError
-        A client connection was requested with no token
+        Bot was created with no client tokens
 
     Configuration Dictionary
     ------------------------
-    slack : bool
-        True if connecting to Slack
-    slack_token : str
+    slack_token : str or None
         Slack client token
-    discord : bool
-        True if connecting to Discord
-    discord_token : str
+    discord_token : str or None
         Discord client token
     temporary : bool
-        True if bot state should not be saved
+        ``True`` if bot state should not be saved
     listen : bool
-        True if bot should not respond to messages
+        ``True`` if bot should not respond to messages
     """
+    _TICK_ROLLOVER = 3600
+    _PREFIXES = [':DUCKBOT:']
+
     def __init__(self, config: Union[dict, str]) -> None:
         r"""Duckbot initialization."""
+        # ##FIXME actually support path config like the docs say
+        assert type(config) is dict
+
+        self._ticks = 0
+        self.loop = asyncio.get_event_loop()
+
         self.temporary = config['temporary']
         self.listen = config['listen']
 
@@ -93,39 +105,28 @@ class Duckbot:
             'discord': config['discord_token']
         }
         self.clients = {'slack': None, 'discord': None}
+        self._initCommands()
 
-        self.loop = asyncio.get_event_loop()
-        self.ticks = 0
-        self.tick_rollover = 3600
 #         self.cooldown = 0
 #         self.wish_countdown = 0
 #         self.wish_time = datetime(1,1,1,16)
 #         self.wish_channel = 'random'
-        self._initCommands()
 
-        if config['slack']:
-            if self.tokens['slack']:
-                self.clients['slack'] = 'No slackclient yet'
-            else:
-                logger.critical(
-                    'Slack connection requested, but no token was '
-                    'provided!'
-                )
-                raise ValueError('No slack token provided')
+        if not any(self.tokens.values()):
+            logger.critical('No tokens were provided!')
+            raise ValueError('no tokens provided')
 
-        if config['discord']:
-            if self.tokens['discord']:
-                self.clients['discord'] = DuckDiscordClient(
-                    self.listen,
-                    self.commands
-                )
-                logger.info('Discord client created')
-            else:
-                logger.critical(
-                    'Discord connection requested, but no token was '
-                    'provided!'
-                )
-                raise ValueError('No discord token provided')
+        # ##TODO create slack client
+        if self.tokens['slack']:
+            self.clients['slack'] = None
+
+        if self.tokens['discord']:
+            self.clients['discord'] = DuckDiscordClient(
+                self._commands,
+                self._PREFIXES,
+                self.listen
+            )
+            logger.info('Discord client created')
 
     def run(self) -> int:
         r"""Duckbot main loop.
@@ -147,7 +148,7 @@ class Duckbot:
             self.loop.create_task(client.start(token))
             logger.info('Discord client task created')
 
-        self.loop.create_task(self.tick())
+        self.loop.create_task(self._tick())
         logger.info('Duckbot tick task created')
 
         try:
@@ -163,16 +164,16 @@ class Duckbot:
         self.loop.close()
         return exit_code
 
-    async def tick(self):
+    async def _tick(self):
         r"""Duckbot timed event handler."""
         while self._running:
-            self.ticks = (self.ticks + 1) % self.tick_rollover
+            self._ticks = (self._ticks + 1) % self._TICK_ROLLOVER
             await asyncio.sleep(10)
 
     def _initCommands(self):
         r"""Initialize bot commands."""
-        self.commands = modloader.loadBotCommands()
-        self.commands['HELP'].COMMANDS = self.commands
+        self._commands = modloader.loadBotCommands()
+        self._commands['HELP'].COMMANDS = self._commands
 
     # Receives events and passes them to the event manager
     # Params: event - incoming event to process

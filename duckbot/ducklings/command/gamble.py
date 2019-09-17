@@ -8,6 +8,8 @@ from duckbot.util.bank import Bank
 import duckbot.util.bankMessage as bank_msgs
 import duckbot.util.games as Games
 
+DISABLED = True
+
 # Gambling handler class
 class GambleHandler:
     REFRESH_TIME = datetime(1,1,1,12)

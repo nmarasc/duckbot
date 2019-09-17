@@ -1,4 +1,7 @@
 # Last Updated: 2.2
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Valid command names
 NAMES = [
@@ -16,9 +19,10 @@ HELP = "Don't get smart, you know how to use this :duck:"
 # General help variables
 PURPOSE = 'Duckbot is a general purpose slackbot for doing various things'
 USAGE = (
-    'To interact with it use <@{{id}}> <command>\n'
-    'Supported commands: {}\n'
-    f'Use <@{{{id}}}> {NAMES[0]} <command> for more details'
+    'To interact with it use {bot} <command>\n'
+    'Supported commands: {cmds}\n'
+    'Use {bot} '
+    f'{NAMES[0]} <command> for more details'
 )
 
 # Command responses
@@ -37,12 +41,18 @@ COMMANDS = {}
 #         cmd_args - list containing command argument text
 # Return: String containing command response
 def handle(user, channel, cmd_args):
+    response = None
     try:
         command = COMMANDS.get(str.upper(cmd_args[0]), None)
         response = command.getHelp(cmd_args[1:])
     except IndexError:  # No arguments, default help
-        command_names = [cmd.NAMES[0] for cmd in COMMANDS]
-        response = f'{PURPOSE}\n{USAGE}'.format(', '.join(command_names))
+        command_names = {cmd.NAMES[0] for cmd in COMMANDS.values()}
+#         logger.info(f'Purpose: {PURPOSE}')
+#         logger.info(f'Usage: {USAGE}')
+        response = f'{PURPOSE}\n{USAGE}'.format(
+            cmds=', '.join(command_names)
+        )
+        logger.info(response)
     except AttributeError:  # Invalid command or no help defined
         if not command:  # Command was invalid
             response = RESPONSES['BAD_CMD'].format(cmd_args[0])
