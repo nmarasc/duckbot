@@ -25,7 +25,7 @@ REQUIRES_PYTHON = '>=3.6.0'
 # Only include direct dependencies, transitive dependencies should be
 # handled automatically.
 REQUIRED = [
-    'slackclient', 'discord'
+    'slackclient', 'discord', 'emoji'
 ]
 
 # What packages are optional?
