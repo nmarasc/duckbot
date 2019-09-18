@@ -154,17 +154,16 @@ def parseLabels(text):
 #}}}
 
 # Convert a string containing a number or an emoji to an int
-# Params: str_val - String to parse
-# Return: int representing the string value, or -1 if invalid
-def parseNum(str_val):
+# Params: value - String to parse
+# Return: int representing the string value, or the original string if invalid
+def parseNum(value):
     # Check for a numeric value
     try:
-        int_val = int(str_val)
+        value = int(value)
     # Or an emoji value
-    # int_val is set to -1 if no emoji value was found
     except ValueError:
-        int_val = EMOJI_ROLLS.get(str_val, -1)
-    return int_val
+        value = EMOJI_ROLLS.get(value, value)
+    return value
 
 # Rolls randomly with the parameters given and returns numbers in a list
 # Params: die_size - number of sides on the dice rolling

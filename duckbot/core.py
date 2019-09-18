@@ -58,7 +58,7 @@ class Duckbot:
         Event loop for bot
     temporary : bool
         ``True`` if not saving bot state
-    listen : bool
+    muted : bool
         ``True`` if not replying to messages
     tokens : dict
         Bot tokens for Slack and Discord
@@ -83,7 +83,7 @@ class Duckbot:
         Discord client token
     temporary : bool
         ``True`` if bot state should not be saved
-    listen : bool
+    muted : bool
         ``True`` if bot should not respond to messages
     """
     _TICK_ROLLOVER = 3600
@@ -98,7 +98,7 @@ class Duckbot:
         self.loop = asyncio.get_event_loop()
 
         self.temporary = config['temporary']
-        self.listen = config['listen']
+        self.muted = config['muted']
 
         self.tokens = {
             'slack': config['slack_token'],
@@ -124,7 +124,7 @@ class Duckbot:
             self.clients['discord'] = DuckDiscordClient(
                 self._commands,
                 self._PREFIXES,
-                self.listen
+                self.muted
             )
             logger.info('Discord client created')
 

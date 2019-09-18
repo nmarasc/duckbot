@@ -14,7 +14,7 @@ USAGE = f'Usage: {{bot}} {NAMES[0]}'
 #         cmd_args - list of command arguments, **unused**
 # Return: String containing command response
 def handle(user, channel, cmd_args):
-    return 'Kweh! :DUCK:'
+    return 'Kweh! :duck:'
 
 # Retrieve command help message
 # Params: args - help arguments, **unused**

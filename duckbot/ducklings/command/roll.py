@@ -27,7 +27,8 @@ NAMES_SPECIAL = {
     'CHARACTER': [
         'CHARACTER',
         'CHAR',
-        ':DRAGON:'
+        ':DRAGON:',
+        ':DRAGON_FACE:'
     ]
 }
 
@@ -93,9 +94,9 @@ def _defaultRoll(roll_str):
         die_sides = parseNum(roll_upper)
 
     # Check values are in the valid ranges
-    if (die_num not in DIE_RANGE_NUM):  # Invalid number of dice
+    if (type(die_num) == str or die_num not in DIE_RANGE_NUM):
         response = f'{die_num} is not in the valid range'
-    elif (die_sides not in DIE_RANGE_SIDES):  # Invalid number of sides
+    elif (type(die_sides) == str or die_sides not in DIE_RANGE_SIDES):
         response = f'{die_sides} is not in the valid range'
     else:  # Ready to roll
         result = roll(die_sides, die_num)

@@ -87,7 +87,7 @@ def duckboot(args: dict) -> Duckbot:
         'slack_token': None,
         'discord_token': None,
         'temporary': False,
-        'listen': args.listen
+        'muted': args.muted
     }
 
     if CONNECT_SLACK:
@@ -131,7 +131,7 @@ def parseCommandLine() -> dict:
         '-v', '--verbose', action='store_true',
         help='\tprint log messages to the console')
     cl_parser.add_argument(
-        '-l', '--listen', action='store_true', default=False,
+        '-m', '--muted', action='store_true', default=False,
         help='\ttell bot not to respond to messages')
     cl_parser.add_argument(
         '-t', '--temporary', action='store', const='all',
