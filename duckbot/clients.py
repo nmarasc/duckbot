@@ -82,11 +82,13 @@ class DuckDiscordClient(discord.Client):
                     message.channel.id,
                     args
                 )
+                if cmd in self.commands['HELP'].NAMES:
+                    response = response.format(bot=self.user.mention)
             except KeyError:
                 pass
-            if cmd in self.commands['HELP'].NAMES and response:
-                response = response.format(bot=self.user.mention)
-            logger.info(f"Response: {response}")
+        if response:
+            response = f'{message.author.mention} {response}'
+            logger.info(response)
 
     def _getCommand(self, text):
         r"""Split command prefix from args.

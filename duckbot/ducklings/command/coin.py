@@ -8,7 +8,7 @@ NAMES = [
 
 # Command help variables
 PURPOSE = 'Flip a coin'
-USAGE = f'Usage: <@{{id}}> {NAMES[0]}'
+USAGE = f'Usage: {{bot}} {NAMES[0]}'
 
 # Flip a coin
 # Params: user     - user id issuing command, **unused**

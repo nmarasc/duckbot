@@ -2,6 +2,8 @@ from duckbot.util.common import roll
 from duckbot.util.rangeDict import rangedict
 from duckbot.util.common import bank
 
+DISABLED = True
+
 # Valid command names
 NAMES = [
     'PULL'

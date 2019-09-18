@@ -1,6 +1,8 @@
 # Duckbot util modules
 from duckbot.util.common import roll
 
+DISABLED = True
+
 # Valid command names
 NAMES = [
     'PICK',

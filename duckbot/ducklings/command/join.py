@@ -1,6 +1,8 @@
 # Duckbot util modules
 from duckbot.util.common import bank
 
+DISABLED = True
+
 # Valid command names
 NAMES = [
     'JOIN'

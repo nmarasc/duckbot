@@ -18,7 +18,7 @@ NAMES = [
 # Command help variables
 PURPOSE = 'Rolls dice based on parameters given'
 USAGE = (
-    f'Usage: <@{{id}}> {NAMES[0]} ( [d]X | YdX )\n'
+    f'Usage: {{bot}} {NAMES[0]} ( [d]X | YdX )\n'
     'Where X is the number of faces and Y is the number of dice'
 )
 

@@ -10,7 +10,7 @@ NAMES = [
 
 # Command help variables
 PURPOSE = 'Shake the magic 8ball'
-USAGE = f'Usage: <@{{id}}> {NAMES[0]}'
+USAGE = f'Usage: {{bot}} {NAMES[0]}'
 
 # Eightball response messages
 MESSAGES = [

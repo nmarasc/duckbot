@@ -3,6 +3,8 @@ import duckbot.util.moduleLoader as modloader
 from duckbot.util.common import matchUserID
 from duckbot.util.common import bank
 
+DISABLED = True
+
 # Valid command names
 NAMES = [
     'CHECK',

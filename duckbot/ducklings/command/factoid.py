@@ -6,7 +6,7 @@ NAMES = [
 
 # Command help variables
 PURPOSE = 'Pull out a random and totally true fact'
-USAGE = f'Usage: <@{{id}}> {NAMES[0]}'
+USAGE = f'Usage: {{bot}} {NAMES[0]}'
 
 # Generate a random ad lib fact
 # Params: user     - user id issuing command, **unused**

@@ -6,6 +6,8 @@ from duckbot.util.common import matchUserID
 from duckbot.util.common import parseNum
 from duckbot.util.common import bank
 
+DISABLED = True
+
 # Valid command names
 NAMES = [
     'BET'

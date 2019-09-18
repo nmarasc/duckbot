@@ -6,7 +6,7 @@ NAMES = [
 
 # Command help variables
 PURPOSE = 'Legacy HI command'
-USAGE = f'Usage: <@{{id}}> {NAMES[0]}'
+USAGE = f'Usage: {{bot}} {NAMES[0]}'
 
 # Say hello
 # Params: user     - user id issuing command, **unused**
