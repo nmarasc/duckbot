@@ -1,62 +1,107 @@
-# Python imports
+# -*- coding: utf-8 -*-
+r"""Duckbot module loader.
+
+Dynamically import duckbot modules, such as commands and utilities.
+"""
 import importlib
 import os
 
-UTL_ROOT = os.path.dirname(os.path.realpath(__file__))
-SRC_ROOT = os.path.dirname(UTL_ROOT)
-MOD_ROOT = os.path.join(SRC_ROOT, 'ducklings')
-CMD_ROOT = os.path.join(MOD_ROOT, 'command')
-EVT_ROOT = os.path.join(MOD_ROOT, 'event')
+# UTL_ROOT = os.path.dirname(os.path.realpath(__file__))
+# SRC_ROOT = os.path.dirname(_UTL_ROOT)
+# MOD_ROOT = os.path.join(SRC_ROOT, 'ducklings')
+# CMD_ROOT = os.path.join(MOD_ROOT, 'command')
+_TOP_PACKAGE = 'duckbot'
+_CMD_PACKAGE = 'commands'
+_UTL_PACKAGE = 'util'
 
-# Load the bot command modules
-# Params: None
-# Return: Dictionary containing command names mapped to modules
+
 def loadBotCommands():
-    path = '{}.{}.{}'.format(
-        os.path.basename(SRC_ROOT),
-        os.path.basename(MOD_ROOT),
-        os.path.basename(CMD_ROOT)
-    )
-    return loadFrom(path)
+    r"""Load bot command modules.
 
-# Load bot subcommand modules from given package
-# Params: package - name of subcommand package
-# Return: Dictionary with modules mapped to their names or
-#         None if the package does not exist
-def loadSubCommands(package):
-    path = f'{{}}.{{}}.{{}}.sub_{package}'.format(
-        os.path.basename(SRC_ROOT),
-        os.path.basename(MOD_ROOT),
-        os.path.basename(CMD_ROOT)
-    )
-    return loadFrom(path)
+    Returns
+    -------
+    dict or None
+        Command names mapped to their modules
 
-# Load modules from a specific package
-# Params: package - dot qualified path, e.g. duckbot.ducklings.command
-# Return: Dictionary with module defined names mapped to modules
-def loadFrom(package):
-    # Build os path from package path
-    pkg_path = os.path.join(*package.split('.'))
-    if os.path.isdir(pkg_path):  # Confirm package exists
-        # Get contained module names
-        module_names = _getModuleNames(pkg_path)
-        # Attach modules to anchor
-        paths = [f'{package}.{name}' for name in module_names]
-        # Load the modules
+    See Also
+    --------
+    `moduleLoader.loadFrom` for more details
+    """
+    return loadFrom(f'{_TOP_PACKAGE}.{_CMD_PACKAGE}')
+
+
+def loadSubCommands(package: str):
+    r"""Load subcommands from a given package name.
+
+    Parameters
+    ----------
+    package
+        Name of package to load subcommands for
+
+    Returns
+    -------
+    dict or None
+        Subcommand names mapped to their modules
+
+    See Also
+    --------
+    `moduleLoader.loadFrom` for more details
+    """
+    return loadFrom(f'{_TOP_PACKAGE}.{_CMD_PACKAGE}.sub_{package}')
+
+
+def loadFrom(package: str):
+    r"""Load modules from an arbitrary package.
+
+    Dynamically import modules located inside of package name provided. If
+    package is not in `PYTHONPATH` then no modules will be loaded.
+
+    Parameters
+    ----------
+    package
+        Dot qualified package path, e.g. duckbot.util
+
+    Returns
+    -------
+    dict or None
+        Module names mapped to the modules
+    """
+    modules = None
+    path = os.path.join(*package.split('.'))
+    if os.path.isdir(path):
+        names = _getModuleNames(path)
+        paths = [f'{package}.{name}' for name in names]
         modules = _loadModules(paths)
-    else:  # Package did not exist
-        modules = None
     return modules
 
-# Find module names from given path
-# Params: path - absolute package path to check for modules
-# Return: list of contained module names
-# Note  : Assumes that the package exists and is not empty
+
 def _getModuleNames(path):
-    # Get file names contained in the path
+    r"""Find modules in the given package path.
+
+    Get the names of modules at a given relative path. Modules that begin
+    with '_' will not be included.
+
+    Parameters
+    ----------
+    path
+        Relative path to package directory
+
+    Returns
+    -------
+    list[str]
+        Module names
+    """
+    modules = []
+    # This assumes the directory is not empty. There should always at least
+    # be an __init__.py in the package directory if things are structured
+    # properly.
     _, _, filenames = next(os.walk(path))
-    # Remove file extensions and modules starting with '_'
-    modules = [f[:f.index('.')] for f in filenames if not f.startswith('_')]
+    for name in filenames:
+        name = name.split('.')
+        # This also assumes that modules will not have '.' in the name.
+        # It's better to die than let that happen anyway.
+        if name[1] == 'py' and not name[0].startswith('_'):
+            modules.append(name[0])
     return modules
 
 # Import modules and map them to their names in a dictionary

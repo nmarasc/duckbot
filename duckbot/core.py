@@ -14,7 +14,6 @@ Attributes
 EXIT_CODES : dict
     Exit reasons and their associated numeric value
 """
-# Python imports
 from typing import Union
 import asyncio
 import logging
