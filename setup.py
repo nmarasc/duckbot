@@ -19,13 +19,13 @@ from duckbot import __author_email__ as EMAIL
 from duckbot import __author__ as AUTHOR
 from duckbot import __version__ as VERSION
 from duckbot import __license__ as LICENSE
-REQUIRES_PYTHON = '>=3.6.0'
+REQUIRES_PYTHON = '>=3.7.0'
 
 # What packages are required for this module to be executed?
 # Only include direct dependencies, transitive dependencies should be
 # handled automatically.
 REQUIRED = [
-    'slackclient', 'discord', 'emoji'
+    'slackclient', 'discord.py', 'emoji'
 ]
 
 # What packages are optional?

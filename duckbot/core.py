@@ -159,8 +159,10 @@ class Duckbot:
         finally:
             logger.info('Stopping tasks now')
             self._running = False
-            self.loop.stop()
             self.loop.run_until_complete(self.clients['discord'].logout())
+            tasks = asyncio.all_tasks(self.loop)
+            self.loop.run_until_complete(asyncio.gather(*tasks))
+            self.loop.stop()
         self.loop.close()
         return exit_code
 
