@@ -3,13 +3,13 @@ r"""Duckbot module loader.
 
 Dynamically import duckbot modules, such as commands and utilities.
 """
+from typing import List
+import logging
 import importlib
 import os
 
-# UTL_ROOT = os.path.dirname(os.path.realpath(__file__))
-# SRC_ROOT = os.path.dirname(_UTL_ROOT)
-# MOD_ROOT = os.path.join(SRC_ROOT, 'ducklings')
-# CMD_ROOT = os.path.join(MOD_ROOT, 'command')
+logger = logging.getLogger(__name__)
+
 _TOP_PACKAGE = 'duckbot'
 _CMD_PACKAGE = 'commands'
 _UTL_PACKAGE = 'util'
@@ -27,6 +27,7 @@ def loadBotCommands():
     --------
     `moduleLoader.loadFrom` for more details
     """
+    logger.info('Loading bot commands')
     return loadFrom(f'{_TOP_PACKAGE}.{_CMD_PACKAGE}')
 
 
@@ -47,6 +48,7 @@ def loadSubCommands(package: str):
     --------
     `moduleLoader.loadFrom` for more details
     """
+    logger.info(f'Loading subcommands for package: {package}')
     return loadFrom(f'{_TOP_PACKAGE}.{_CMD_PACKAGE}.sub_{package}')
 
 
@@ -54,7 +56,8 @@ def loadFrom(package: str):
     r"""Load modules from an arbitrary package.
 
     Dynamically import modules located inside of package name provided. If
-    package is not in `PYTHONPATH` then no modules will be loaded.
+    package is not in `PYTHONPATH` environment variable then no modules
+    will be loaded.
 
     Parameters
     ----------
@@ -67,15 +70,18 @@ def loadFrom(package: str):
         Module names mapped to the modules
     """
     modules = None
-    path = os.path.join(*package.split('.'))
+    path = os.path.realpath(os.path.join(*package.split('.')))
     if os.path.isdir(path):
         names = _getModuleNames(path)
         paths = [f'{package}.{name}' for name in names]
+        logger.info(paths)
         modules = _loadModules(paths)
+    else:
+        logger.error(f'{package} not found. No modules loaded.')
     return modules
 
 
-def _getModuleNames(path):
+def _getModuleNames(path: str):
     r"""Find modules in the given package path.
 
     Get the names of modules at a given relative path. Modules that begin
@@ -104,18 +110,34 @@ def _getModuleNames(path):
             modules.append(name[0])
     return modules
 
-# Import modules and map them to their names in a dictionary
-# Params: mod_paths - list of dot qualified module paths to be imported
-# Return: Dictionary with module names mapped to the module
-def _loadModules(mod_paths):
+
+def _loadModules(paths: List[str]):
+    r"""Import requested modules.
+
+    Import modules from a given list of dot qualified paths and give back a
+    mapping of the module names to the module itself. If a module has
+    defined a `NAMES` attribute then those values will be used as names for
+    the module, otherwise the file name will be used. If a module has a
+    `DISABLED` attribute and it is ``True`` then that module will not be
+    returned.
+
+    Parameters
+    ----------
+    paths
+        Dot qualified module paths
+
+    Returns
+    -------
+    dict
+        Module names mapped to modules
+    """
     loaded = {}
-    for path in mod_paths:
-        # Import the module
+    for path in paths:
         module = importlib.import_module(path)
-        if not hasattr(module, 'DISABLED') or not module.DISABLED:
-            try:  # See if the module defined its own names
-                new = {name:module for name in module.NAMES}
+        if not (hasattr(module, 'DISABLED') and module.DISABLED):
+            try:
+                new = {name: module for name in module.NAMES}
                 loaded = {**new, **loaded}
-            except AttributeError:  # Otherwise use the path basename
+            except AttributeError:
                 loaded[path.split('.')[-1]] = module
     return loaded
