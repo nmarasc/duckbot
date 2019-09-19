@@ -5,8 +5,9 @@ Dynamically import duckbot modules, such as commands and utilities.
 """
 from typing import List
 import logging
-import importlib
+
 import os
+import importlib
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ _CMD_PACKAGE = 'commands'
 _UTL_PACKAGE = 'util'
 
 
-def loadBotCommands():
+def loadBotCommands() -> dict:
     r"""Load bot command modules.
 
     Returns
@@ -31,7 +32,7 @@ def loadBotCommands():
     return loadFrom(f'{_TOP_PACKAGE}.{_CMD_PACKAGE}')
 
 
-def loadSubCommands(package: str):
+def loadSubCommands(package: str) -> dict:
     r"""Load subcommands from a given package name.
 
     Parameters
@@ -52,7 +53,7 @@ def loadSubCommands(package: str):
     return loadFrom(f'{_TOP_PACKAGE}.{_CMD_PACKAGE}.sub_{package}')
 
 
-def loadFrom(package: str):
+def loadFrom(package: str) -> dict:
     r"""Load modules from an arbitrary package.
 
     Dynamically import modules located inside of package name provided. If
@@ -81,7 +82,7 @@ def loadFrom(package: str):
     return modules
 
 
-def _getModuleNames(path: str):
+def _getModuleNames(path: str) -> List[str]:
     r"""Find modules in the given package path.
 
     Get the names of modules at a given relative path. Modules that begin
@@ -111,7 +112,7 @@ def _getModuleNames(path: str):
     return modules
 
 
-def _loadModules(paths: List[str]):
+def _loadModules(paths: List[str]) -> dict:
     r"""Import requested modules.
 
     Import modules from a given list of dot qualified paths and give back a
