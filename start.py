@@ -5,16 +5,15 @@ r"""Main driver script for Duckbot.
 This script handles program setup (commmand line parsing, logging config,
 etc) and then starts Duckbot.
 """
-# Python imports
+import logging
+import logging.config
+
 import sys
 import os
 import re
-import logging
-import logging.config
 import argparse
 from configparser import ConfigParser, ExtendedInterpolation
 
-# Duckbot imports
 from duckbot import Duckbot
 from duckbot import EXIT_CODES
 # ##FIXME don't reach into the bowels of the package
@@ -48,6 +47,7 @@ def main() -> int:
 
     log_conf = parseLogConfig(args)
     logging.config.dictConfig(log_conf)
+    logging.getLogger('duckbot.clients').setLevel('DEBUG')
     logger = logging.getLogger(__name__)
     logger.info('Logging configured and initialized')
 

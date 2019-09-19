@@ -26,7 +26,7 @@ def loadBotCommands() -> dict:
 
     See Also
     --------
-    `moduleLoader.loadFrom` for more details
+    `modloader.loadFrom` for more details
     """
     logger.info('Loading bot commands')
     return loadFrom(f'{_TOP_PACKAGE}.{_CMD_PACKAGE}')
@@ -47,7 +47,7 @@ def loadSubCommands(package: str) -> dict:
 
     See Also
     --------
-    `moduleLoader.loadFrom` for more details
+    `modloader.loadFrom` for more details
     """
     logger.info(f'Loading subcommands for package: {package}')
     return loadFrom(f'{_TOP_PACKAGE}.{_CMD_PACKAGE}.sub_{package}')

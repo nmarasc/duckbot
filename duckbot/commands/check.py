@@ -1,5 +1,5 @@
 # Duckbot util modules
-import duckbot.util.moduleLoader as modloader
+import duckbot.util.modloader as modloader
 from duckbot.util.common import matchUserID
 from duckbot.util.common import bank
 

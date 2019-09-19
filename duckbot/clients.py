@@ -4,10 +4,12 @@ r"""Duckbot chat clients.
 Class extensions for chat clients to allow for better control of event
 handling.
 """
-from typing import List
 from types import ModuleType
-import re
+from typing import List
 import logging
+
+import re
+
 import discord
 import emoji
 
@@ -85,7 +87,7 @@ class DuckDiscordClient(discord.Client):
             return
 
         message.content = emoji.demojize(message.content, use_aliases=True)
-        logger.info(f'Message from {message.author}: {message.content}')
+        logger.debug(f'Message from {message.author}: {message.content}')
         cmd, args = self._getCommand(message.content)
         try:
             response = self.commands[cmd].handle(

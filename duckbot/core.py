@@ -15,8 +15,9 @@ EXIT_CODES : dict
     Exit reasons and their associated numeric value
 """
 from typing import Union
-import asyncio
 import logging
+
+import asyncio
 # from datetime import datetime
 
 import duckbot.util.modloader as modloader
@@ -89,16 +90,15 @@ class Duckbot:
 
         self._ticks = 0
         self.loop = asyncio.get_event_loop()
+        self.clients = {'slack': None, 'discord': None}
+        self._initCommands()
 
         self.temporary = config['temporary']
         self.muted = config['muted']
-
         self.tokens = {
             'slack': config['slack_token'],
             'discord': config['discord_token']
         }
-        self.clients = {'slack': None, 'discord': None}
-        self._initCommands()
 
 #         self.cooldown = 0
 #         self.wish_countdown = 0
@@ -159,16 +159,16 @@ class Duckbot:
         self.loop.close()
         return exit_code
 
+    def _initCommands(self):
+        r"""Initialize bot commands."""
+        self._commands = modloader.loadBotCommands()
+        self._commands['HELP'].COMMANDS = self._commands
+
     async def _tick(self):
         r"""Duckbot timed event handler."""
         while self._running:
             self._ticks = (self._ticks + 1) % self._TICK_ROLLOVER
             await asyncio.sleep(10)
-
-    def _initCommands(self):
-        r"""Initialize bot commands."""
-        self._commands = modloader.loadBotCommands()
-        self._commands['HELP'].COMMANDS = self._commands
 
     # Set time until next wonderful day message
     # Params: None
