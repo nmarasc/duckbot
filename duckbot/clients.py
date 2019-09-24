@@ -25,10 +25,12 @@ class DuckDiscordClient(discord.Client):
         Command modules
     prefixes : List[str]
         Bot prefixes not specific to the client
+    wish_channel : int
+        Channel to send wonderful day message to
     muted : bool
         ``True`` if bot should not respond to messages
 
-    Inherited from ``discord.Client``
+    Inherited from `discord.Client`
 
     Attributes
     ----------
@@ -39,7 +41,7 @@ class DuckDiscordClient(discord.Client):
     muted : bool
         ``True`` if bot is not responding to messages
 
-    Inherited from ``discord.Client``
+    Inherited from `discord.Client`
 
     Methods
     -------
@@ -52,22 +54,26 @@ class DuckDiscordClient(discord.Client):
     on_message_edit
         Called when client receives a message edit event
 
-    Inherited from ``discord.Client``
+    Inherited from `discord.Client`
 
     Raises
     ------
-    Inherited from ``discord.Client``
+    Inherited from `discord.Client`
     """
     def __init__(self, commands: List[ModuleType], prefixes: List[str],
-                 muted: bool):
+                 wish_channel: int, muted: bool):
         self.commands = commands
         self.prefixes = prefixes
+        self.wish_channel = wish_channel
         self.muted = muted
         super().__init__()
 
     async def on_ready(self):
         r"""Gather information when logged into client."""
         self.prefixes.append(self.user.mention)
+        logger.info(self.wish_channel)
+        self.wish_channel = self.get_channel(self.wish_channel)
+        logger.info(f'Wish channel set as {self.wish_channel}')
         logger.info(f'Duckbot logged into discord as {self.user}')
 
     async def on_message(self, message: discord.Message):
@@ -79,7 +85,7 @@ class DuckDiscordClient(discord.Client):
 
         Parameters
         ----------
-        message : discord.Message
+        message
             Message event from Discord
         """
         response = None
@@ -101,11 +107,12 @@ class DuckDiscordClient(discord.Client):
             pass
         if response:
             response = f'{message.author.mention} {response}'
-            logger.info(response)
+            logger.info(f'response: {response}')
             if not self.muted:
                 await message.channel.send(response)
 
-    async def on_message_edit(self, before, after):
+    async def on_message_edit(self, before: discord.Message,
+                              after: discord.Message):
         r"""Discord message edit handler.
 
         Called when a message receives an edit. This can include anything
@@ -114,15 +121,22 @@ class DuckDiscordClient(discord.Client):
 
         Parameters
         ----------
-        before : discord.Message
+        before
             Message event before the edit
-        after : discord.Message
+        after
             Message event after the edit
         """
         if before.content != after.content:
             await self.on_message(after)
 
-    def _getCommand(self, text):
+    async def on_wish(self):
+        r"""Send a wonderful day farewell message."""
+        logger.info('Sending wonderful day message')
+        if self.wish_channel and not self.muted:
+            self.wish_channel.send('Go, have a wonderful day! :duck:')
+
+
+    def _getCommand(self, text: str) -> (str, List[str]):
         r"""Split command prefix from args.
 
         Check for valid command prefix and split message text.

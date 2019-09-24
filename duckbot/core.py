@@ -18,7 +18,7 @@ from typing import Union
 import logging
 
 import asyncio
-# from datetime import datetime
+from datetime import datetime
 
 import duckbot.util.modloader as modloader
 from duckbot.clients import DuckDiscordClient
@@ -82,6 +82,7 @@ class Duckbot:
     """
     _TICK_ROLLOVER = 3600
     _PREFIXES = [':DUCKBOT:']
+    _WISH_TIME = datetime(1, 1, 1, 16)
 
     def __init__(self, config: Union[dict, str]):
         r"""Duckbot initialization."""
@@ -89,12 +90,12 @@ class Duckbot:
         assert type(config) is dict
 
         self._ticks = 0
+        self._countdowns = {}
         self.loop = asyncio.get_event_loop()
         self.clients = {'slack': None, 'discord': None}
         self._initCommands()
 
         self.temporary = config['temporary']
-        self.muted = config['muted']
         self.tokens = {
             'slack': config['slack_token'],
             'discord': config['discord_token']
@@ -117,7 +118,8 @@ class Duckbot:
             self.clients['discord'] = DuckDiscordClient(
                 self._commands,
                 self._PREFIXES,
-                self.muted
+                config['channel'],
+                config['muted']
             )
             logger.info('Discord client created')
 
@@ -143,6 +145,7 @@ class Duckbot:
 
         self.loop.create_task(self._tick())
         logger.info('Duckbot tick task created')
+        self.loop.create_task(self._wishTimer())
 
         try:
             logger.info('Executing main event loop')
@@ -154,6 +157,8 @@ class Duckbot:
             self._running = False
             self.loop.run_until_complete(self.clients['discord'].logout())
             tasks = asyncio.all_tasks(self.loop)
+            for task in tasks:
+                task.cancel()
             self.loop.run_until_complete(asyncio.gather(*tasks))
             self.loop.stop()
         self.loop.close()
@@ -164,16 +169,22 @@ class Duckbot:
         self._commands = modloader.loadBotCommands()
         self._commands['HELP'].COMMANDS = self._commands
 
+    async def _wishTimer(self):
+        r"""Set time until next wonderful day message."""
+        while self._running:
+            time = datetime.now().replace(year=1, month=1, day=1)
+            try:
+                await asyncio.sleep((self._WISH_TIME - time).seconds)
+                await self.clients['discord'].on_wish()
+                await asyncio.sleep(1)
+            except asyncio.CancelledError:
+                logger.warning('Task cancelled: _wishTimer')
+
     async def _tick(self):
         r"""Duckbot timed event handler."""
+        await self.clients['discord'].wait_until_ready()
+
         while self._running:
             self._ticks = (self._ticks + 1) % self._TICK_ROLLOVER
-            await asyncio.sleep(10)
 
-    # Set time until next wonderful day message
-    # Params: None
-    # Return: None
-#     def _getWishTime(self):
-#         # Get current time
-#         current_time = datetime.now().replace(year = 1, month = 1, day = 1)
-#         self.wish_timer = (self.WISH_TIME - current_time).seconds
+            await asyncio.sleep(1)

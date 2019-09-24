@@ -63,7 +63,7 @@ def loadFrom(package: str) -> dict:
     Parameters
     ----------
     package
-        Dot qualified package path, e.g. duckbot.util
+        Dot qualified package path, e.g. `duckbot.util`
 
     Returns
     -------
@@ -75,7 +75,7 @@ def loadFrom(package: str) -> dict:
     if os.path.isdir(path):
         names = _getModuleNames(path)
         paths = [f'{package}.{name}' for name in names]
-        logger.info(paths)
+        logger.debug(paths)
         modules = _loadModules(paths)
     else:
         logger.error(f'{package} not found. No modules loaded.')

@@ -34,7 +34,7 @@ NAMES_SPECIAL = {
 
 # Base emoji roll ratings
 BASE_RATINGS = {
-      1: ':hyperbleh:',
+      1: ':clown:',
      13: ':ghost:',
      69: ':eggplant:',
     420: ':herb:'
@@ -50,7 +50,7 @@ ROLL_REGEX = f'^({VALUE_REGEX})?D({VALUE_REGEX})$'
 DIE_MAX_SIDES = sys.maxsize
 DIE_MAX_NUM = 111
 # Ranges for number of dice and number of sides per die
-DIE_RANGE_NUM = range(1, DIE_MAX_NUM)
+DIE_RANGE_NUM = range(1, DIE_MAX_NUM + 1)
 DIE_RANGE_SIDES = range(2, DIE_MAX_SIDES)
 
 # Get response from proper sub roll command
@@ -136,10 +136,10 @@ def _characterRoll():
 def _emojiRating(roll, die):
     emoji = BASE_RATINGS.get(roll, None)
     if roll == die:
-        emoji = ':partyparrot:'
+        emoji = ':tada:'
     elif emoji is None:
         if roll <= die/2:
-            emoji = ':bleh:'
+            emoji = ':-1:'
         else:
             emoji = ':ok_hand:'
     return emoji

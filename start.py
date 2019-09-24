@@ -31,13 +31,13 @@ CONNECT_SLACK = False
 def main() -> int:
     r"""Mainline entry point.
 
-    Create and run a Duckbot instance with supplied command line arguments
-    and config file options.
+    Create and run a `Duckbot` instance with command line arguments and
+    config file options.
 
     Returns
     -------
     int
-        Exit code from the bot (documented in duckbot.core)
+        Exit code from the bot (documented in `duckbot.core`)
     """
     # The logger is allowed to be global to the module, since everything
     # uses it.
@@ -59,7 +59,7 @@ def main() -> int:
         logger.info('Duckbot created and configured')
         exit_code = duckbot.run()
 
-    if exit_code != 0:
+    if exit_code != EXIT_CODES['EXIT_OK']:
         logger.critical('Duckbot failed with exit code: {exit_code}')
     else:
         logger.info('Duckbot shut down successfully')
@@ -67,7 +67,7 @@ def main() -> int:
 
 
 def duckboot(args: dict) -> Duckbot:
-    r"""Create a Duckbot instance.
+    r"""Create a `Duckbot` instance.
 
     Search for client tokens and instantiate a bot instance. The bot will
     fail to be created if connections are requested, but no tokens are
@@ -81,11 +81,12 @@ def duckboot(args: dict) -> Duckbot:
     Returns
     -------
     Duckbot
-        Duckbot instance or None on failure
+        `Duckbot` instance or ``None`` on failure
     """
     config = {
         'slack_token': None,
         'discord_token': None,
+        'channel': _findToken('WISH_CHANNEL'),
         'temporary': False,
         'muted': args.muted
     }
@@ -96,6 +97,8 @@ def duckboot(args: dict) -> Duckbot:
         config['discord_token'] = _findToken('DISCORD_TOKEN')
     if args.temporary in ['all', 'bot']:
         config['temporary'] = True
+    if config['channel']:
+        config['channel'] = int(config['channel'])
 
     duckbot = Duckbot(config)
     return duckbot
@@ -104,7 +107,7 @@ def duckboot(args: dict) -> Duckbot:
 def parseCommandLine() -> dict:
     r"""Parsing function for command line arguments.
 
-    Utilize the ``argparse`` package to handle gathering and parsing of
+    Utilize the `argparse` package to handle gathering and parsing of
     command line arguments.
 
     Returns
@@ -116,10 +119,11 @@ def parseCommandLine() -> dict:
     cl_parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=('options:\n'
+        epilog=(
+            'options:\n'
             '  log\tlogging messages are temporary\n'
             '  bot\tbot state is temporary\n'
-            '  all\tall of the above are temporary, default for no option'
+            '  all\tall above are temporary, default for no option'
         )
     )
     # Possibly change verbosity to a count and make the default level
@@ -204,12 +208,12 @@ def _parseSubsection(section: str, parser: ConfigParser) -> dict:
     section
         Name of section to find subsections for
     parser
-        ``ConfigParser`` instance that has read config data
+        Parser instance that has read config data
 
     Returns
     -------
     dict
-        Dictionary of all subsections and their data
+        Subsections and their data
     """
     parsed = {}
     if parser[section]['keys'] is not None:
@@ -239,7 +243,7 @@ def _findToken(name: str) -> str:
     Returns
     -------
     str
-        Client token or None if no token was found
+        Client token or ``None`` if no token was found
     """
     token = None
     if name in os.environ:
