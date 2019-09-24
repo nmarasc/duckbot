@@ -133,7 +133,7 @@ class DuckDiscordClient(discord.Client):
         r"""Send a wonderful day farewell message."""
         logger.info('Sending wonderful day message')
         if self.wish_channel and not self.muted:
-            self.wish_channel.send('Go, have a wonderful day! :duck:')
+            await self.wish_channel.send('Go, have a wonderful day! :duck:')
 
 
     def _getCommand(self, text: str) -> (str, List[str]):
