@@ -245,10 +245,9 @@ def _findToken(name: str) -> str:
     str
         Client token or ``None`` if no token was found
     """
-    token = None
-    if name in os.environ:
+    token = os.getenv(name)
+    if token:
         logger.info(f'{name} found in environment')
-        token = os.environ[name]
     else:
         try:
             with open('.env') as envfile:

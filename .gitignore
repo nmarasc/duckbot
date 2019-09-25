@@ -170,3 +170,4 @@ log.txt
 error.txt
 bash.exe.stackdump
 .log/
+.config/

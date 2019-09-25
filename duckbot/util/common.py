@@ -58,7 +58,7 @@ EMOJI_ROLLS = {
          ':EIGHT:': 8,
           ':NINE:': 9,
     ':KEYCAP_TEN:': 10,
-':HUNDRED_POINTS:': 100,
+    ':100:': 100,
 }
 
 # Util timers

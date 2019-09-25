@@ -1,32 +1,36 @@
+import yaml
+from datetime import datetime
+
 import ast
 from configparser import ConfigParser, ExtendedInterpolation
 
-def parseBotConfig(args: dict) -> dict:
+def parseBotConfig(path: str) -> dict:
     r"""Parse config file for bot.
-
-    Use the provided ``ConfigParser`` to gather bot configuration data
-    and then massage the data into a valid format.
 
     Parameters
     ----------
-    args
-        Command line arguments
-    parser
-        ``ConfigParser`` instance to use
+    path
+        Location of the bot config file
 
     Returns
     -------
     dict
         Bot configuration data
     """
-    parser = ConfigParser(
-            interpolation=ExtendedInterpolation(),
-            allow_no_value=True
-            )
-    parser.optionxform = str
-    parser.read(CONFPATH_BOT)
-    # This will be expanded on when more options are added
-    return _valueize(parser['clients'])
+    time_format = '%H:%M:%S'
+    try:
+        with open(path) as conf:
+            config = yaml.safe_load(conf)
+        time = datetime.strptime(config['wish_time'], time_format)
+        config['wish_time'] = time
+    except OSError:
+        logger.error(f'Bot config not found: {path}')
+    except AttributeError:
+        config['wish_time'] = None
+    except ValueError:
+        logger.warning('Wish time is not in HH:MM:SS format')
+        config['wish_time'] = None
+    return config
 
 
 def _valueize(old: dict) -> dict:

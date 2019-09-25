@@ -9,7 +9,8 @@ DISABLED = False
 NAMES = [
     'PICK',
     'PICKIT',
-    'PIKMIN'
+    'PIKMIN',
+    ':YOUMUSTCHOOSE:'
 ]
 
 # Command help variables
