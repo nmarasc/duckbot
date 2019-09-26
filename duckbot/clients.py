@@ -135,7 +135,6 @@ class DuckDiscordClient(discord.Client):
         if self.wish_channel and not self.muted:
             await self.wish_channel.send('Go, have a wonderful day! :duck:')
 
-
     def _getCommand(self, text: str) -> (str, List[str]):
         r"""Split command prefix from args.
 

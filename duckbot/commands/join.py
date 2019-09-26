@@ -1,50 +1,75 @@
-# Duckbot util modules
-from duckbot.util.common import bank
+# -*- coding: utf-8 -*-
+r"""JOIN command module"""
+from typing import List
+import logging
 
-DISABLED = True
+from duckbot.util.bank import CURRENCY
+from duckbot.util.bank import STARTING_BUX
 
-# Valid command names
+logger = logging.getLogger(__name__)
+
+DISABLED = False
+
 NAMES = [
     'JOIN'
 ]
 
-# Command help variables
-PURPOSE = 'Add yourself to the gambling system'
-USAGE = (
-    f'Usage: <@{{id}}> {NAMES[0]}\n'
-    'Can only be used in gambling approved channels :duck:'
-)
+_PURPOSE = 'Create an account at the bank of Duckbot.'
+_USAGE = f'Usage: {{bot}} {NAMES[0]}\n'
 
-# Command responses
-RESPONSES = {
+_RESPONSES = {
     'ADDED': (
-        'You have been added to the gambling system :duck:\n'
-        f'You have {bank.STARTING_BUX} {bank.CURRENCY}'
+        'You have successfully created an account :duck:\n'
+        f'You have {STARTING_BUX} {CURRENCY}'
     ),
     'EXISTS': (
         'You are already a member of this system :duck:\n'
-        f'You have {{}} {bank.CURRENCY}'
+        f'You have {{}} {CURRENCY}'
     )
 }
 
-# Add user to gamling system if not already
-# Params: user     - user id issuing command
-#         channel  - channel id command was issued from
-#         cmd_args - list of command arguments, **unused**
-# Return: String response from the command
-def handle(user, channel, cmd_args):
-    return_code = bank.checkEligible(user, channel)
-    if return_code == 0:  # User already a member
-        response = RESPONSES['EXISTS'].format(bank.balance(user))
-    elif return_code == 1:  # User not a member
+# This is set by the client when the bank is initialized
+bank = None
+
+
+def handle(user: int, channel: int, args: List[str]):
+    r"""Register user with the bank system if not already.
+
+    Parameters
+    ----------
+    user
+        User id to register
+    channel
+        Channel id command was issued from
+    args
+        Command arguments, unused
+
+    Returns
+    -------
+    str
+        Command response text
+    """
+    logger.info(f'Processing {NAMES[0]} command')
+    if bank.isMember(user):
+        logger.info('User not added, already a member')
+        response = _RESPONSES['EXISTS'].format(bank.getBalance(user))
+    else:
         bank.addUser(user)
-        response = RESPONSES['ADDED']
-    else:  # Invalid channel
-        response = bank.ERROR['BAD_CHANNEL']
+        response = _RESPONSES['ADDED']
     return response
 
-# Retrieve command help message
-# Params: args - help arguments, **unused**
-# Return: String help message
-def getHelp(args):
-    return f'{PURPOSE}\n{USAGE}'
+
+def getHelp(args: List[str]):
+    r"""Retrieve help message.
+
+    Parameters
+    ----------
+    args
+        Help arguments, unused
+
+    Returns
+    -------
+    str
+        Help message
+    """
+    return f'{_PURPOSE}\n{_USAGE}'

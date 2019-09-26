@@ -1,43 +1,83 @@
-# Last Updated: 2.3.0
+# -*- coding: utf-8 -*-
+r"""Module for Duckbot related banking activities.
+
+Classes
+-------
+Bank
+    Manager for user accounts and gacha pools
+
+Attributes
+----------
+CURRENCY : str
+    Name of Duckbot currency
+DEFAULT_POOL: List[int]
+    Initial gacha pool values
+STARTING_POOL: List[int]
+    User starting gacha pool
+STARTING_BUX: int
+    User starting currency amount
+"""
+from typing import Union, List
+import logging
+
 import random
-import copy
 from . import choiceFunctions as cFunc
 
+logger = logging.getLogger(__name__)
 
-# Bank class
-# Manages user accounts and the gacha reserve
-# External functions:
-#
-#   addUser - Create account for an id
+CURRENCY = "dux"
+DEFAULT_POOL  = [-1,-1,500,100,50,10,3,1]
+STARTING_POOL = [0,0,0,0,0,0,0,0]
+STARTING_BUX  = 100
+
+
 class Bank:
-    CURRENCY = "dux"
-    DEFAULT_POOL  = [-1,-1,500,100,50,10,3,1]
-    STARTING_POOL = [0,0,0,0,0,0,0,0]
-    STARTING_BUX  = 100
+    r"""The royal bank of Duckbot.
 
-    # Constructor for bank class
-    # Params: None
-    # Return: Bank instance
-    def __init__(self):
-    #{{{
+    Manager for Duckbot related banking function and gacha pools.
+
+    Parameters
+    ----------
+    temporary : bool
+        ``True`` if bank state is not to be saved
+
+    Attributes
+    ----------
+    temporary : bool
+        ``True`` if bank state is not to be saved
+    players : dict
+        Users and their Duckbot bank account details
+    pool : List[int]
+        Gacha pool for users to pull from
+
+    Methods
+    -------
+
+    Raises
+    ------
+    """
+    def __init__(self, temporary: bool):
+        r"""Bank initialization."""
+
         self.players = {}
-        if util.bank_file:
+        if not self.temporary:
             self.readState()
         else:
-            self.gacha_pool = self.DEFAULT_POOL
-    #}}}
+            self.pool = DEFAULT_POOL
 
-    # Add user to bank
-    # Params: user - user id to add to bank
-    # Return: None
-    def addUser(self, user):
-    #{{{
+    def addUser(self, user: Union[int,str]):
+        r"""Add user to bank.
+
+        Parameters
+        ----------
+        user
+            User id to add
+        """
         self.players[user] = {
-             "balance" : self.STARTING_BUX
-            ,"pool"    : copy.copy(self.STARTING_POOL)
-            ,"pull"    : True
+            "balance" : STARTING_BUX,
+            "pool"    : list(STARTING_POOL),
+            "pull"    : True
         }
-    #}}}
 
     # Get balance of user
     # Params: user - user id to get balance of
@@ -73,18 +113,14 @@ class Bank:
     def getPool(self, user):
         return self.players[user]["pool"]
 
-    # Regen bux for low players
-    # Params: None
-    # Return: None
     def regen(self):
-    #{{{
+        r"""Restore some bux for players low on cash."""
         for player in self.players:
-            balance = self.players[player]["balance"]
+            balance = self.players[player]['balance']
             if balance <= 95:
-                self.players[player]["balance"] += 5
+                self.players[player]['balance'] += 5
             elif balance < 100:
-                self.players[player]["balance"] = 100
-    #}}}
+                self.players[player]['balance'] = 100
 
     # Wipe all player's gacha pools
     # Params: None
@@ -92,7 +128,7 @@ class Bank:
     def nuke(self):
     #{{{
         for player in self.players:
-            self.players[player]["pool"] = self.STARTING_POOL
+            self.players[player]["pool"] = list(STARTING_POOL)
     #}}}
 
     # Remove the best item from a users gacha pool
@@ -104,7 +140,7 @@ class Bank:
         try:
             pid = max([ind for ind, val in enumerate(pool) if val > 0])
             pool[pid] -= 1
-            self.gacha_pool[pid] += 1
+            self.pool[pid] += 1
             return pid
         # Pool was empty
         except ValueError:
@@ -119,7 +155,7 @@ class Bank:
     #{{{
         result = user
         # Attempt to steal because pool was empty
-        if (self.gacha_pool[pid] == 0):
+        if (self.pool[pid] == 0):
             chosen = self._steal(pid, user)
             if chosen: # another user was stolen from
                 self.players[chosen]["pool"][pid] -= 1
@@ -127,8 +163,8 @@ class Bank:
             else:      # the user owns them all
                 return None
         # Taking from non infinite pool
-        elif (self.gacha_pool[pid] > 0):
-            self.gacha_pool[pid] -= 1
+        elif (self.pool[pid] > 0):
+            self.pool[pid] -= 1
         self.players[user]["pool"][pid] += 1
         return result
     #}}}
@@ -162,10 +198,10 @@ class Bank:
                             }
                     # Parse line for gacha data
                     elif line:
-                        self.gacha_pool = [int(val) for val in line.split(",")]
+                        self.pool = [int(val) for val in line.split(",")]
         # File doesn't exist, can't be read or gacha pool format error
         except (OSError, ValueError):
-            self.gacha_pool = self.DEFAULT_POOL
+            self.pool = DEFAULT_POOL
     #}}}
 
     # Save bank state into file
@@ -185,36 +221,52 @@ class Bank:
                 data.write(";\n")
                 # Write pool data
                 data.write("# Gacha Pool\n")
-                data.write(",".join(map(str,self.gacha_pool)))
+                data.write(",".join(map(str,self.pool)))
         # File couldn't be written
         except OSError:
             pass
     #}}}
 
-    # Check if user in bank
-    # Params: user - user id to check member status of
-    # Return: True if member, false otherwise
     def isMember(self, user):
+        r"""Check if user is in the bank.
+
+        Parameters
+        ----------
+        user
+            User id to check
+        """
         return user in self.players
 
-    # Check for free pull available
-    # Params: user - uid to check
-    # Return: True if available, False otherwise
     def hasFreePull(self, user):
+        r"""Check for free pull available.
+
+        Parameters
+        ----------
+        user
+            Player id to check for free pull
+
+        Returns
+        -------
+        bool
+            ``True`` if pull available, ``False`` otherwise
+        """
         return self.players[user]['pull'] == True
 
-    # Set free pull value of users
-    # Params: value - boolean value to set user pull to
-    #         user  - user id to set, if null sets all users
-    # Return: None
-    def setFreePull(self, value, user = None):
-    #{{{
+    def setFreePull(self, value: bool, user: int = None):
+        r"""Set free pull value of users.
+
+        Parameters
+        ----------
+        value
+            Value to set pull to
+        user, optional
+            Player id to set, all players set if None or omitted
+        """
         if user:
-            self.players[user]["pull"] = value
+            self.players[user]['pull'] = value
         else:
             for player in self.players:
-                self.players[player]["pull"] = value
-    #}}}
+                self.players[player]['pull'] = value
 
     # Check if user and channel are valid for gambling
     # Params: user    - user id to check for bank entry

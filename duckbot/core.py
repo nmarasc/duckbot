@@ -21,6 +21,7 @@ import asyncio
 from datetime import datetime
 
 import duckbot.util.modloader as modloader
+from duckbot.util.bank import Bank
 from duckbot.clients import DuckDiscordClient
 
 __all__ = ['Duckbot', 'EXIT_CODES']
@@ -52,12 +53,12 @@ class Duckbot:
         Event loop for bot
     temporary : bool
         ``True`` if not saving bot state
-    muted : bool
-        ``True`` if not replying to messages
-    tokens : dict
-        Bot tokens for Slack and Discord
+    bank : duckbot.util.bank.Bank
+        Bot bank instance
     clients : dict
         Chat client instances
+    tokens : dict
+        Bot tokens for Slack and Discord
 
     Methods
     -------
@@ -81,6 +82,7 @@ class Duckbot:
         ``True`` if bot should not respond to messages
     """
     _TICK_ROLLOVER = 3600
+    _REGEN_TIMER = 300
     _PREFIXES = [':DUCKBOT:']
     _WISH_TIME = datetime(1, 1, 1, 16)
 
@@ -89,17 +91,19 @@ class Duckbot:
         # ##FIXME actually support path config like the docs say
         assert type(config) is dict
 
+        self.loop = asyncio.get_event_loop()
+        self.temporary = config['temporary']
+        self.bank = Bank(self.temporary)
+        self.clients = {'slack': None, 'discord': None}
+        self.tokens = {
+                'slack': config['slack_token'],
+                'discord': config['discord_token']
+                }
+
         self._ticks = 0
         self._countdowns = {}
-        self.loop = asyncio.get_event_loop()
-        self.clients = {'slack': None, 'discord': None}
         self._initCommands()
 
-        self.temporary = config['temporary']
-        self.tokens = {
-            'slack': config['slack_token'],
-            'discord': config['discord_token']
-        }
 
 #         self.cooldown = 0
 #         self.wish_countdown = 0
@@ -168,6 +172,7 @@ class Duckbot:
         r"""Initialize bot commands."""
         self._commands = modloader.loadBotCommands()
         self._commands['HELP'].COMMANDS = self._commands
+        self._commands['JOIN'].bank = self.bank
 
     async def _wishTimer(self):
         r"""Set time until next wonderful day message."""
@@ -186,5 +191,8 @@ class Duckbot:
 
         while self._running:
             self._ticks = (self._ticks + 1) % self._TICK_ROLLOVER
+
+            if self._ticks % self._REGEN_TIMER == 0:
+                self.bank.regen()
 
             await asyncio.sleep(1)

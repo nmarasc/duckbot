@@ -1,6 +1,13 @@
+# -*- coding: utf-8 -*-
+from typing import Union, List
+import logging
+
 from duckbot.util.common import roll
+from duckbot.util.common import parseNum
 from duckbot.util.rangeDict import rangedict
 from duckbot.util.common import bank
+
+logger = logging.getLogger(__name__)
 
 DISABLED = True
 
@@ -10,14 +17,14 @@ NAMES = [
 ]
 
 # Command help variables
-PURPOSE = 'Spend your bucks on gacha'
-USAGE = (
-    f'Usage: <@{{id}}> {NAMES[0]} [#-of-pulls]\n'
+_PURPOSE = 'Spend your bucks on gacha'
+_USAGE = (
+    f'Usage: {{bot}} {NAMES[0]} [#-of-pulls]\n'
     f'Up to 10 pulls may be done at once :duck:'
 )
 
 # Module constants
-GACHA_NAMES = [
+_GACHA_NAMES = [
         'Trash',
         'Common',
         'Uncommon',
@@ -27,7 +34,7 @@ GACHA_NAMES = [
         'SS Ultra Secret Rare',
         '1000-chan'
 ]
-GACHA_RANGES = rangedict({
+_GACHA_RANGES = rangedict({
     range(50, 150): 0,
     range(150, 600): 1,
     range(600, 800): 2,
@@ -37,43 +44,67 @@ GACHA_RANGES = rangedict({
     range(990, 1000): 6,
     range(1000, 1001): 7
 })
-PULL_MAX = max(max(GACHA_RANGES, key=lambda key: max(key)))
-PULL_RANGE = range(1, 11)
-PULL_COST = 10
+_PULL_MAX = max(max(GACHA_RANGES, key=lambda key: max(key)))
+_PULL_RANGE = range(1, 11)
+_PULL_COST = 10
 
-ERROR = {
+_ERROR = {
     'BAD_PULL': (
         'Invalid number of pulls: {}\n'
         f'Allowed range is {min(PULL_RANGE)} to {max(PULL_RANGE)}'
+    ),
+    'NOT_A_MEMBER': (
+        'You are not a member of the bank. Please join to do pulls :duck:'
     )
 }
 
-# Spend on gacha draws
-# Params: user     - user id of player
-#         channel  - channel id playing from
-#         cmd_args - list containing argument text
-# Return: String response from command
+# This is set during initialization
+bank = None
 
 
-def handle(user, channel, cmd_args):
+def handle(user: int, channel: int, args: List[str]):
+    r"""Spend bucks on gacha draws.
 
-    # Parse out bet arguments
-    amount = _parsePullArgs(cmd_args)
+    Parameters
+    ----------
+    user
+        Player id that issued the command
+    channel
+        Channel id the command was issued from
+    args
+        Command arguments
+
+    Returns
+    -------
+    str
+        Command response text
+    """
+    try:
+        amount = parseNum(args[0])
+    except IndexError:
+        amount = 1
     # Check gambling eligibility and argument validity
-    status = _checkStatus(user, channel)
-    if status['return_code']:  # Some error with status check
-        response = status
-    else:  # No status error, time to pull
+    if bank.isMember(user):
         response = _pull(user, amount)
+    else:
+        response = _ERROR['NOT_A_MEMBER']
     return response
-
-# Retrieve command help message
-# Params: args - help arguments
-# Return: String help message
 
 
 def getHelp(args):
-    return f'{PURPOSE}\n{USAGE}'
+    r"""Retrieve command help message.
+
+    Parameters
+    ----------
+    args
+        Help arguments, unused
+
+    Returns
+    -------
+    str
+        Help message
+    """
+    return f'{_PURPOSE}\n{_USAGE}'
 
 # Buy a gacha pull
 # Params: user    - uid of player
@@ -81,15 +112,28 @@ def getHelp(args):
 # Return: Message containing results
 
 
-def _pull(user, amount):
+def _pull(user: int, amount: Union[int, str]):
+    r"""Buy gacha pulls
+
+    Parameters
+    ----------
+    user
+        Player id pulling
+    amount
+        Number of pulls being done
+
+    Returns
+    -------
+    str
+        Result message
+    """
     message = ''
 
-    if bank.hasFreePull(user):  # Free daily pull available
+    if bank.hasFreePull(user):
         bank.setFreePull(False, user)
         message = f'Free daily pull results: {_doPull()}\n\n'
 
-    # Check range and total cost
-    if amount in PULL_RANGE:
+    if type(amount) is int and amount in PULL_RANGE:
         if amount * PULL_COST <= balance.check(user):
             bank.deduct(user, amount * PULL_COST)
             message += f'Your pull results: {_doPull(amount)}'
@@ -141,17 +185,18 @@ def _doPull(amount=1):
 # Parse argument string for pull arguments
 # Params: args - list of options to parse out
 # Return: parsed argument list
-def _parsePullArgs(args):
-    try:
-        # $$$ I can't tell whether a user typed -1 or garbage text with
-        #     this function, it may need to be changed later
-        result = parseNum(args[0])
-        # Just ignore the problem for now
-        if result == -1:
-            result = 1
-    except IndexError:  # Empty args
-        result = 1
-    return result
+def _parsePullArgs(args: List[str]):
+    r"""Parse argument string for pull command.
+
+    Parameters
+    ----------
+    args
+        Command arguments
+
+    Returns
+    -------
+    int
+    """
 
 # Check the eligibilty of user and channel for this command
 # Params: user    - user id issuing command

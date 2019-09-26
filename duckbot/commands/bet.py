@@ -4,7 +4,8 @@ from .sub_check import balance
 import duckbot.util.modloader as modloader
 from duckbot.util.common import matchUserID
 from duckbot.util.common import parseNum
-from duckbot.util.common import bank
+# from duckbot.util.common import bank
+from duckbot.util.bank import CURRENCY
 
 DISABLED = True
 
@@ -29,8 +30,8 @@ USAGE = (
 
 # Command responses
 RESPONSE = {
-    'LOSE': f"{{}}\nYou lost! You're down {{}} {bank.CURRENCY}",
-    'WIN': f"{{}}\nYou won! You're up {{}} {bank.CURRENCY}"
+    'LOSE': f"{{}}\nYou lost! You're down {{}} {CURRENCY}",
+    'WIN': f"{{}}\nYou won! You're up {{}} {CURRENCY}"
 }
 
 # Command error responses

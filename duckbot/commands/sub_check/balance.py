@@ -1,5 +1,7 @@
 # Duckbot util modules
-from duckbot.util.common import bank
+from duckbot.util.bank import CURRENCY
+
+DISABLED = True
 
 # Valid command names
 NAMES = [
@@ -20,8 +22,8 @@ USAGE = (
 
 # Command responses
 RESPONSES = {
-    'SELF': f'You currently have {{}} {bank.CURRENCY}',
-    'TARGET': f'<@{{}}> currently has {{}} {bank.CURRENCY}'
+    'SELF': f'You currently have {{}} {CURRENCY}',
+    'TARGET': f'<@{{}}> currently has {{}} {CURRENCY}'
 }
 
 # Check bank balance of a user
