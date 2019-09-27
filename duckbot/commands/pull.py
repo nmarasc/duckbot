@@ -6,6 +6,7 @@ from duckbot.util.common import roll
 from duckbot.util.common import parseNum
 from duckbot.util.rangeDict import rangedict
 from duckbot.util.common import bank
+from duckbot.util.bank import GACHA_NAMES
 
 logger = logging.getLogger(__name__)
 
@@ -24,16 +25,6 @@ _USAGE = (
 )
 
 # Module constants
-_GACHA_NAMES = [
-        'Trash',
-        'Common',
-        'Uncommon',
-        'Rare',
-        'Super Rare',
-        'Ultra Rare',
-        'SS Ultra Secret Rare',
-        '1000-chan'
-]
 _GACHA_RANGES = rangedict({
     range(50, 150): 0,
     range(150, 600): 1,
@@ -44,14 +35,14 @@ _GACHA_RANGES = rangedict({
     range(990, 1000): 6,
     range(1000, 1001): 7
 })
-_PULL_MAX = max(max(GACHA_RANGES, key=lambda key: max(key)))
+_PULL_MAX = max(max(_GACHA_RANGES, key=lambda key: max(key)))
 _PULL_RANGE = range(1, 11)
 _PULL_COST = 10
 
 _ERROR = {
     'BAD_PULL': (
         'Invalid number of pulls: {}\n'
-        f'Allowed range is {min(PULL_RANGE)} to {max(PULL_RANGE)}'
+        f'Allowed range is {min(_PULL_RANGE)} to {max(_PULL_RANGE)}'
     ),
     'NOT_A_MEMBER': (
         'You are not a member of the bank. Please join to do pulls :duck:'
@@ -133,9 +124,9 @@ def _pull(user: int, amount: Union[int, str]):
         bank.setFreePull(False, user)
         message = f'Free daily pull results: {_doPull()}\n\n'
 
-    if type(amount) is int and amount in PULL_RANGE:
-        if amount * PULL_COST <= balance.check(user):
-            bank.deduct(user, amount * PULL_COST)
+    if type(amount) is int and amount in _PULL_RANGE:
+        if amount * _PULL_COST <= balance.check(user):
+            bank.deduct(user, amount * _PULL_COST)
             message += f'Your pull results: {_doPull(amount)}'
         else:
             message += (
@@ -143,7 +134,7 @@ def _pull(user: int, amount: Union[int, str]):
                 f'{balance.check(user)}'
             )
     else:
-        message += ERROR['BAD_PULL'].format(amount)
+        message += _ERROR['BAD_PULL'].format(amount)
 
     return message
 
@@ -152,9 +143,9 @@ def _doPull(amount=1):
     result = ''
     nuked = False
     while amount and nuked == False:
-        pull = roll(PULL_MAX)
+        pull = roll(_PULL_MAX)
         if pull >= 50:  # Good pull
-            name = GACHA_NAMES[pull]
+            name = _GACHA_NAMES[pull]
             taken = bank.addPool(pull, user)
             if taken == user:  # Normal accquire
                 result += '\nYou have received a {name}'
@@ -167,8 +158,8 @@ def _doPull(amount=1):
             if removed < 0:  # Nothing to lose
                 response += bank.MESSAGE['NO_LOSS']
             else:
-                name = GACHA_NAMES[removed]
-                if pull == GACHA_RANGES[PULL_MAX]:  # Lost big
+                name = _GACHA_NAMES[removed]
+                if pull == _GACHA_RANGES[_PULL_MAX]:  # Lost big
                     result += (
                         '\nYou have disappointed {name}. '
                         'She returns back to the pool'

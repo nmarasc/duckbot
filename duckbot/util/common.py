@@ -7,7 +7,8 @@ from .bank import Bank as bank
 from .bidict import bidict
 # Util constants
 RTM_READ_DELAY = 1
-USER_REGEX = "U[A-Z0-9]{8}"
+SLACK_USER_REGEX = r'U[A-Z0-9]{8}'
+DISCORD_USER_REGEX = r'[0-9]{18}'
 LABEL_REGEX = "\[:LABEL:(:.+:)+\]"
 EMOJI_REGEX = ":.+?:"
 #{{{ - Commands
@@ -89,10 +90,14 @@ def sendMessage(channel, message, user = None):
 # Params: id_str - string to search for id
 # Return: user id if found, None otherwise
 def matchUserID(id_str):
-#{{{
-    matches = re.search(USER_REGEX,id_str)
-    return matches.group(0) if matches else None
-#}}}
+    user = None
+    try:
+        user = re.search(SLACK_USER_REGEX, id_str).group(0)
+    except AttributeError:
+        match = re.search(DISCORD_USER_REGEX, id_str)
+    if match:
+        user = match.group(0)
+    return user
 
 # Obtain bot id and workspace channels
 # Params: sc        - slackclient instance to make api calls

@@ -173,6 +173,7 @@ class Duckbot:
         self._commands = modloader.loadBotCommands()
         self._commands['HELP'].COMMANDS = self._commands
         self._commands['JOIN'].bank = self.bank
+        self._commands['CHECK'].bank = self.bank
 
     async def _wishTimer(self):
         r"""Set time until next wonderful day message."""

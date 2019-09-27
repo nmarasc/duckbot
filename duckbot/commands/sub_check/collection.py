@@ -1,5 +1,6 @@
 # Duckbot util modules
-from duckbot.util.common import bank
+# from duckbot.util.common import bank
+from duckbot.util.bank import GACHA_NAMES
 
 # Valid command names
 NAMES = [
@@ -24,10 +25,10 @@ RESPONSES = {
 # Params: user   - user id to get collection of
 #         target - True if user was a target
 # Return: String message from subcommand
-def check(user, target):
+def check(user, target, bank):
     pool = bank.getPool(user)
     for poolID in range(0, len(pool)):
-        pool[poolID] = f'{pool[poolID]} {bank.GACHA_NAMES[poolID]}'
+        pool[poolID] = f'{pool[poolID]} {GACHA_NAMES[poolID]}'
     result = "\n".join(pool)
     if target:
         response = RESPONSES['TARGET'].format(user, result)

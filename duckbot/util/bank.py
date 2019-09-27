@@ -29,6 +29,16 @@ CURRENCY = "dux"
 DEFAULT_POOL  = [-1,-1,500,100,50,10,3,1]
 STARTING_POOL = [0,0,0,0,0,0,0,0]
 STARTING_BUX  = 100
+GACHA_NAMES = [
+        'Trash',
+        'Common',
+        'Uncommon',
+        'Rare',
+        'Super Rare',
+        'Ultra Rare',
+        'SS Ultra Secret Rare',
+        '1000-chan'
+]
 
 
 class Bank:
@@ -58,7 +68,7 @@ class Bank:
     """
     def __init__(self, temporary: bool):
         r"""Bank initialization."""
-
+        self.temporary = temporary
         self.players = {}
         if not self.temporary:
             self.readState()
