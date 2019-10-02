@@ -10,7 +10,7 @@ from duckbot.util.bank import GACHA_NAMES
 
 logger = logging.getLogger(__name__)
 
-DISABLED = True
+DISABLED = False
 
 # Valid command names
 NAMES = [
@@ -46,6 +46,18 @@ _ERROR = {
     ),
     'NOT_A_MEMBER': (
         'You are not a member of the bank. Please join to do pulls :duck:'
+    ),
+    'LOW_BALANCE' : (
+        "Your balance is too low to make this transaction"
+    )
+}
+RESPONSES = {
+    'NO_LOSS' : (
+        "\nThat was a disappointing pull, but you had nothing to lose"
+    ),
+    'NUKE' : (
+        "You have set off the nuke! Everyone has returned to the pool\n"
+        "Let the shaming begin! :duck:"
     )
 }
 
@@ -97,11 +109,6 @@ def getHelp(args):
     """
     return f'{_PURPOSE}\n{_USAGE}'
 
-# Buy a gacha pull
-# Params: user    - uid of player
-#         amount  - number of pulls to do
-# Return: Message containing results
-
 
 def _pull(user: int, amount: Union[int, str]):
     r"""Buy gacha pulls
@@ -122,16 +129,15 @@ def _pull(user: int, amount: Union[int, str]):
 
     if bank.hasFreePull(user):
         bank.setFreePull(False, user)
-        message = f'Free daily pull results: {_doPull()}\n\n'
+        message = f'Free daily pull results: {_doPull(user)}\n\n'
 
     if type(amount) is int and amount in _PULL_RANGE:
-        if amount * _PULL_COST <= balance.check(user):
+        if amount * _PULL_COST <= bank.getBalance(user):
             bank.deduct(user, amount * _PULL_COST)
-            message += f'Your pull results: {_doPull(amount)}'
+            message += f'Your pull results: {_doPull(user,amount)}'
         else:
             message += (
-                f"{bank.ERROR['LOW_BALANCE']}\n"
-                f'{balance.check(user)}'
+                f"{_ERROR['LOW_BALANCE']}: {bank.getBalance(user)}\n"
             )
     else:
         message += _ERROR['BAD_PULL'].format(amount)
@@ -139,65 +145,37 @@ def _pull(user: int, amount: Union[int, str]):
     return message
 
 
-def _doPull(amount=1):
+def _doPull(user, amount=1):
     result = ''
     nuked = False
     while amount and nuked == False:
         pull = roll(_PULL_MAX)
         if pull >= 50:  # Good pull
-            name = _GACHA_NAMES[pull]
-            taken = bank.addPool(pull, user)
+            name = GACHA_NAMES[_GACHA_RANGES[pull]]
+            taken = bank.addPool(_GACHA_RANGES[pull], user)
             if taken == user:  # Normal accquire
-                result += '\nYou have received a {name}'
+                result += f'\nYou have received a {name}'
             elif taken:  # Stolen
-                result += '\nYou have stolen a {name} from <@{taken}>'
+                result += f'\nYou have stolen a {name} from <@{taken}>'
             else:  # None available
-                result += '\nThere were no more {name} available'
+                result += f'\nThere were no more {name} available'
         elif pull > 1:  # Pull is less than 50
             removed = bank.removeBest(user)
             if removed < 0:  # Nothing to lose
-                response += bank.MESSAGE['NO_LOSS']
+                response += RESPONSES['NO_LOSS']
             else:
-                name = _GACHA_NAMES[removed]
+                name = GACHA_NAMES[removed]
                 if pull == _GACHA_RANGES[_PULL_MAX]:  # Lost big
                     result += (
-                        '\nYou have disappointed {name}. '
+                        f'\nYou have disappointed {name}. '
                         'She returns back to the pool'
                     )
                 else:  # Lost best
-                    result += '\nYou lost a {name}'
+                    result += f'\nYou lost a {name}'
         else:  # Rolled a 1
             bank.nuke()
-            result = bank.MESSAGE['NUKE']
+            result = RESPONSES['NUKE']
             nuked = True
+        amount -= 1
     # Send back results
     return result
-
-# Parse argument string for pull arguments
-# Params: args - list of options to parse out
-# Return: parsed argument list
-def _parsePullArgs(args: List[str]):
-    r"""Parse argument string for pull command.
-
-    Parameters
-    ----------
-    args
-        Command arguments
-
-    Returns
-    -------
-    int
-    """
-
-# Check the eligibilty of user and channel for this command
-# Params: user    - user id issuing command
-#         channel - channel id command issued from
-# Return: dict with return code and status message
-def _checkStatus(user, channel):
-    message = ''
-    return_code = bank.checkEligible(user, channel)
-    if return_code == 1:  # Not a member
-        message = bank.ERROR['NOT_A_MEMBER'].format(user)
-    elif return_code == 2:  # Bad channel
-        message = bank.ERROR['BAD_CHANNEL'].format(channel)
-    return {'return_code': return_code, 'message': message}

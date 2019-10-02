@@ -150,7 +150,8 @@ class Bank:
         try:
             pid = max([ind for ind, val in enumerate(pool) if val > 0])
             pool[pid] -= 1
-            self.pool[pid] += 1
+            if self.pool[pid] >= 0:
+                self.pool[pid] += 1
             return pid
         # Pool was empty
         except ValueError:
@@ -165,6 +166,8 @@ class Bank:
     #{{{
         result = user
         # Attempt to steal because pool was empty
+        logger.info(f'Pull: {pid}')
+        logger.info(f'Bank pool: {self.pool}\nRemaining: {self.pool[pid]}')
         if (self.pool[pid] == 0):
             chosen = self._steal(pid, user)
             if chosen: # another user was stolen from
