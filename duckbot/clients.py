@@ -13,6 +13,8 @@ import re
 import discord
 import emoji
 
+from duckbot.cogs.bank import Bank
+
 logger = logging.getLogger(__name__)
 
 
@@ -40,6 +42,7 @@ class DuckDiscordClient(discord.Client):
         Accepted bot prefixes
     muted : bool
         ``True`` if bot is not responding to messages
+    bank : duckbot.cogs.bank.Bank
 
     Inherited from `discord.Client`
 
@@ -63,9 +66,13 @@ class DuckDiscordClient(discord.Client):
     def __init__(self, commands: List[ModuleType], prefixes: List[str],
                  wish_channel: int, muted: bool):
         self.commands = commands
+#         self.commands['JOIN'].bank = self.bank
+#         self.commands['CHECK'].bank = self.bank
+#         self.commands['PULL'].bank = self.bank
         self.prefixes = prefixes
         self.wish_channel = wish_channel
         self.muted = muted
+        self.add_cog(Bank(self))
         super().__init__()
 
     async def on_ready(self):
@@ -134,6 +141,10 @@ class DuckDiscordClient(discord.Client):
         logger.info('Sending wonderful day message')
         if self.wish_channel and not self.muted:
             await self.wish_channel.send('Go, have a wonderful day! :duck:')
+
+    async def on_regen(self):
+        r"""Regen bank bucks."""
+        logger.info('Regen event triggered')
 
     def _getCommand(self, text: str) -> (str, List[str]):
         r"""Split command prefix from args.
