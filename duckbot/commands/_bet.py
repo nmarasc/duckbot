@@ -5,9 +5,11 @@ import duckbot.util.modloader as modloader
 from duckbot.util.common import matchUserID
 from duckbot.util.common import parseNum
 # from duckbot.util.common import bank
-from duckbot.util.bank import CURRENCY
+# from duckbot.util.bank import bank.CURRENCY
 
 DISABLED = True
+
+bank = None
 
 # Valid command names
 NAMES = [
@@ -30,8 +32,8 @@ USAGE = (
 
 # Command responses
 RESPONSE = {
-    'LOSE': f"{{}}\nYou lost! You're down {{}} {CURRENCY}",
-    'WIN': f"{{}}\nYou won! You're up {{}} {CURRENCY}"
+    'LOSE': f"{{}}\nYou lost! You're down {{}} {bank.CURRENCY}",
+    'WIN': f"{{}}\nYou won! You're up {{}} {bank.CURRENCY}"
 }
 
 # Command error responses

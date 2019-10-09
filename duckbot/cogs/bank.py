@@ -90,7 +90,7 @@ class Bank(commands.Cog):
     def __init__(self, client):
         r"""Bank initialization."""
         self.client = client
-        self.temporary = self.client.temporary
+        self.temporary = self.client.muted
         self.users = {}
         # TODO: Use temporary for reading state
         self.pool = list(self._DEFAULT_PULL_POOL)
@@ -328,6 +328,12 @@ class Bank(commands.Cog):
         """
         self.users[user]['balance'] += amount
         return self.users[user]['balance']
+
+    @commands.command()
+    async def join(self, ctx):
+        logger.info('New JOIN command')
+        await ctx.send('User has joined your channel')
+
 
     # Read in bank state file and initialize
     # Params: None

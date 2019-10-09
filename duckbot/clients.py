@@ -10,7 +10,7 @@ import logging
 
 import re
 
-import discord
+from discord.ext.commands import Bot
 import emoji
 
 from duckbot.cogs.bank import Bank
@@ -18,7 +18,7 @@ from duckbot.cogs.bank import Bank
 logger = logging.getLogger(__name__)
 
 
-class DuckDiscordClient(discord.Client):
+class DuckDiscordClient(Bot):
     r"""Duckbot implementation of the Discord client.
 
     Parameters
@@ -65,61 +65,55 @@ class DuckDiscordClient(discord.Client):
     """
     def __init__(self, commands: List[ModuleType], prefixes: List[str],
                  wish_channel: int, muted: bool):
-        self.commands = commands
-#         self.commands['JOIN'].bank = self.bank
-#         self.commands['CHECK'].bank = self.bank
-#         self.commands['PULL'].bank = self.bank
-        self.prefixes = prefixes
+        super().__init__(None)
+        self.add_cog(Bank(self))
+        self.old_commands = commands
         self.wish_channel = wish_channel
         self.muted = muted
-        self.add_cog(Bank(self))
-        super().__init__()
 
     async def on_ready(self):
         r"""Gather information when logged into client."""
-        self.prefixes.append(self.user.mention)
-        logger.info(self.wish_channel)
+        self.command_prefix = f'{self.user.mention} '
         self.wish_channel = self.get_channel(self.wish_channel)
         logger.info(f'Wish channel set as {self.wish_channel}')
         logger.info(f'Duckbot logged into discord as {self.user}')
 
-    async def on_message(self, message: discord.Message):
-        r"""Discord message handler.
+#     async def on_message(self, message):
+#         r"""Discord message handler.
+#
+#         Called when a message is received from Discord. Process the message
+#         and send the appropriate response, which may be nothing. If
+#         `self.muted` is ``True``, no message will be sent.
+#
+#         Parameters
+#         ----------
+#         message
+#             Message event from Discord
+#         """
+#         response = None
+#         if message.author == self.user:
+#             return
+#
+#         message.content = emoji.demojize(message.content, use_aliases=True)
+#         logger.debug(f'Message from {message.author}: {message.content}')
+#         cmd, args = self._getCommand(message.content)
+#         try:
+#             response = self.old_commands[cmd].handle(
+#                 message.author.id,
+#                 message.channel.id,
+#                 args
+#             )
+#             if cmd in self.old_commands['HELP'].NAMES:
+#                 response = response.format(bot=self.user.mention)
+#         except KeyError:
+#             pass
+#         if response:
+#             response = f'{message.author.mention} {response}'
+#             logger.info(f'response: {response}')
+#             if not self.muted:
+#                 await message.channel.send(response)
 
-        Called when a message is received from Discord. Process the message
-        and send the appropriate response, which may be nothing. If
-        `self.muted` is ``True``, no message will be sent.
-
-        Parameters
-        ----------
-        message
-            Message event from Discord
-        """
-        response = None
-        if message.author == self.user:
-            return
-
-        message.content = emoji.demojize(message.content, use_aliases=True)
-        logger.debug(f'Message from {message.author}: {message.content}')
-        cmd, args = self._getCommand(message.content)
-        try:
-            response = self.commands[cmd].handle(
-                message.author.id,
-                message.channel.id,
-                args
-            )
-            if cmd in self.commands['HELP'].NAMES:
-                response = response.format(bot=self.user.mention)
-        except KeyError:
-            pass
-        if response:
-            response = f'{message.author.mention} {response}'
-            logger.info(f'response: {response}')
-            if not self.muted:
-                await message.channel.send(response)
-
-    async def on_message_edit(self, before: discord.Message,
-                              after: discord.Message):
+    async def on_message_edit(self, before, after):
         r"""Discord message edit handler.
 
         Called when a message receives an edit. This can include anything

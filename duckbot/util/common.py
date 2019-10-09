@@ -3,7 +3,7 @@
 import re
 import random
 # Project imports
-from .bank import Bank as bank
+# from .bank import Bank as bank
 from .bidict import bidict
 # Util constants
 RTM_READ_DELAY = 1
