@@ -14,8 +14,6 @@ NAMES = [
     'JOIN'
 ]
 
-_PURPOSE = 'Create an account at the bank of Duckbot.'
-_USAGE = f'Usage: {{bot}} {NAMES[0]}\n'
 
 _RESPONSES = {
     'ADDED': (

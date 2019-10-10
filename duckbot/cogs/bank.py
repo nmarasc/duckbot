@@ -329,8 +329,14 @@ class Bank(commands.Cog):
         self.users[user]['balance'] += amount
         return self.users[user]['balance']
 
-    @commands.command()
+    @commands.command(
+        help = 'Create an account at the bank of Duckbot.',
+        usage = f'Usage: {self.client.user.mention} JOIN',
+        ignore_extra = True
+    )
     async def join(self, ctx):
+        _PURPOSE = 'Create an account at the bank of Duckbot.'
+_USAGE = f'Usage: {{bot}} {NAMES[0]}\n'
         logger.info('New JOIN command')
         await ctx.send('User has joined your channel')
 
