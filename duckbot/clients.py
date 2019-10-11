@@ -65,7 +65,7 @@ class DuckDiscordClient(Bot):
     """
     def __init__(self, commands: List[ModuleType], prefixes: List[str],
                  wish_channel: int, muted: bool):
-        super().__init__(None)
+        super().__init__(None, case_insensitive=True)
         self.old_commands = commands
         self.wish_channel = wish_channel
         self.muted = muted

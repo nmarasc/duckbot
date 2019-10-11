@@ -46,7 +46,7 @@ class Bank(commands.Cog):
     -------
     addUser
         Add user to the bank
-    isUser
+    isMember
         Check if user is in the bank
     getPool
         Get gacha pool of a user
@@ -87,6 +87,17 @@ class Bank(commands.Cog):
     _DEFAULT_PULL_POOL = [-1, -1, 500, 100, 50, 10, 3, 1]
     _DEFAULT_USER_POOL = [0, 0, 0, 0, 0, 0, 0, 0]
 
+    _MESSAGES = {
+        'ADDED': (
+            'You have successfully created an account :duck:\n'
+            f'You have {STARTING_BALANCE} {CURRENCY}'
+        ),
+        'EXISTS': (
+            'You are already a member of this system :duck:\n'
+            f'You have {{0}} {CURRENCY}'
+        )
+    }
+
     def __init__(self, client):
         r"""Bank initialization."""
         self.client = client
@@ -108,7 +119,6 @@ class Bank(commands.Cog):
             'pool': list(self._DEFAULT_USER_POOL),
             'free': True
         }
-        logger.debug(f'Added user: {user}')
 
     def isMember(self, user):
         r"""Check if user is in the bank.
@@ -335,11 +345,24 @@ class Bank(commands.Cog):
         ignore_extra = True
     )
     async def join(self, ctx):
-        _PURPOSE = 'Create an account at the bank of Duckbot.'
-_USAGE = f'Usage: {{bot}} {NAMES[0]}\n'
-        logger.info('New JOIN command')
-        await ctx.send('User has joined your channel')
+        r"""Register user with the bank system if not already.
 
+        Parameters
+        ----------
+        ctx : discord.ext.commands.Context
+            Context information for the command
+        """
+        logger.info('Processing JOIN command')
+        user = ctx.author.id
+        if self.isMember(user):
+            balance = self.getBalance(user)
+            response = self._MESSAGES['EXISTS'].format(balance)
+            logger.debug(f'{ctx.author} not added, already a member')
+        else:
+            self.addUser(user)
+            response = self._MESSAGES['ADDED']
+            logger.debug(f'{ctx.author} added')
+        await ctx.send(response)
 
     # Read in bank state file and initialize
     # Params: None
