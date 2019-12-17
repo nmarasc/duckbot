@@ -154,7 +154,7 @@ class DuckDiscordClient(discord.Client):
         """
         cmd = None
         args = re.split(r'\s+', text.strip())
-        prefix = args.pop(0).upper()
+        prefix = args.pop(0).upper().replace('!','')
         if prefix in self.prefixes and args:
             cmd = args.pop(0).upper()
         return cmd, args
