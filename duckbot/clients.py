@@ -11,6 +11,7 @@ import logging
 import re
 
 from discord.ext.commands import Bot
+from discord.ext.commands import Paginator
 import emoji
 
 from duckbot.cogs.bank import Bank
@@ -66,6 +67,9 @@ class DuckDiscordClient(Bot):
     def __init__(self, commands: List[ModuleType], prefixes: List[str],
                  wish_channel: int, muted: bool):
         super().__init__(None, case_insensitive=True)
+        self.help_command.paginator.prefix = '>>> '
+        self.help_command.paginator.suffix = ''
+        logger.info(self.help_command.paginator.prefix)
         self.old_commands = commands
         self.wish_channel = wish_channel
         self.muted = muted

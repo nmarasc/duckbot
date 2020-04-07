@@ -36,7 +36,7 @@ class Bank(commands.Cog):
     pool : List[int]
         Gacha pool for users to pull from
     CURRENCY : str
-        Name of Duckbot currency
+        Name of Duckbot currenfcy
     STARTING_BALANCE : int
         User starting balance
     GACHA_NAMES : List[str]
@@ -340,8 +340,8 @@ class Bank(commands.Cog):
         return self.users[user]['balance']
 
     @commands.command(
-        help = 'Create an account at the bank of Duckbot.',
-        usage = f'Usage: {self.client.user.mention} JOIN',
+        description = 'Create an account at the bank of Duckbot.',
+        help = '',
         ignore_extra = True
     )
     async def join(self, ctx):
