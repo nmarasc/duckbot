@@ -164,10 +164,11 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Windows git bash failures
+bash.exe.stackdump
+
 # End of https://www.gitignore.io/api/vim,venv,linux,python,windows
 
-log.txt
-error.txt
-bash.exe.stackdump
 .log/
 .config/
+start.py

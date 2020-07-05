@@ -11,21 +11,15 @@ from shutil import rmtree
 
 from setuptools import find_packages, setup, Command
 
-# Package meta-data.
-from duckbot import __title__ as NAME
-from duckbot import __description__ as DESCRIPTION
-from duckbot import __url__ as URL
-from duckbot import __author_email__ as EMAIL
-from duckbot import __author__ as AUTHOR
-from duckbot import __version__ as VERSION
-from duckbot import __license__ as LICENSE
+NAME = 'duckbot'
+
 REQUIRES_PYTHON = '>=3.7.0'
 
 # What packages are required for this module to be executed?
 # Only include direct dependencies, transitive dependencies should be
 # handled automatically.
 REQUIRED = [
-    'slackclient', 'discord.py', 'emoji'
+    'discord.py', 'emoji'
 ]
 
 # What packages are optional?
@@ -47,16 +41,14 @@ try:
     with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
         long_description = '\n' + f.read()
 except FileNotFoundError:
-    long_description = DESCRIPTION
+    print('Error: README.md not found, make sure it is present and in your MANIFEST.in file')
+    raise
 
 # Load the package's __version__.py module as a dictionary.
 about = {}
-if not VERSION:
-    project_slug = NAME.lower().replace("-", "_").replace(" ", "_")
-    with open(os.path.join(here, project_slug, '__version__.py')) as f:
-        exec(f.read(), about)
-else:
-    about['__version__'] = VERSION
+project_slug = NAME.lower().replace("-", "_").replace(" ", "_")
+with open(os.path.join(here, project_slug, '__version__.py')) as f:
+    exec(f.read(), about)
 
 
 class UploadCommand(Command):
@@ -97,32 +89,32 @@ class UploadCommand(Command):
 
 
 setup(
-        name=NAME,
-        version=VERSION,
-        description=DESCRIPTION,
-        long_description=long_description,
-        long_description_content_type='text/markdown',
-        author=AUTHOR,
-        author_email=EMAIL,
-        python_requires=REQUIRES_PYTHON,
-        url=URL,
-        packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
-        install_requires=REQUIRED,
-        extras_require=EXTRAS,
-        include_package_data=True,
-        license=LICENSE,
-        classifiers=[
-            # Trove classifiers
-            # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
-            f'License :: OSI Approved :: {LICENSE}',
-            'Programming Language :: Python',
-            'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.6',
-            'Programming Language :: Python :: Implementation :: CPython',
-            'Programming Language :: Python :: Implementation :: PyPy'
-            ],
-        # $ setup.py publish support.
-        cmdclass={
-            'upload': UploadCommand,
-            },
+    name=about['__title__'],
+    version=about['__version__'],
+    description=about['__description__'],
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    author=about['__author__'],
+    author_email=about['__author_email__'],
+    python_requires=REQUIRES_PYTHON,
+    url=about['__url__'],
+    packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),
+    install_requires=REQUIRED,
+    extras_require=EXTRAS,
+    include_package_data=True,
+    license=about['__license__'],
+    classifiers=[
+        # Trove classifiers
+        # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
+        f'License :: OSI Approved :: {about["__license__"]}',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy'
+    ],
+    # $ setup.py publish support.
+    cmdclass={
+        'upload': UploadCommand,
+    },
 )
