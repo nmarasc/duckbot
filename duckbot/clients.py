@@ -1,121 +1,75 @@
 # -*- coding: utf-8 -*-
-r"""Duckbot chat clients.
+r"""Duckbot client classes module.
 
-Class extensions for chat clients to allow for better control of event
-handling.
+API client extention classes for Duckbot.
+
+Classes
+-------
+DuckbotDiscordClient
+    Discord client extension
 """
-from types import ModuleType
-from typing import List
 import logging
 
-import re
-
+from discord.ext import commands
 from discord.ext.commands import Bot
+from discord.ext.commands import DefaultHelpCommand
 from discord.ext.commands import Paginator
 import emoji
 
-from duckbot.cogs.bank import Bank
+# from duckbot.cogs.bank import Bank
 
 logger = logging.getLogger(__name__)
 
 
-class DuckDiscordClient(Bot):
+class DuckbotDiscordClient(Bot):
     r"""Duckbot implementation of the Discord client.
 
     Parameters
     ----------
-    commands : List[ModuleType]
-        Command modules
-    prefixes : List[str]
-        Bot prefixes not specific to the client
-    wish_channel : int
-        Channel to send wonderful day message to
-    muted : bool
-        ``True`` if bot should not respond to messages
+    isMute : bool
+        True if bot should not respond to messages
 
-    Inherited from `discord.Client`
+    Inherited from discord.ext.commands.Bot
 
     Attributes
     ----------
-    commands : List[ModuleType]
-        Bot command modules
-    prefixes : List[str]
-        Accepted bot prefixes
-    muted : bool
-        ``True`` if bot is not responding to messages
-    bank : duckbot.cogs.bank.Bank
+    isMute : bool
+        True if bot is not responding to messages
 
-    Inherited from `discord.Client`
+    Inherited from discord.ext.commands.Bot
 
     Methods
     -------
     on_ready
         Called when successfully logged into client
 
-    on_message
-        Called when client receives a message event
-
     on_message_edit
         Called when client receives a message edit event
 
-    Inherited from `discord.Client`
+    Inherited from discord.ext.commands.Bot
 
     Raises
     ------
-    Inherited from `discord.Client`
+    Inherited from discord.ext.commands.Bot
     """
-    def __init__(self, commands: List[ModuleType], prefixes: List[str],
-                 wish_channel: int, muted: bool):
-        super().__init__(None, case_insensitive=True)
-        self.help_command.paginator.prefix = '>>> '
-        self.help_command.paginator.suffix = ''
-        logger.info(self.help_command.paginator.prefix)
-        self.old_commands = commands
-        self.wish_channel = wish_channel
-        self.muted = muted
-        self.add_cog(Bank(self))
+    def __init__(self, isMute):
+        r"""Duckbot client initialization."""
+        duckpager = Paginator(prefix='>>> :duck: Kweh!', suffix='')
+        duckhelp = DefaultHelpCommand(paginator=duckpager)
+        super().__init__(
+            None,
+            case_insensitive=True,
+            help_command=duckhelp
+        )
+        self.isMute = isMute
+#         self.add_cog(Bank(self))
 
     async def on_ready(self):
         r"""Gather information when logged into client."""
-        self.command_prefix = f'{self.user.mention} '
-        self.wish_channel = self.get_channel(self.wish_channel)
-        logger.info(f'Wish channel set as {self.wish_channel}')
+        self.command_prefix = commands.when_mentioned
+#         self.wish_channel = self.get_channel(self.wish_channel)
+#         logger.info(f'Wish channel set as {self.wish_channel}')
         logger.info(f'Duckbot logged into discord as {self.user}')
-
-#     async def on_message(self, message):
-#         r"""Discord message handler.
-#
-#         Called when a message is received from Discord. Process the message
-#         and send the appropriate response, which may be nothing. If
-#         `self.muted` is ``True``, no message will be sent.
-#
-#         Parameters
-#         ----------
-#         message
-#             Message event from Discord
-#         """
-#         response = None
-#         if message.author == self.user:
-#             return
-#
-#         message.content = emoji.demojize(message.content, use_aliases=True)
-#         logger.debug(f'Message from {message.author}: {message.content}')
-#         cmd, args = self._getCommand(message.content)
-#         try:
-#             response = self.old_commands[cmd].handle(
-#                 message.author.id,
-#                 message.channel.id,
-#                 args
-#             )
-#             if cmd in self.old_commands['HELP'].NAMES:
-#                 response = response.format(bot=self.user.mention)
-#         except KeyError:
-#             pass
-#         if response:
-#             response = f'{message.author.mention} {response}'
-#             logger.info(f'response: {response}')
-#             if not self.muted:
-#                 await message.channel.send(response)
 
     async def on_message_edit(self, before, after):
         r"""Discord message edit handler.
@@ -138,32 +92,8 @@ class DuckDiscordClient(Bot):
         r"""Send a wonderful day farewell message."""
         logger.info('Sending wonderful day message')
         if self.wish_channel and not self.muted:
-            await self.wish_channel.send('Go, have a wonderful day! :duck:')
+            await self.wish_channel.send(self.wish_msg)
 
     async def on_regen(self):
         r"""Regen bank bucks."""
         logger.info('Regen event triggered')
-
-    def _getCommand(self, text: str) -> (str, List[str]):
-        r"""Split command prefix from args.
-
-        Check for valid command prefix and split message text.
-
-        Parameters
-        ----------
-        text
-            Message text from discord
-
-        Returns
-        -------
-        str
-            Command word
-        List[str]
-            Command arguments
-        """
-        cmd = None
-        args = re.split(r'\s+', text.strip())
-        prefix = args.pop(0).upper()
-        if prefix in self.prefixes and args:
-            cmd = args.pop(0).upper()
-        return cmd, args

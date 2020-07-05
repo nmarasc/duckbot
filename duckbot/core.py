@@ -7,56 +7,44 @@ variables that are deemed crucial to the user are also kept here.
 Classes
 -------
 Duckbot
-    Duck themed chat bot.
-
-Attributes
-----------
-EXIT_CODES : dict
-    Exit reasons and their associated numeric value
+    Duck themed discord bot.
 """
-from typing import Union
 import logging
-
 import asyncio
 from datetime import datetime
 
-import duckbot.util.modloader as modloader
-from duckbot.cogs.bank import Bank
-from duckbot.clients import DuckDiscordClient
+from duckbot.clients import DuckbotDiscordClient
+# from duckbot.cogs.bank import Bank
 
-__all__ = ['Duckbot', 'EXIT_CODES']
+__all__ = ['Duckbot']
 
 logger = logging.getLogger(__name__)
 
-EXIT_CODES = {
-    'EXIT_OK': 0,
-    'BAD_INIT': 10
-}
-
 
 class Duckbot:
-    r"""Duck themed chat bot.
+    r"""Duck themed discord bot.
 
-    Chat bot with support for both slack and discord clients
-    simultaneously.
+    Discord bot with a command interface for both users and administrators.
 
     Parameters
     ----------
-    config : dict or str
-        Configuration options or path to config file
-
-        See `Configuration Dictionary`_ for details.
+    token : str
+        Discord client bot token
+    isTemp : bool, optional
+        True if bot state should not be saved
+    isMute : bool, optional
+        True if the bot should not respond to messages
 
     Attributes
     ----------
+    token : str
+        Discord client bot token
+    isTemp : bool
+        True if bot state should not be saved
     loop : asyncio.AbstractEventLoop
         Event loop for bot
-    temporary : bool
-        ``True`` if not saving bot state
-    clients : dict
-        Chat client instances
-    tokens : dict
-        Bot tokens for Slack and Discord
+    client : duckbot.client.DuckbotDiscordClient
+        Duckbot discord client instance
 
     Methods
     -------
@@ -66,87 +54,44 @@ class Duckbot:
     Raises
     ------
     ValueError
-        Bot was created with no client tokens
-
-    Configuration Dictionary
-    ------------------------
-    slack_token : str or None
-        Slack client token
-    discord_token : str or None
-        Discord client token
-    temporary : bool
-        ``True`` if bot state should not be saved
-    muted : bool
-        ``True`` if bot should not respond to messages
+        Bot was created with no client token
     """
     _TICK_ROLLOVER = 3600
     _REGEN_TIMER = 300
-    _PREFIXES = [':DUCKBOT:']
     _WISH_TIME = datetime(1, 1, 1, 16)
 
-    def __init__(self, config: Union[dict, str]):
+    def __init__(self, token, isTemp=False, isMute=False):
         r"""Duckbot initialization."""
-        # ##FIXME actually support path config like the docs say
-        assert type(config) is dict
-
-        self.loop = asyncio.get_event_loop()
-        self.temporary = config['temporary']
-        self.clients = {'slack': None, 'discord': None}
-        self.tokens = {
-            'slack': config['slack_token'],
-            'discord': config['discord_token']
-        }
 
         self._ticks = 0
-        self._countdowns = {}
-        self._initCommands()
 
+        if not token:
+            logger.critical('No token was provided!')
+            raise ValueError('no token provided')
 
-#         self.cooldown = 0
-#         self.wish_countdown = 0
-#         self.wish_time = datetime(1,1,1,16)
-#         self.wish_channel = 'random'
+        self.token = token
+        self.isTemp = isTemp
+        self.loop = asyncio.get_event_loop()
+        self.client = DuckbotDiscordClient(isMute)
 
-        if not any(self.tokens.values()):
-            logger.critical('No tokens were provided!')
-            raise ValueError('no tokens provided')
+        logger.info('Discord client created')
 
-        # ##TODO create slack client
-        if self.tokens['slack']:
-            self.clients['slack'] = None
-
-        if self.tokens['discord']:
-            self.clients['discord'] = DuckDiscordClient(
-                self._commands,
-                self._PREFIXES,
-                config['channel'],
-                config['muted']
-            )
-            logger.info('Discord client created')
-
-    def run(self) -> int:
+    def run(self):
         r"""Duckbot main loop.
 
-        Create and execute event tasks. One for each client and a tick task
-        for timer based events.
-
-        Returns
-        -------
-        int
-            Exit reason code
+        Create and execute event tasks. One for the discord client and a
+        tick task for timer based events.
         """
         self._running = True
-        exit_code = EXIT_CODES['EXIT_OK']
 
-        if self.clients['discord']:
-            client = self.clients['discord']
-            token = self.tokens['discord']
-            self.loop.create_task(client.start(token))
-            logger.info('Discord client task created')
+        self.loop.create_task(self.client.start(self.token))
+        logger.info('Discord client task created')
 
         self.loop.create_task(self._tick())
         logger.info('Duckbot tick task created')
-        self.loop.create_task(self._wishTimer())
+
+#         self.loop.create_task(self._timerWish())
+#         logger.info('Good wish task created')
 
         try:
             logger.info('Executing main event loop')
@@ -156,39 +101,36 @@ class Duckbot:
         finally:
             logger.info('Stopping tasks now')
             self._running = False
-            self.loop.run_until_complete(self.clients['discord'].logout())
+            self.loop.run_until_complete(self.client.logout())
             tasks = asyncio.all_tasks(self.loop)
             for task in tasks:
                 task.cancel()
             self.loop.run_until_complete(asyncio.gather(*tasks))
             self.loop.stop()
         self.loop.close()
-        return exit_code
 
-    def _initCommands(self):
-        r"""Initialize bot commands."""
-        self._commands = modloader.loadBotCommands()
-        self._commands['HELP'].COMMANDS = self._commands
+    async def _tick(self):
+        r"""Duckbot timed event handler."""
+        await self.client.wait_until_ready()
 
-    async def _wishTimer(self):
+        while self._running:
+            self._ticks = (self._ticks + 1) % self._TICK_ROLLOVER
+
+            try:
+                if self._ticks % self._REGEN_TIMER == 0:
+                    await self.client.on_regen()
+
+                await asyncio.sleep(1)
+            except asyncio.CancelledError:
+                logger.warning('Task cancelled: _tick')
+
+    async def _timerWish(self):
         r"""Set time until next wonderful day message."""
         while self._running:
             time = datetime.now().replace(year=1, month=1, day=1)
             try:
                 await asyncio.sleep((self._WISH_TIME - time).seconds)
-                await self.clients['discord'].on_wish()
+                await self.client.on_wish()
                 await asyncio.sleep(1)
             except asyncio.CancelledError:
-                logger.warning('Task cancelled: _wishTimer')
-
-    async def _tick(self):
-        r"""Duckbot timed event handler."""
-        await self.clients['discord'].wait_until_ready()
-
-        while self._running:
-            self._ticks = (self._ticks + 1) % self._TICK_ROLLOVER
-
-            if self._ticks % self._REGEN_TIMER == 0:
-                self.clients['discord'].on_regen()
-
-            await asyncio.sleep(1)
+                logger.warning('Task cancelled: _timerWish')
