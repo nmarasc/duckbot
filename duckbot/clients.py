@@ -12,10 +12,10 @@ import logging
 
 from discord.ext import commands
 from discord.ext.commands import Bot
-from discord.ext.commands import DefaultHelpCommand
-from discord.ext.commands import Paginator
 import emoji
 
+from duckbot.help import DuckbotHelpCommand
+from duckbot.cogs.roll import Roll
 # from duckbot.cogs.bank import Bank
 
 logger = logging.getLogger(__name__)
@@ -23,20 +23,6 @@ logger = logging.getLogger(__name__)
 
 class DuckbotDiscordClient(Bot):
     r"""Duckbot implementation of the Discord client.
-
-    Parameters
-    ----------
-    isMute : bool
-        True if bot should not respond to messages
-
-    Inherited from discord.ext.commands.Bot
-
-    Attributes
-    ----------
-    isMute : bool
-        True if bot is not responding to messages
-
-    Inherited from discord.ext.commands.Bot
 
     Methods
     -------
@@ -47,28 +33,20 @@ class DuckbotDiscordClient(Bot):
         Called when client receives a message edit event
 
     Inherited from discord.ext.commands.Bot
-
-    Raises
-    ------
-    Inherited from discord.ext.commands.Bot
     """
-    def __init__(self, isMute):
+    def __init__(self):
         r"""Duckbot client initialization."""
-        duckpager = Paginator(prefix='>>> :duck: Kweh!', suffix='')
-        duckhelp = DefaultHelpCommand(paginator=duckpager)
         super().__init__(
             None,
             case_insensitive=True,
-            help_command=duckhelp
+            help_command=DuckbotHelpCommand()
         )
-        self.isMute = isMute
+        self.add_cog(Roll())
 #         self.add_cog(Bank(self))
 
     async def on_ready(self):
         r"""Gather information when logged into client."""
         self.command_prefix = commands.when_mentioned
-#         self.wish_channel = self.get_channel(self.wish_channel)
-#         logger.info(f'Wish channel set as {self.wish_channel}')
         logger.info(f'Duckbot logged into discord as {self.user}')
 
     async def on_message_edit(self, before, after):

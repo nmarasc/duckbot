@@ -32,8 +32,6 @@ class Duckbot:
         Discord client bot token
     isTemp : bool, optional
         True if bot state should not be saved
-    isMute : bool, optional
-        True if the bot should not respond to messages
 
     Attributes
     ----------
@@ -60,7 +58,7 @@ class Duckbot:
     _REGEN_TIMER = 300
     _WISH_TIME = datetime(1, 1, 1, 16)
 
-    def __init__(self, token, isTemp=False, isMute=False):
+    def __init__(self, token, isTemp=False):
         r"""Duckbot initialization."""
 
         self._ticks = 0
@@ -72,7 +70,7 @@ class Duckbot:
         self.token = token
         self.isTemp = isTemp
         self.loop = asyncio.get_event_loop()
-        self.client = DuckbotDiscordClient(isMute)
+        self.client = DuckbotDiscordClient()
 
         logger.info('Discord client created')
 
