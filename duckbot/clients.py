@@ -15,7 +15,7 @@ from discord.ext.commands import Bot
 import emoji
 
 from duckbot.help import DuckbotHelpCommand
-from duckbot.cogs.roll import Roll
+from duckbot.cogs.random import Random
 # from duckbot.cogs.bank import Bank
 
 logger = logging.getLogger(__name__)
@@ -41,13 +41,18 @@ class DuckbotDiscordClient(Bot):
             case_insensitive=True,
             help_command=DuckbotHelpCommand()
         )
-        self.add_cog(Roll())
+
+        self.add_cog(Random())
 #         self.add_cog(Bank(self))
 
     async def on_ready(self):
         r"""Gather information when logged into client."""
         self.command_prefix = commands.when_mentioned
         logger.info(f'Duckbot logged into discord as {self.user}')
+
+    async def on_message(self, message):
+        message.content = emoji.demojize(message.content)
+        await super().on_message(message)
 
     async def on_message_edit(self, before, after):
         r"""Discord message edit handler.

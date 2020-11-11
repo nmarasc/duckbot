@@ -19,10 +19,21 @@ class DuckbotHelpCommand(MinimalHelpCommand):
 
     Methods
     -------
-    get_ending_note
-        Returns help command ending note.
+    get_opening_note
+        Returns help command opening note.
     """
     def __init__(self):
         r"""Duckbot help command initialization."""
-        pager = Paginator(prefix='>>> :duck: Kweh!', suffix='')
+        pager = Paginator(prefix='>>> :duck: Kweh!\n', suffix='')
         super().__init__(paginator=pager)
+
+    def get_opening_note(self):
+        r"""Returns help command opening note."""
+        prefix = self.clean_prefix
+        command = self.invoked_with
+        return f'Use `{prefix}{command} [command]` for more detailed help'
+
+    def get_command_signature(self, command):
+        r"""Return signature for given command"""
+        prefix = self.clean_prefix
+        return f'`{prefix}{command.qualified_name} {command.signature}`'
