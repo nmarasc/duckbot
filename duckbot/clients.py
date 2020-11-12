@@ -29,6 +29,9 @@ class DuckbotDiscordClient(Bot):
     on_ready
         Called when successfully logged into client
 
+    on_message
+        Called when client receives a message
+
     on_message_edit
         Called when client receives a message edit event
 
@@ -51,6 +54,13 @@ class DuckbotDiscordClient(Bot):
         logger.info(f'Duckbot logged into discord as {self.user}')
 
     async def on_message(self, message):
+        r"""Sanitize emojis from incoming message and pass to super.
+
+        Parameters
+        ----------
+        message
+            Message event received from discord to sanitize
+        """
         message.content = emoji.demojize(message.content)
         await super().on_message(message)
 
