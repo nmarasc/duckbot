@@ -62,6 +62,7 @@ class DuckbotDiscordClient(Bot):
             Message event received from discord to sanitize
         """
         message.content = emoji.demojize(message.content)
+        logger.debug(f'message: {message.content}')
         await super().on_message(message)
 
     async def on_message_edit(self, before, after):
