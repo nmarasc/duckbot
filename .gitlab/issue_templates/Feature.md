@@ -10,4 +10,4 @@
 ---
 (If you know specific areas in the code that will need to be changed or updated, add them here.)
 
-/label ~Suggestion  
+/label ~Suggestion
