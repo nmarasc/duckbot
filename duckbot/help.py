@@ -17,6 +17,11 @@ logger = logging.getLogger(__name__)
 class DuckbotHelpCommand(MinimalHelpCommand):
     r"""Custom discord HelpCommand extension.
 
+    Parameters
+    ----------
+    emoji
+        Emoji string to use as the help header
+
     Methods
     -------
     add_subcommand_formatting
@@ -28,9 +33,9 @@ class DuckbotHelpCommand(MinimalHelpCommand):
     get_command_signature
         Returns signature for the given command
     """
-    def __init__(self):
+    def __init__(self, emoji):
         r"""Duckbot help command initialization."""
-        pager = Paginator(prefix='>>> :duck: Kweh!\n', suffix='')
+        pager = Paginator(prefix=f'>>> {emoji} Kweh!\n', suffix='')
         cmdattrs = {'name': 'help', 'help': 'Alright, smarty pants'}
         super().__init__(paginator=pager, command_attrs=cmdattrs)
 

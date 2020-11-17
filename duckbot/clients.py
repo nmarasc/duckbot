@@ -24,6 +24,11 @@ logger = logging.getLogger(__name__)
 class DuckbotDiscordClient(Bot):
     r"""Duckbot implementation of the Discord client.
 
+    Parameters
+    ----------
+    hostguild
+        Guild id of the 'home' server, used for emojis
+
     Methods
     -------
     on_ready
@@ -37,19 +42,29 @@ class DuckbotDiscordClient(Bot):
 
     Inherited from discord.ext.commands.Bot
     """
-    def __init__(self):
+    def __init__(self, hostguild):
         r"""Duckbot client initialization."""
         super().__init__(
             None,
             case_insensitive=True,
-            help_command=DuckbotHelpCommand()
+            help_command=None
         )
 
+        self.host_guild = hostguild
+        self.converter = commands.EmojiConverter()
         self.add_cog(Random())
 #         self.add_cog(Bank(self))
 
     async def on_ready(self):
         r"""Gather information when logged into client."""
+        self.bot_emoji = None
+        self.host_guild = await self.fetch_guild(self.host_guild)
+
+        for emoji in self.host_guild.emojis:
+            if emoji.name == 'duckbot':
+                self.bot_emoji = emoji
+
+        self.help_command = DuckbotHelpCommand(str(self.bot_emoji))
         self.command_prefix = commands.when_mentioned
         logger.info(f'Duckbot logged into discord as {self.user}')
 
@@ -61,7 +76,7 @@ class DuckbotDiscordClient(Bot):
         message
             Message event received from discord to sanitize
         """
-        message.content = emoji.demojize(message.content)
+        message.content = emoji.demojize(message.content, use_aliases=True)
         logger.debug(f'message: {message.content}')
         await super().on_message(message)
 

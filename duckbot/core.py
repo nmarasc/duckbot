@@ -28,20 +28,22 @@ class Duckbot:
 
     Parameters
     ----------
-    token : str
+    token
         Discord client bot token
-    isTemp : bool, optional
+    hostguild
+        Discord Guild id of 'home' server
+    isTemp : optional
         True if bot state should not be saved
 
     Attributes
     ----------
-    token : str
+    token
         Discord client bot token
-    isTemp : bool
+    isTemp
         True if bot state should not be saved
-    loop : asyncio.AbstractEventLoop
+    loop
         Event loop for bot
-    client : duckbot.client.DuckbotDiscordClient
+    client
         Duckbot discord client instance
 
     Methods
@@ -52,13 +54,13 @@ class Duckbot:
     Raises
     ------
     ValueError
-        Bot was created with no client token
+        No bot token or host guild id provided on creation
     """
     _TICK_ROLLOVER = 3600
     _REGEN_TIMER = 300
     _WISH_TIME = datetime(1, 1, 1, 16)
 
-    def __init__(self, token, isTemp=False):
+    def __init__(self, token, hostguild, isTemp=False):
         r"""Duckbot initialization."""
 
         self._ticks = 0
@@ -66,11 +68,14 @@ class Duckbot:
         if not token:
             logger.critical('No token was provided!')
             raise ValueError('no token provided')
+        if not hostguild:
+            logger.critical('No host Guild Id provided!')
+            raise ValueError('no guild id provided')
 
         self.token = token
         self.isTemp = isTemp
         self.loop = asyncio.get_event_loop()
-        self.client = DuckbotDiscordClient()
+        self.client = DuckbotDiscordClient(hostguild)
 
         logger.info('Discord client created')
 
