@@ -58,9 +58,9 @@ class DuckbotDiscordClient(Bot):
         self.bot_emoji = None
         self.host_guild = await self.fetch_guild(self.host_guild)
 
-        for emoji in self.host_guild.emojis:
-            if emoji.name == 'duckbot':
-                self.bot_emoji = emoji
+        for e in self.host_guild.emojis:
+            if e.name == 'duckbot':
+                self.bot_emoji = e
 
         self.help_command = DuckbotHelpCommand(str(self.bot_emoji))
         self.command_prefix = commands.when_mentioned
