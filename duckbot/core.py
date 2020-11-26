@@ -13,8 +13,7 @@ import logging
 import asyncio
 from datetime import datetime
 
-from duckbot.clients import DuckbotDiscordClient
-# from duckbot.cogs.bank import Bank
+from .clients import DuckbotDiscordClient
 
 __all__ = ['Duckbot']
 

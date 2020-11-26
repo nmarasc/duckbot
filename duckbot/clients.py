@@ -14,9 +14,8 @@ from discord.ext import commands
 from discord.ext.commands import Bot
 import emoji
 
-from duckbot.help import DuckbotHelpCommand
-from duckbot.cogs.random import Random
-# from duckbot.cogs.bank import Bank
+from .help import DuckbotHelpCommand
+from .cogs.random import Random
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +39,6 @@ class DuckbotDiscordClient(Bot):
     on_message_edit
         Called when client receives a message edit event
 
-    Inherited from discord.ext.commands.Bot
     """
     def __init__(self, hostguild):
         r"""Duckbot client initialization."""
