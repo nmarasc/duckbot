@@ -13,6 +13,8 @@ import random
 
 from discord.ext import commands
 
+from duckbot.util import etoi
+
 logger = logging.getLogger(__name__)
 
 
@@ -41,21 +43,6 @@ class Random(commands.Cog):
 
     _die_range_side = range(2, _die_max_side+1)
     _die_range_num = range(1, _die_max_num+1)
-
-    _emoji_rolls = {
-        ':one:': 1,
-        ':two:': 2,
-        ':three:': 3,
-        ':four:': 4,
-        ':five:': 5,
-        ':six:': 6,
-        ':seven:': 7,
-        ':eight:': 8,
-        ':nine:': 9,
-        ':keycap_ten:': 10,
-        ':100:': 100,
-        ':herb:': 420
-    }
 
     _base_ratings = {
         1: ':clown:',
@@ -90,9 +77,9 @@ class Random(commands.Cog):
         """
         logger.debug(f'Roll command called with: {roll}')
         botmoji = str(ctx.bot.bot_emoji)
-        if not roll:
+        if roll is None:
             response = f"Can't roll without parameters, kweh! {botmoji}"
-            await ctx.send(response)
+            await ctx.send(f'{ctx.message.author.mention} {response}')
             return
 
         amount = 1
@@ -121,7 +108,7 @@ class Random(commands.Cog):
             response = f'You rolled: {head} {tail}'
 
         logger.info(f'{ctx.command} response: {response}')
-        await ctx.send(response)
+        await ctx.send(f'{ctx.message.author.mention} {response}')
 
     async def cog_command_error(self, ctx, error):
         r"""Cog error handler."""
