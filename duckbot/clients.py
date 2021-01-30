@@ -98,8 +98,6 @@ class DuckbotDiscordClient(Bot):
     async def on_wish(self):
         r"""Send a wonderful day farewell message."""
         logger.info('Sending wonderful day message')
-        if self.wish_channel and not self.muted:
-            await self.wish_channel.send(self.wish_msg)
 
     async def on_regen(self):
         r"""Regen bank bucks."""

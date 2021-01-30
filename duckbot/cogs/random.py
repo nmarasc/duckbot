@@ -143,7 +143,7 @@ class Random(commands.Cog):
         try:
             value = int(value)
         except ValueError:
-            value = self._emoji_rolls.get(value, value)
+            value = etoi(value)
         return value
 
     def _emojiRating(self, roll, die):

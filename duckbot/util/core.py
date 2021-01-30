@@ -33,4 +33,4 @@ def etoi(emoji):
     ------
     int value of emoji or original string if invalid
     """
-    pass
+    return _EMOJINUMS.get(emoji, emoji)
