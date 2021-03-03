@@ -36,7 +36,8 @@ class DuckbotHelpCommand(MinimalHelpCommand):
     def __init__(self, emoji):
         r"""Duckbot help command initialization."""
         pager = Paginator(prefix=f'>>> {emoji} Kweh!\n', suffix='')
-        cmdattrs = {'name': 'help', 'help': 'Alright, smarty pants'}
+        aliases = ['hep', 'halp', '?', ':question:', ':grey_question:']
+        cmdattrs = {'name': 'help', 'aliases': aliases, 'help': 'Alright, smarty pants'}
         super().__init__(paginator=pager, command_attrs=cmdattrs)
 
     def add_subcommand_formatting(self, command):
