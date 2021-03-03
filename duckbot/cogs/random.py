@@ -10,11 +10,13 @@ import logging
 
 import re
 import random
-import shlex
 
 from discord.ext import commands
 
 from duckbot.util import etoi
+
+from .data import base_ratings
+from .data import eightball_messages
 
 logger = logging.getLogger(__name__)
 
@@ -47,14 +49,7 @@ class Random(commands.Cog):
 
     _die_range_side = range(2, _die_max_side+1)
     _die_range_num = range(1, _die_max_num+1)
-    _pick_range = range(2,_pick_max+1)
-
-    _base_ratings = {
-        1: ':clown:',
-        13: ':ghost:',
-        69: ':eggplant:',
-        420: ':herb:'
-    }
+    _pick_range = range(2, _pick_max+1)
 
     @property
     def description(self):
@@ -139,7 +134,7 @@ class Random(commands.Cog):
         help=('No more choice paralysis\n'
               '`[picks]` - list of things to pick from, can use quotes to preserve spaces'),
         ignore_extra=False,
-        aliases=['pickit','pikmin']
+        aliases=['pickit', 'pikmin']
     )
     async def pick(self, ctx, *picks):
         r"""Randomly choose from a number of things.
@@ -162,6 +157,22 @@ class Random(commands.Cog):
                 botmoji
             )
         await ctx.send(f'{ctx.message.author.mention} {response}')
+
+    @commands.command(
+        help=('Shake the magic 8ball and receive your fortune.'),
+        ignore_extra=True,
+        aliases=['8ball', ':8ball:']
+    )
+    async def eightball(self, ctx):
+        r"""Give a random magic 8ball response.
+
+        Parameters
+        ----------
+        ctx
+            Context information for the command
+        """
+        message = eightball_messages[self._roll(len(eightball_messages)-1)]
+        await ctx.send(f'{ctx.message.author.mention} {message}')
 
     async def cog_command_error(self, ctx, error):
         r"""Cog error handler."""
@@ -209,7 +220,7 @@ class Random(commands.Cog):
         die
             maximum score to compare
         """
-        emoji = self._base_ratings.get(roll, None)
+        emoji = base_ratings.get(roll, None)
         if roll == die:
             emoji = ':tada:'
         elif emoji is None:
