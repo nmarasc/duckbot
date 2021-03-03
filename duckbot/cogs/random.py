@@ -10,6 +10,7 @@ import logging
 
 import re
 import random
+import shlex
 
 from discord.ext import commands
 
@@ -28,6 +29,8 @@ class Random(commands.Cog):
 
     roll
         dice rolling command handler
+    coin
+        coin flipping command handler
 
     cog_command_error
         generic handler for unrecognized command errors
@@ -40,9 +43,11 @@ class Random(commands.Cog):
 
     _die_max_side = 100
     _die_max_num = 111
+    _pick_max = 20
 
     _die_range_side = range(2, _die_max_side+1)
     _die_range_num = range(1, _die_max_num+1)
+    _pick_range = range(2,_pick_max+1)
 
     _base_ratings = {
         1: ':clown:',
@@ -108,6 +113,54 @@ class Random(commands.Cog):
             response = f'You rolled: {head} {tail}'
 
         logger.info(f'{ctx.command} response: {response}')
+        await ctx.send(f'{ctx.message.author.mention} {response}')
+
+    @commands.command(
+        help=('Flip a coin, heads or tails'),
+        ignore_extra=True,
+        aliases=[':coin:']
+    )
+    async def coin(self, ctx):
+        r"""Flip a coin.
+
+        Parameters
+        ----------
+        ctx
+            Context information for the command
+        """
+        result = self._roll(2)
+        if result == 1:
+            message = 'You got: HEADS'
+        else:
+            message = 'You got: TAILS'
+        await ctx.send(f'{ctx.message.author.mention} {message}')
+
+    @commands.command(
+        help=('No more choice paralysis\n'
+              '`[picks]` - list of things to pick from, can use quotes to preserve spaces'),
+        ignore_extra=False,
+        aliases=['pickit','pikmin']
+    )
+    async def pick(self, ctx, *picks):
+        r"""Randomly choose from a number of things.
+
+        Parameters
+        ----------
+        ctx
+            Context information for the command
+        picks
+            list of things to pick from
+        """
+        if len(picks) in self._pick_range:
+            pick = picks[self._roll(len(picks)-1)]
+            response = f'I choose: {pick}'
+        else:
+            botmoji = str(ctx.bot.bot_emoji)
+            response = 'Must pick between {} and {} things, kweh! {}'.format(
+                min(self._pick_range),
+                max(self._pick_range),
+                botmoji
+            )
         await ctx.send(f'{ctx.message.author.mention} {response}')
 
     async def cog_command_error(self, ctx, error):
