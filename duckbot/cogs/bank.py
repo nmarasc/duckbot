@@ -11,6 +11,7 @@ import logging
 from discord.ext import commands
 
 from duckbot.util import choiceFunctions as cFunc
+from .data import gacha_names
 
 logger = logging.getLogger(__name__)
 
@@ -73,30 +74,19 @@ class Bank(commands.Cog):
     """
     CURRENCY = 'dux'
     STARTING_BALANCE = 100
-    GACHA_NAMES = [
-        'Trash',
-        'Common',
-        'Uncommon',
-        'Rare',
-        'Super Rare',
-        'Ultra Rare',
-        'SS Ultra Secret Rare',
-        '1000-chan'
-    ]
-
-    _DEFAULT_PULL_POOL = [-1, -1, 500, 100, 50, 10, 3, 1]
-    _DEFAULT_USER_POOL = [0, 0, 0, 0, 0, 0, 0, 0]
-
-    _MESSAGES = {
+    bank_messages = {
         'ADDED': (
             'You have successfully created an account :duck:\n'
             f'You have {STARTING_BALANCE} {CURRENCY}'
-        ),
+            ),
         'EXISTS': (
             'You are already a member of this system :duck:\n'
             f'You have {{0}} {CURRENCY}'
-        )
+            )
     }
+
+    _DEFAULT_PULL_POOL = [-1, -1, 500, 100, 50, 10, 3, 1]
+    _DEFAULT_USER_POOL = [0, 0, 0, 0, 0, 0, 0, 0]
 
     def __init__(self, client):
         r"""Bank initialization."""
@@ -340,9 +330,9 @@ class Bank(commands.Cog):
         return self.users[user]['balance']
 
     @commands.command(
-        description = 'Create an account at the bank of Duckbot.',
-        help = '',
-        ignore_extra = True
+        description='Create an account at the bank of Duckbot.',
+        help='',
+        ignore_extra=True
     )
     async def join(self, ctx):
         r"""Register user with the bank system if not already.

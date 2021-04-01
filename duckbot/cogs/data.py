@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""Data related to cogs and commands."""
 
-__all__ = ['base_ratings', 'eightball_messages']
+__all__ = ['base_ratings', 'eightball_messages', 'gacha_names']
 
 base_ratings = {
     1: ':clown:',
@@ -31,4 +31,15 @@ eightball_messages = [
     'My sources say no',
     'Outlook not so good',
     'Very doubtful'
+]
+
+gacha_names = [
+    'Trash',
+    'Common',
+    'Uncommon',
+    'Rare',
+    'Super Rare',
+    'Ultra Rare',
+    'SS Ultra Secret Rare',
+    '1000-chan'
 ]

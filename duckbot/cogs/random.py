@@ -33,6 +33,10 @@ class Random(commands.Cog):
         dice rolling command handler
     coin
         coin flipping command handler
+    pick
+        choice making command handler
+    eightball
+        magic 8ball command handler
 
     cog_command_error
         generic handler for unrecognized command errors
@@ -134,7 +138,7 @@ class Random(commands.Cog):
         help=('No more choice paralysis\n'
               '`[picks]` - list of things to pick from, can use quotes to preserve spaces'),
         ignore_extra=False,
-        aliases=['pickit', 'pikmin']
+        aliases=['pickit', 'pikmin', 'choose', 'choice']
     )
     async def pick(self, ctx, *picks):
         r"""Randomly choose from a number of things.
