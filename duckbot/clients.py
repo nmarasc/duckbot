@@ -16,6 +16,7 @@ import emoji
 
 from .help import DuckbotHelpCommand
 from .cogs.random import Random
+from .cogs.game import Game
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,7 @@ class DuckbotDiscordClient(Bot):
         self.host_guild = hostguild
         self.converter = commands.EmojiConverter()
         self.add_cog(Random())
-#         self.add_cog(Bank(self))
+        self.add_cog(Game())
 
     async def on_ready(self):
         r"""Gather information when logged into client."""
