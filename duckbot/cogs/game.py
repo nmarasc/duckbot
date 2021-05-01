@@ -9,11 +9,12 @@ Game
 import logging
 
 from discord.ext import commands
+from discord.ext.commands import MemberConverter
+from discord.ext.commands.errors import MemberNotFound
 
 from .util.bank import Bank
 
 from duckbot.util import choiceFunctions as cFunc
-from .data import gacha_names
 
 logger = logging.getLogger(__name__)
 
@@ -227,8 +228,15 @@ class Game(commands.Cog):
             choice = thief
         return choice
 
+    @property
+    def description(self):
+        r"""Return cog description"""
+        desc = ('A collection of commands related to the Duckbank and games.\n'
+                'Invest, gamble, panic.')
+        return desc
+
     @commands.command(
-        help='Create an account at the bank of Duckbot.',
+        help='Create a Duckbank account.',
         ignore_extra=True
     )
     async def join(self, ctx):
@@ -255,4 +263,63 @@ class Game(commands.Cog):
                 f'You have {self.bank.STARTING_BALANCE} {self.bank.CURRENCY}'
             )
             logger.info(f'{ctx.author} added')
-        await ctx.send(response)
+        await ctx.send(f'{ctx.message.author.mention} {response}')
+
+    @commands.group(
+        help=('Retrieve information about the Duckbank.\n'
+              '\tReturns all own info if subcommand omitted.'),
+        ignore_extra=True,
+        aliases=[':heavy_check_mark:', ':white_check_mark:', ':ballot_box_with_check:']
+    )
+    async def check(self, ctx):
+        r"""Check command main handler.
+
+        Parameters
+        ----------
+        ctx
+            Context information for the command
+        """
+        if ctx.invoked_subcommand is None:
+            await ctx.send('No subcommand')
+
+    @check.command(
+        help=('Check a user\'s Duckbank balance.\n'
+              '`[user]` - mention of the user you want to check\n'
+              '\toptional, default checks own balance'),
+        ignore_extra=True,
+        aliases=[':moneybag:', ':money_with_wings:', 'bux', 'dux', 'dolans']
+    )
+    async def balance(self, ctx, target=None):
+        r"""Check balance subcommand handler.
+
+        Parameters
+        ----------
+        ctx
+            Context information for the command
+        target
+            User to check the balance of : optional
+        """
+        if target is None:
+            user = ctx.message.author
+        else:
+            try:
+                user = await MemberConverter().convert(ctx, target)
+                if not user.mentioned_in(ctx.message):
+                    raise MemberNotFound('user not mentioned')
+            except MemberNotFound:
+                # To stop any possible @everyone shenanigans
+                cleaned = await commands.clean_content().convert(ctx, target)
+                await ctx.send(f'{ctx.message.author.mention} User {cleaned} not recognized!')
+                return
+        if self.bank.isMember(user.id):
+            balance = self.bank.getBalance(user.id)
+            if user == ctx.message.author:
+                response = f'You have {balance} {self.bank.CURRENCY}!'
+            else:
+                response = f'{user.name} has {balance} {self.bank.CURRENCY}!'
+        else:
+            if user == ctx.message.author:
+                response = 'You are not a member of the Duckbank!'
+            else:
+                response = f'{user.name} is not a member of the Duckbank!'
+        await ctx.send(f'{ctx.message.author.mention} {response}')

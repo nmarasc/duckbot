@@ -103,7 +103,7 @@ class Duckbot:
         finally:
             logger.info('Stopping tasks now')
             self._running = False
-            self.loop.run_until_complete(self.client.logout())
+            self.loop.run_until_complete(self.client.close())
             tasks = asyncio.all_tasks(self.loop)
             for task in tasks:
                 task.cancel()
