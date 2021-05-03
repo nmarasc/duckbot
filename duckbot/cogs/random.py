@@ -15,8 +15,8 @@ from discord.ext import commands
 
 from duckbot.util import etoi
 
-from .data import base_ratings
-from .data import eightball_messages
+from .util.data import base_ratings
+from .util.data import eightball_messages
 
 logger = logging.getLogger(__name__)
 

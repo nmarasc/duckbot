@@ -8,6 +8,8 @@ Bank
 """
 import logging
 
+from .data import Gacha
+
 __all__ = ['Bank']
 
 logger = logging.getLogger(__name__)
@@ -20,6 +22,8 @@ class Bank():
     ----------
     CURRENCY
         Name of the Duckbot currency
+    STARTING_BALANCE
+        Starting value of Duckbank account
     users
         Collection of registered users
     pool

@@ -26,6 +26,12 @@ class Game(commands.Cog):
     -------
     join
         Join command handler
+    check
+        Check command handler
+    balance
+        Check balance subcommand handler
+    gacha
+        Check gacha subcommand handler
     getPool
         Get gacha pool of a user
     hasPull
@@ -280,7 +286,7 @@ class Game(commands.Cog):
             Context information for the command
         """
         if ctx.invoked_subcommand is None:
-            await ctx.send('No subcommand')
+            pass
 
     @check.command(
         help=('Check a user\'s Duckbank balance.\n'
@@ -299,6 +305,51 @@ class Game(commands.Cog):
         target
             User to check the balance of : optional
         """
+        user = await self._checkTarget(target, ctx)
+        if user:
+            balance = self.bank.getBalance(user.id)
+            if user == ctx.message.author:
+                response = f'You have {balance} {self.bank.CURRENCY}!'
+            else:
+                response = f'{user.name} has {balance} {self.bank.CURRENCY}!'
+            await ctx.send(f'{ctx.message.author.mention} {response}')
+
+    @check.command(
+        help=('Check a user\'s Duckbank gacha collection.\n'
+              '`[user]` - mention of the user you want to check\n'
+              '\toptional, default checks own collection'),
+        ignore_extra=True,
+        aliases=['pool', 'collection']
+    )
+    async def gacha(self, ctx, target=None):
+        r"""Check collection subcommand handler.
+
+        Parameters
+        ----------
+        ctx
+            Context information for the command
+        target
+            User to check the collection of : optional
+        """
+        user = await self._checkTarget(target, ctx)
+        if user:
+            pass
+
+    async def _checkTarget(self, target, ctx):
+        r"""Check for a valid mentioned user.
+
+        Parameters
+        ----------
+        target
+            User provided target to check
+        ctx
+            Context for member check
+
+        Returns
+        -------
+        Member
+            matching member of the target or None
+        """
         if target is None:
             user = ctx.message.author
         else:
@@ -310,16 +361,12 @@ class Game(commands.Cog):
                 # To stop any possible @everyone shenanigans
                 cleaned = await commands.clean_content().convert(ctx, target)
                 await ctx.send(f'{ctx.message.author.mention} User {cleaned} not recognized!')
-                return
-        if self.bank.isMember(user.id):
-            balance = self.bank.getBalance(user.id)
-            if user == ctx.message.author:
-                response = f'You have {balance} {self.bank.CURRENCY}!'
-            else:
-                response = f'{user.name} has {balance} {self.bank.CURRENCY}!'
-        else:
+                return None
+        if not self.bank.isMember(user.id):
             if user == ctx.message.author:
                 response = 'You are not a member of the Duckbank!'
             else:
                 response = f'{user.name} is not a member of the Duckbank!'
-        await ctx.send(f'{ctx.message.author.mention} {response}')
+            await ctx.send(f'{ctx.message.author.mention} {response}')
+            user = None
+        return user
