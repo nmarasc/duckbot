@@ -68,7 +68,7 @@ class Duckbot:
             logger.critical('No token was provided!')
             raise ValueError('no token provided')
         if not hostguild:
-            logger.critical('No host Guild Id provided!')
+            logger.critical('No host Guild id provided!')
             raise ValueError('no guild id provided')
 
         self.token = token

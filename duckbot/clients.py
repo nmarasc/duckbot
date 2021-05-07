@@ -49,22 +49,31 @@ class DuckbotDiscordClient(Bot):
             help_command=None
         )
 
-        self.host_guild = hostguild
-        self.converter = commands.EmojiConverter()
+        if not isinstance(hostguild, int):
+            logger.warning('Host id not an int, may not convert properly')
+        try:
+            self.host_guild = int(hostguild)
+        except ValueError:
+            self.host_guild = None
         self.add_cog(Random())
         self.add_cog(Game())
 
     async def on_ready(self):
         r"""Gather information when logged into client."""
         self.bot_emoji = None
-        self.host_guild = await self.fetch_guild(self.host_guild)
+        prefixes = []
 
-        for e in self.host_guild.emojis:
-            if e.name == 'duckbot':
-                self.bot_emoji = e
+        for guild in self.guilds:
+            for gemoji in guild.emojis:
+                if gemoji.name == 'duckbot':
+                    if guild.id == self.host_guild:
+                        self.bot_emoji = gemoji
+                    prefixes.append(f'{str(gemoji)} ')
 
+        if self.bot_emoji is None:
+            self.bot_emoji = ':duck:'
         self.help_command = DuckbotHelpCommand(str(self.bot_emoji))
-        self.command_prefix = commands.when_mentioned
+        self.command_prefix = commands.when_mentioned_or(*prefixes)
         logger.info(f'Duckbot logged into discord as {self.user}')
 
     async def on_message(self, message):
@@ -77,7 +86,7 @@ class DuckbotDiscordClient(Bot):
         """
         message.content = emoji.demojize(message.content, use_aliases=True)
         logger.debug(f'message: {message.content}')
-        await super().on_message(message)
+        await self.process_commands(message)
 
     async def on_message_edit(self, before, after):
         r"""Discord message edit handler.
@@ -95,6 +104,24 @@ class DuckbotDiscordClient(Bot):
         """
         if before.content != after.content:
             await self.on_message(after)
+
+    async def on_command_error(self, context, exception):
+        r"""Default command error handler.
+
+        Override is just to ignore 'no command' errors. The bot can be
+        mentioned with no command provided. This prevents the log from
+        being populated with useless errors.
+
+        Parameters
+        ----------
+        context
+            Context information for the error
+        exception
+            Error that was raised
+        """
+        # Don't bother processing a mention with no command
+        if context.command is not None:
+            await super().on_command_error(context, exception)
 
     async def on_wish(self):
         r"""Send a wonderful day farewell message."""

@@ -80,13 +80,14 @@ class Random(commands.Cog):
             user argument to roll command : optional
         """
         logger.debug(f'Roll command called with: {roll}')
-        botmoji = str(ctx.bot.bot_emoji)
-        if roll is None:
-            response = f"Can't roll without parameters, kweh! {botmoji}"
-            await ctx.send(f'{ctx.message.author.mention} {response}')
-            return
 
+        response = ''
+        botmoji = str(ctx.bot.bot_emoji)
         amount = 1
+
+        if roll is None:
+            response = f'You probably meant roll 20, kweh! {botmoji}\n'
+            roll = '20'
 
         regex_result = re.search(self._roll_regex, roll)
 
@@ -98,9 +99,9 @@ class Random(commands.Cog):
             sides = self._parseNumOrEmoji(roll)
 
         if (type(amount) == str or amount not in self._die_range_num):
-            response = f'{amount} is not in the valid range'
+            response += f'{amount} is not in the valid range'
         elif (type(sides) == str or sides not in self._die_range_side):
-            response = f'{sides} is not in the valid range'
+            response += f'{sides} is not in the valid range'
         else:
             result = self._roll(sides, amount)
             if isinstance(result, list):
@@ -109,9 +110,8 @@ class Random(commands.Cog):
             else:
                 head = result
                 tail = self._emojiRating(result, sides)
-            response = f'You rolled: {head} {tail}'
+            response += f'You rolled: {head} {tail}'
 
-        logger.info(f'{ctx.command} response: {response}')
         await ctx.send(f'{ctx.message.author.mention} {response}')
 
     @commands.command(
@@ -132,7 +132,7 @@ class Random(commands.Cog):
             message = 'You got: HEADS'
         else:
             message = 'You got: TAILS'
-        await ctx.send(f'{ctx.message.author.mention} {message}')
+        await ctx.send(f'{ctx.message.author.mention} {message} {ctx.bot.bot_emoji}')
 
     @commands.command(
         help=('No more choice paralysis\n'
@@ -160,7 +160,7 @@ class Random(commands.Cog):
                 max(self._pick_range),
                 botmoji
             )
-        await ctx.send(f'{ctx.message.author.mention} {response}')
+        await ctx.send(f'{ctx.message.author.mention} {response} {ctx.bot.bot_emoji}')
 
     @commands.command(
         help=('Shake the magic 8ball and receive your fortune.'),
@@ -176,7 +176,7 @@ class Random(commands.Cog):
             Context information for the command
         """
         message = eightball_messages[self._roll(len(eightball_messages)-1)]
-        await ctx.send(f'{ctx.message.author.mention} {message}')
+        await ctx.send(f'{ctx.message.author.mention} {message} {ctx.bot.bot_emoji}')
 
     async def cog_command_error(self, ctx, error):
         r"""Cog error handler."""

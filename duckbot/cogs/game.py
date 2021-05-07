@@ -30,10 +30,9 @@ class Game(commands.Cog):
         Check command handler
     balance
         Check balance subcommand handler
-    gacha
-        Check gacha subcommand handler
-    getPool
-        Get gacha pool of a user
+    collection
+        Check collection subcommand handler
+
     hasPull
         Check if a user has a certain pull value
     addPool
@@ -57,21 +56,6 @@ class Game(commands.Cog):
     def __init__(self):
         r"""Game initialization."""
         self.bank = Bank()
-
-    def getPool(self, user):
-        r"""Get user pool.
-
-        Parameters
-        ----------
-        user : int
-            User id to get pool of
-
-        Returns
-        -------
-        List[int]
-            Pool of user id
-        """
-        return self.users[user]['pool']
 
     def hasPull(self, user, pull):
         r"""Check if a user has a certain pull.
@@ -242,6 +226,22 @@ class Game(commands.Cog):
         return desc
 
     @commands.command(
+        help='Spend your hard earned currency on gacha',
+        ignore_extra=True
+    )
+    async def pull(self, ctx, amount=1):
+        r"""Spend a user's currency to pull rewards from the gacha pool.
+
+        Parameters
+        ----------
+        ctx
+            Context information for the command
+        amount
+            Number of pulls to do
+        """
+        pass
+
+    @commands.command(
         help='Create a Duckbank account.',
         ignore_extra=True
     )
@@ -286,7 +286,18 @@ class Game(commands.Cog):
             Context information for the command
         """
         if ctx.invoked_subcommand is None:
-            pass
+            result = []
+            user = ctx.message.author
+            if self.bank.isMember(user.id):
+                balance = self.bank.getBalance(user.id)
+                collection = self.bank.getCollection(user.id)
+                for i in range(0, len(collection)):
+                    result.append(f'{collection[i]} {self.bank.Gacha(i).name}')
+                result = '\n'.join(result)
+                response = f'You have {balance} {self.bank.CURRENCY} and:\n{result}'
+            else:
+                response = 'You are not a member of the Duckbank!'
+            await ctx.send(f'{ctx.message.author.mention} {response}')
 
     @check.command(
         help=('Check a user\'s Duckbank balance.\n'
@@ -319,9 +330,9 @@ class Game(commands.Cog):
               '`[user]` - mention of the user you want to check\n'
               '\toptional, default checks own collection'),
         ignore_extra=True,
-        aliases=['pool', 'collection']
+        aliases=['gacha', 'pool']
     )
-    async def gacha(self, ctx, target=None):
+    async def collection(self, ctx, target=None):
         r"""Check collection subcommand handler.
 
         Parameters
@@ -333,7 +344,16 @@ class Game(commands.Cog):
         """
         user = await self._checkTarget(target, ctx)
         if user:
-            pass
+            collection = self.bank.getCollection(user.id)
+            result = []
+            for i in range(0, len(collection)):
+                result.append(f'{collection[i]} {self.bank.Gacha(i).name}')
+            result = '\n'.join(result)
+            if user == ctx.message.author:
+                response = f'You currently have:\n{result}'
+            else:
+                response = f'{user.name} currently has:\n{result}'
+            await ctx.send(f'{ctx.message.author.mention} {response}')
 
     async def _checkTarget(self, target, ctx):
         r"""Check for a valid mentioned user.
