@@ -9,12 +9,12 @@ Random
 import logging
 
 import re
-import random
 
 from discord.ext import commands
 
 from duckbot.util import etoi
 
+from .util import roll
 from .util.data import base_ratings
 from .util.data import eightball_messages
 
@@ -76,13 +76,13 @@ class Random(commands.Cog):
         ----------
         ctx
             Context information for the command
-        roll
-            user argument to roll command : optional
+        roll : optional
+            user argument to roll command
         """
         logger.debug(f'Roll command called with: {roll}')
 
         response = ''
-        botmoji = str(ctx.bot.bot_emoji)
+        botmoji = str(ctx.bot.emoji)
         amount = 1
 
         if roll is None:
@@ -103,7 +103,7 @@ class Random(commands.Cog):
         elif (type(sides) == str or sides not in self._die_range_side):
             response += f'{sides} is not in the valid range'
         else:
-            result = self._roll(sides, amount)
+            result = roll(sides, amount)
             if isinstance(result, list):
                 head = ', '.join(map(str, result))
                 tail = f'\nYour total: {sum(result)}'
@@ -127,12 +127,12 @@ class Random(commands.Cog):
         ctx
             Context information for the command
         """
-        result = self._roll(2)
+        result = roll(2)
         if result == 1:
             message = 'You got: HEADS'
         else:
             message = 'You got: TAILS'
-        await ctx.send(f'{ctx.message.author.mention} {message} {ctx.bot.bot_emoji}')
+        await ctx.send(f'{ctx.message.author.mention} {message} {ctx.bot.emoji}')
 
     @commands.command(
         help=('No more choice paralysis\n'
@@ -151,16 +151,16 @@ class Random(commands.Cog):
             list of things to pick from
         """
         if len(picks) in self._pick_range:
-            pick = picks[self._roll(len(picks)-1)]
+            pick = picks[roll(len(picks)-1)]
             response = f'I choose: {pick}'
         else:
-            botmoji = str(ctx.bot.bot_emoji)
+            botmoji = str(ctx.bot.emoji)
             response = 'Must pick between {} and {} things, kweh! {}'.format(
                 min(self._pick_range),
                 max(self._pick_range),
                 botmoji
             )
-        await ctx.send(f'{ctx.message.author.mention} {response} {ctx.bot.bot_emoji}')
+        await ctx.send(f'{ctx.message.author.mention} {response} {ctx.bot.emoji}')
 
     @commands.command(
         help=('Shake the magic 8ball and receive your fortune.'),
@@ -175,30 +175,13 @@ class Random(commands.Cog):
         ctx
             Context information for the command
         """
-        message = eightball_messages[self._roll(len(eightball_messages)-1)]
-        await ctx.send(f'{ctx.message.author.mention} {message} {ctx.bot.bot_emoji}')
+        message = eightball_messages[roll(len(eightball_messages)-1)]
+        await ctx.send(f'{ctx.message.author.mention} {message} {ctx.bot.emoji}')
 
     async def cog_command_error(self, ctx, error):
         r"""Cog error handler."""
         logger.error(f'{ctx.command} failed with the following error:')
         logger.error(error)
-
-    def _roll(self, sides, amount=1):
-        r"""Random number generation within the specified parameters
-
-        Parameters
-        ----------
-        sides
-            number of sides for the die
-        amount
-            number of dice to roll : optional
-        """
-        rolls = []
-        for i in range(amount):
-            rolls.append(random.randint(1, sides))
-        if len(rolls) == 1:
-            return rolls[0]
-        return rolls
 
     def _parseNumOrEmoji(self, value):
         r"""Convert string to a number or valid emoji number.
