@@ -13,14 +13,19 @@ from discord.ext.commands import MemberConverter
 from discord.ext.commands.errors import MemberNotFound
 
 from .util.bank import Bank
-
-from duckbot.util import choiceFunctions as cFunc
+from .util.error import GachaRangeError
+from .util.error import GachaCostError
 
 logger = logging.getLogger(__name__)
 
 
 class Game(commands.Cog):
     r"""Container Cog for gaming and banking commands.
+
+    Attributes
+    ----------
+    bank
+        The Duckbank instance
 
     Methods
     -------
@@ -32,191 +37,13 @@ class Game(commands.Cog):
         Check balance subcommand handler
     collection
         Check collection subcommand handler
-
-    hasPull
-        Check if a user has a certain pull value
-    addPool
-        Add a value to a user's pool
-    removeBest
-        Remove the best value from a user's pool
-    nuke
-        Wipe the gacha pool of every user
-    deposit
-        Add amount to a user's balance
-    withdraw
-        Subtract amount from a user's balance
-    regen
-        Restore some balance for users that are low
-    hasFreePull
-        Check if user has their daily pull available
-    setFreePull
-        Set free pull value for users
+    pull
+        Pull command handler
     """
 
     def __init__(self):
         r"""Game initialization."""
         self.bank = Bank()
-
-    def hasPull(self, user, pull):
-        r"""Check if a user has a certain pull.
-
-        Parameters
-        ----------
-        user : int
-            User id to check for pull value
-        pull : int
-            Pull index to check for
-
-        Returns
-        -------
-        bool
-            ``True`` if user has specified pull
-        """
-        return self.users[user]['pool'][pull] > 0
-
-    def addPool(self, user, pull):
-        r"""Add value to a user's pool.
-
-        Parameters
-        ----------
-        pull : int
-            Pull index to increase
-        user : int
-            User id to increase pull of
-
-        Returns
-        -------
-        int
-            Id of user pull was stolen from
-        """
-        chosen = None
-        self.players[user]['pool'][pull] += 1
-        if self.pool[pull] > 0:
-            self.pool[pull] -= 1
-            logger.debug(f'Index {pull} taken from global pool')
-        elif self.pool[pull] == 0:
-            chosen = self._steal(user, pull)
-            self.players[chosen]['pool'][pull] -= 1
-            logger.debug(f'Index {pull} taken from user {chosen}')
-        return chosen
-
-    def removeBest(self, user):
-        r"""Remove a user's best pull from their pool.
-
-        Parameters
-        ----------
-        user : int
-            User id to remove from
-
-        Returns
-        -------
-        int
-            Pull id of removed value or -1
-        """
-        pool = self.users[user]['pool']
-        try:
-            pull = max([i for i, v in enumerate(pool) if v > 0])
-            pool[pull] -= 1
-            if self.pool[pull] >= 0:
-                self.pool[pull] += 1
-        except ValueError:
-            pull = -1
-        logger.debug(f'Removed {pull} from user {user}')
-        return pull
-
-    def nuke(self):
-        r"""Wipe the gacha pool of every user."""
-        for user in self.users.values():
-            user['pool'] = list(self._DEFAULT_USER_POOL)
-
-    def deposit(self, user, amount):
-        r"""Add amount to a user's balance.
-
-        Parameters
-        ----------
-        user : int
-            User id to increase balance of
-        amount : int
-            Amount to increase balance by
-        """
-        self._balance(user, amount)
-
-    def withdraw(self, user, amount):
-        r"""Subtract amount from a user's balance.
-
-        Parameters
-        ----------
-        user : int
-            User id to decrease balance of
-        amount : int
-            Amount to decrease balance by
-        """
-        self._balance(user, -amount)
-
-    def regen(self):
-        r"""Restore some balance for users low on cash."""
-        for user in self.users.values():
-            balance = user['balance']
-            if balance <= 95:
-                user['balance'] += 5
-            elif balance < 100:
-                user['balance'] = 100
-
-    def hasFreePull(self, user):
-        r"""Check for free pull available.
-
-        Parameters
-        ----------
-        user : int
-            User id to check for free pull
-
-        Returns
-        -------
-        bool
-            User's free pull status
-        """
-        return self.users[user]['free']
-
-    def setFreePull(self, value, user=None):
-        r"""Set free pull value of users.
-
-        Parameters
-        ----------
-        value : bool
-            Value to set free pull to
-        user : int, optional
-            User id to set, all users set if None or omitted
-        """
-        if user:
-            self.users[user]['free'] = value
-        else:
-            for user in self.users.values():
-                user['free'] = value
-
-    def _steal(self, thief, pull):
-        r"""Choose user to steal pull from.
-
-        Parameters
-        ----------
-        pull : int
-            Pull index being stolen
-        thief : int
-            User that is stealing
-
-        Returns
-        -------
-        int
-            User id being stolen from
-        """
-        users = []
-        for user in self.users:
-            if self.hasPull(user, pull) and user != thief:
-                users.append(user)
-        if users:
-            choice = cFunc.randomChoice(users)
-        else:
-            choice = thief
-        return choice
 
     @property
     def description(self):
@@ -224,22 +51,6 @@ class Game(commands.Cog):
         desc = ('A collection of commands related to the Duckbank and games.\n'
                 'Invest, gamble, panic.')
         return desc
-
-    @commands.command(
-        help='Spend your hard earned currency on gacha',
-        ignore_extra=True
-    )
-    async def pull(self, ctx, amount=1):
-        r"""Spend a user's currency to pull rewards from the gacha pool.
-
-        Parameters
-        ----------
-        ctx
-            Context information for the command
-        amount
-            Number of pulls to do
-        """
-        pass
 
     @commands.command(
         help='Create a Duckbank account.',
@@ -292,7 +103,7 @@ class Game(commands.Cog):
                 balance = self.bank.getBalance(user.id)
                 collection = self.bank.getCollection(user.id)
                 for i in range(0, len(collection)):
-                    result.append(f'{collection[i]} {self.bank.Gacha(i).name}')
+                    result.append(f'{collection[i]} {self.bank.Gacha.NAMES(i).name}')
                 result = '\n'.join(result)
                 response = f'You have {balance} {self.bank.CURRENCY} and:\n{result}'
             else:
@@ -313,8 +124,8 @@ class Game(commands.Cog):
         ----------
         ctx
             Context information for the command
-        target
-            User to check the balance of : optional
+        target : optional
+            User to check the balance of
         """
         user = await self._checkTarget(target, ctx)
         if user:
@@ -339,21 +150,61 @@ class Game(commands.Cog):
         ----------
         ctx
             Context information for the command
-        target
-            User to check the collection of : optional
+        target : optional
+            User to check the collection of
         """
         user = await self._checkTarget(target, ctx)
         if user:
             collection = self.bank.getCollection(user.id)
             result = []
             for i in range(0, len(collection)):
-                result.append(f'{collection[i]} {self.bank.Gacha(i).name}')
+                result.append(f'{collection[i]} {self.bank.Gacha.NAMES(i).name}')
             result = '\n'.join(result)
             if user == ctx.message.author:
                 response = f'You currently have:\n{result}'
             else:
                 response = f'{user.name} currently has:\n{result}'
             await ctx.send(f'{ctx.message.author.mention} {response}')
+
+    @commands.command(
+        help='Spend your hard earned currency on gacha',
+        ignore_extra=True
+    )
+    async def pull(self, ctx, amount=None):
+        r"""Spend a user's currency to pull rewards from the gacha pool.
+
+        Parameters
+        ----------
+        ctx
+            Context information for the command
+        amount : optional
+            Number of pulls to do
+        """
+        response = ''
+        try:
+            amount = int(amount)
+        except (ValueError, TypeError):
+            amount = 1
+        user = ctx.message.author.id
+        if self.bank.isMember(user):
+            if self.bank.hasFreebie(user):
+                self.bank.setFreebie(False, user)
+                response += '\nYour daily free pull result:'
+                response += self._interpretPull(self.bank.freePull(user))
+            try:
+                response += (
+                    '\nYour pull results:'
+                    f'{self._interpretPull(self.bank.pull(user, amount))}'
+                )
+            except GachaRangeError as err:
+                response += f'\nYou are only allowed from {err.rmin} to {err.rmax} pulls at once!'
+            except GachaCostError as err:
+                response += '\nYou can\'t afford to make that many pulls!'
+                response += f'\nPulls are {self.bank.PULL_COST} {self.bank.CURRENCY} each.'
+                response += f'\nYou currently have: {err.balance} {self.bank.CURRENCY}'
+        else:
+            response += 'You are not a member of the Duckbank!'
+        await ctx.send(f'{ctx.message.author.mention} {ctx.bot.emoji}{response}')
 
     async def _checkTarget(self, target, ctx):
         r"""Check for a valid mentioned user.
@@ -390,3 +241,38 @@ class Game(commands.Cog):
             await ctx.send(f'{ctx.message.author.mention} {response}')
             user = None
         return user
+
+    def _interpretPull(self, result):
+        r"""Convert results of a pull into a message.
+
+        Parameters
+        ----------
+        result
+            Results of the bank's pull call
+
+        Returns
+        -------
+        str
+            Message friendly interpretation of the pull results
+        """
+        if not result:
+            return (
+                '\nYou have set off the nuke! Everyone has returned to the pool.'
+                '\nLet the shaming begin!'
+            )
+
+        response = ''
+        for value in result:
+            if value is None:
+                response += '\n\tThat was a disappointing pull, but you had nothing to lose!'
+            elif value >= 0:
+                name = self.bank.Gacha.NAMES(value).name
+                response += f'\n\tYou got a {name}'
+            else:
+                name = self.bank.Gacha.NAMES(-value).name
+                max_pull = self.bank.Gacha.RANGES[self.bank.Gacha.MAX]
+                if -value == max_pull:
+                    response += f'\n\tYou have disappointed {name}. She returns to the pool.'
+                else:
+                    response += f'\n\tYou lost a {name}'
+        return response
