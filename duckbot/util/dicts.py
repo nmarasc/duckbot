@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__all__ = ['Bidict']
+__all__ = ['Bidict', 'Rangedict']
 
 
 class Bidict(dict):
@@ -26,3 +26,16 @@ class Bidict(dict):
         if self[key] in self.inverse and not self.inverse[self[key]]:
             del self.inverse[self[key]]
         super(Bidict, self).__delitem__(key)
+
+
+class Rangedict(dict):
+    r"""Dictionary indexed by a range."""
+
+    def __getitem__(self, item):
+        if type(item) != range:
+            for key in self:
+                if item in key:
+                    return self[key]
+            raise KeyError
+        else:
+            return super().__getitem__(item)

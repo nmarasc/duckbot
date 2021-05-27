@@ -60,19 +60,19 @@ class DuckbotDiscordClient(Bot):
 
     async def on_ready(self):
         r"""Gather information when logged into client."""
-        self.bot_emoji = None
+        self.emoji = None
         prefixes = []
 
         for guild in self.guilds:
             for gemoji in guild.emojis:
                 if gemoji.name == 'duckbot':
                     if guild.id == self.host_guild:
-                        self.bot_emoji = gemoji
+                        self.emoji = gemoji
                     prefixes.append(f'{str(gemoji)} ')
 
-        if self.bot_emoji is None:
-            self.bot_emoji = ':duck:'
-        self.help_command = DuckbotHelpCommand(str(self.bot_emoji))
+        if self.emoji is None:
+            self.emoji = ':duck:'
+        self.help_command = DuckbotHelpCommand(str(self.emoji))
         self.command_prefix = commands.when_mentioned_or(*prefixes)
         logger.info(f'Duckbot logged into discord as {self.user}')
 

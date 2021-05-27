@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from .bidict import Bidict
+from .dicts import Bidict
 
-__all__ = ['etoi','itoe']
+__all__ = ['etoi', 'itoe']
 
 _EMOJINUMS = Bidict({
     ':one:': 1,
@@ -34,6 +34,7 @@ def etoi(emoji):
     int value of emoji or original string if invalid
     """
     return _EMOJINUMS.get(emoji, emoji)
+
 
 def itoe(number):
     r"""Covert number into emoji string.
