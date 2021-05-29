@@ -31,6 +31,8 @@ class Duckbot:
         Discord client bot token
     hostguild
         Discord Guild id of 'home' server
+    steamkey : optional
+        Steam WebAPI key for setting game playing randomly
     isTemp : optional
         True if bot state should not be saved
 
@@ -55,11 +57,12 @@ class Duckbot:
     ValueError
         No bot token or host guild id provided on creation
     """
-    _TICK_ROLLOVER = 3600
+    _TICK_ROLLOVER = 7200
     _REGEN_TIMER = 300
+    _GAME_TIMER = 3600
     _WISH_TIME = datetime(1, 1, 1, 16)
 
-    def __init__(self, token, hostguild, isTemp=False):
+    def __init__(self, token, hostguild, steamkey=None, isTemp=False):
         r"""Duckbot initialization."""
 
         self._ticks = 0
@@ -74,7 +77,7 @@ class Duckbot:
         self.token = token
         self.isTemp = isTemp
         self.loop = asyncio.get_event_loop()
-        self.client = DuckbotDiscordClient(hostguild)
+        self.client = DuckbotDiscordClient(hostguild, steamkey)
 
         logger.info('Discord client created')
 
@@ -121,6 +124,8 @@ class Duckbot:
             try:
                 if self._ticks % self._REGEN_TIMER == 0:
                     await self.client.on_regen()
+                if self._ticks % self._GAME_TIMER == 0:
+                    await self.client.on_game_change()
 
                 await asyncio.sleep(1)
             except asyncio.CancelledError:
