@@ -15,7 +15,6 @@ import random
 import discord
 from discord.ext import commands
 from discord.ext.commands import Bot
-from steam.webapi import WebAPI
 from mongoengine import connect
 from pymongo.errors import ServerSelectionTimeoutError
 import emoji
@@ -23,7 +22,7 @@ import emoji
 from .help import DuckbotHelpCommand
 from .cogs.random import Random
 from .cogs.game import Game
-from .util.database import App
+from .util.database import App, buildGameDB
 
 logger = logging.getLogger(__name__)
 
@@ -65,11 +64,10 @@ class DuckbotDiscordClient(Bot):
             self.host_guild = int(hostguild)
         except ValueError:
             self.host_guild = None
-        self.steamAPI = WebAPI(key=steamkey)
         try:
             connect('games')
             if len(App.objects) == 0:
-                self._buildGameDB()
+                buildGameDB(steamkey)
             self.db = True
         except ServerSelectionTimeoutError:
             logger.warning('Mongodb not available, cannot build games list')
@@ -106,7 +104,6 @@ class DuckbotDiscordClient(Bot):
             Message event received from discord to sanitize
         """
         message.content = emoji.demojize(message.content, use_aliases=True)
-        logger.debug(f'message: {message.content}')
         await self.process_commands(message)
 
     async def on_message_edit(self, before, after):
@@ -165,20 +162,3 @@ class DuckbotDiscordClient(Bot):
             await self.change_presence(activity=playing)
         else:
             await self.change_presence(activity=discord.Game('duck things'))
-
-    def _buildGameDB(self):
-        r"""Build the database of games."""
-        logger.info('Building game database')
-        try:
-            service = self.steamAPI.IStoreService
-        except AttributeError:
-            logger.warning('Steam WebAPI key not provided or service unavailable')
-            entry = App(appid=1, name='duck things')
-            entry.save()
-            return
-        response = service.GetAppList(include_games=1, max_results=50000)['response']
-        appid = 1
-        for app in response['apps']:
-            entry = App(appid=appid, name=app['name'])
-            entry.save()
-            appid += 1
