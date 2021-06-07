@@ -17,6 +17,7 @@ from discord.ext import commands
 from discord.ext.commands import Bot
 from steam.webapi import WebAPI
 from mongoengine import connect
+from pymongo.errors import ServerSelectionTimeoutError
 import emoji
 
 from .help import DuckbotHelpCommand
@@ -65,9 +66,14 @@ class DuckbotDiscordClient(Bot):
         except ValueError:
             self.host_guild = None
         self.steamAPI = WebAPI(key=steamkey)
-        connect('games')
-        if len(App.objects) == 0:
-            self._buildGameDB()
+        try:
+            connect('games')
+            if len(App.objects) == 0:
+                self._buildGameDB()
+            self.db = True
+        except ServerSelectionTimeoutError:
+            logger.warning('Mongodb not available, cannot build games list')
+            self.db = False
 
         self.add_cog(Random())
         self.add_cog(Game())
@@ -153,12 +159,15 @@ class DuckbotDiscordClient(Bot):
 
     async def _setGame(self):
         r"""Set a new game status."""
-        appid = random.randint(1, len(App.objects))
-        playing = discord.Game(App.objects(appid=appid)[0].name)
-        await self.change_presence(activity=playing)
+        if self.db:
+            appid = random.randint(1, len(App.objects))
+            playing = discord.Game(App.objects(appid=appid)[0].name)
+            await self.change_presence(activity=playing)
+        else:
+            await self.change_presence(activity=discord.Game('duck things'))
 
     def _buildGameDB(self):
-        """Build the database of games."""
+        r"""Build the database of games."""
         logger.info('Building game database')
         try:
             service = self.steamAPI.IStoreService
