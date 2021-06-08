@@ -21,6 +21,7 @@ import emoji
 
 from .help import DuckbotHelpCommand
 from .cogs.random import Random
+from .cogs.bank import Bank
 from .cogs.game import Game
 from .util.database import App, buildGameDB
 
@@ -74,6 +75,7 @@ class DuckbotDiscordClient(Bot):
             self.db = False
 
         self.add_cog(Random())
+        self.add_cog(Bank())
         self.add_cog(Game())
 
     async def on_ready(self):

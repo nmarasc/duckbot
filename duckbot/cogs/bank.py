@@ -8,16 +8,20 @@ Bank
 """
 import logging
 
-from .gacha import Gacha
-from .error import GachaRangeError
-from .error import GachaCostError
+from discord.ext import commands
+from discord.ext.commands import MemberConverter
+from discord.ext.commands.errors import MemberNotFound
+
+from .util.gacha import Gacha
+from .util.error import GachaRangeError
+from .util.error import GachaCostError
 
 __all__ = ['Bank']
 
 logger = logging.getLogger(__name__)
 
 
-class Bank():
+class Bank(commands.Cog):
     r"""Duckbot upper management for all accounts at the bank of ducks.
 
     Attributes
@@ -37,6 +41,15 @@ class Bank():
 
     Methods
     -------
+    join
+        Join command handler
+    check
+        Check command handler
+    balance
+        Check balance subcommand handler
+    collection
+        Check collection subcommand handler
+
     isMember
         Check if user has a Duckback account
     getBalance
@@ -75,6 +88,13 @@ class Bank():
         r"""Bank initialization."""
         self.users = {}
         self.Gacha = Gacha()
+
+    @property
+    def description(self):
+        r"""Return cog description"""
+        desc = ('A collection of commands related to Duckbank management.\n'
+                'Your funds are safe with the duck.')
+        return desc
 
     def isMember(self, user):
         r"""Check if user is in the bank.
@@ -289,6 +309,119 @@ class Bank():
             elif balance < 100:
                 user['balance'] = 100
 
+    @commands.command(
+        help='Create a Duckbank account.',
+        ignore_extra=True
+    )
+    async def join(self, ctx):
+        r"""Register user with the bank system if not already.
+
+        Parameters
+        ----------
+        ctx
+            Context information for the command
+        """
+        user = ctx.author.id
+        if self.isMember(user):
+            balance = self.getBalance(user)
+            response = (
+                'You already have a Duckbank account!\n'
+                f'You have {balance} {self.CURRENCY}'
+            )
+            logger.info(f'{ctx.author} not added, already a member')
+        else:
+            self.addUser(user)
+            response = (
+                'You have successfully created a Duckbank account!\n'
+                f'You have {self.STARTING_BALANCE} {self.CURRENCY}'
+            )
+            logger.info(f'{ctx.author} added')
+        await ctx.send(f'{ctx.message.author.mention} {response}')
+
+    @commands.group(
+        help=('Retrieve information about the Duckbank.\n'
+              '\tReturns all own info if subcommand omitted.'),
+        ignore_extra=True,
+        aliases=[':heavy_check_mark:', ':white_check_mark:', ':ballot_box_with_check:']
+    )
+    async def check(self, ctx):
+        r"""Check command main handler.
+
+        Parameters
+        ----------
+        ctx
+            Context information for the command
+        """
+        if ctx.invoked_subcommand is None:
+            result = []
+            user = ctx.message.author
+            if self.isMember(user.id):
+                balance = self.getBalance(user.id)
+                collection = self.getCollection(user.id)
+                for i in range(0, len(collection)):
+                    result.append(f'{collection[i]} {self.Gacha.NAMES(i).name}')
+                result = '\n'.join(result)
+                response = f'You have {balance} {self.CURRENCY} and:\n{result}'
+            else:
+                response = 'You are not a member of the Duckbank!'
+            await ctx.send(f'{ctx.message.author.mention} {response}')
+
+    @check.command(
+        help=('Check a user\'s Duckbank balance.\n'
+              '`[user]` - mention of the user you want to check\n'
+              '\toptional, default checks own balance'),
+        ignore_extra=True,
+        aliases=[':moneybag:', ':money_with_wings:', 'bux', 'dux', 'dolans']
+    )
+    async def balance(self, ctx, target=None):
+        r"""Check balance subcommand handler.
+
+        Parameters
+        ----------
+        ctx
+            Context information for the command
+        target : optional
+            User to check the balance of
+        """
+        user = await self._checkTarget(target, ctx)
+        if user:
+            balance = self.getBalance(user.id)
+            if user == ctx.message.author:
+                response = f'You have {balance} {self.CURRENCY}!'
+            else:
+                response = f'{user.name} has {balance} {self.CURRENCY}!'
+            await ctx.send(f'{ctx.message.author.mention} {response}')
+
+    @check.command(
+        help=('Check a user\'s Duckbank gacha collection.\n'
+              '`[user]` - mention of the user you want to check\n'
+              '\toptional, default checks own collection'),
+        ignore_extra=True,
+        aliases=['gacha', 'pool']
+    )
+    async def collection(self, ctx, target=None):
+        r"""Check collection subcommand handler.
+
+        Parameters
+        ----------
+        ctx
+            Context information for the command
+        target : optional
+            User to check the collection of
+        """
+        user = await self._checkTarget(target, ctx)
+        if user:
+            collection = self.getCollection(user.id)
+            result = []
+            for i in range(0, len(collection)):
+                result.append(f'{collection[i]} {self.Gacha.NAMES(i).name}')
+            result = '\n'.join(result)
+            if user == ctx.message.author:
+                response = f'You currently have:\n{result}'
+            else:
+                response = f'{user.name} currently has:\n{result}'
+            await ctx.send(f'{ctx.message.author.mention} {response}')
+
     def _pull(self, user, amount):
         r"""Helper function to do pulls from the gacha manager.
 
@@ -337,3 +470,39 @@ class Bank():
         """
         self.users[user]['balance'] += amount
         return self.users[user]['balance']
+
+    async def _checkTarget(self, target, ctx):
+        r"""Check for a valid mentioned user.
+
+        Parameters
+        ----------
+        target
+            User provided target to check
+        ctx
+            Context for member check
+
+        Returns
+        -------
+        Member
+            matching member of the target or None
+        """
+        if target is None:
+            user = ctx.message.author
+        else:
+            try:
+                user = await MemberConverter().convert(ctx, target)
+                if not user.mentioned_in(ctx.message):
+                    raise MemberNotFound('user not mentioned')
+            except MemberNotFound:
+                # To stop any possible @everyone shenanigans
+                cleaned = await commands.clean_content().convert(ctx, target)
+                await ctx.send(f'{ctx.message.author.mention} User {cleaned} not recognized!')
+                return None
+        if not self.isMember(user.id):
+            if user == ctx.message.author:
+                response = 'You are not a member of the Duckbank!'
+            else:
+                response = f'{user.name} is not a member of the Duckbank!'
+            await ctx.send(f'{ctx.message.author.mention} {response}')
+            user = None
+        return user
