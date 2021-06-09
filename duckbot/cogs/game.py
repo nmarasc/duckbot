@@ -27,8 +27,8 @@ class Game(commands.Cog):
     @property
     def description(self):
         r"""Return cog description"""
-        desc = ('A collection of commands related to the Duckbank and games.\n'
-                'Invest, gamble, panic.')
+        desc = ('A collection of commands related to games and gambling.\n'
+                'Spend, bet, panic.')
         return desc
 
     @commands.command(

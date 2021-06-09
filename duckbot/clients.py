@@ -23,6 +23,7 @@ from .help import DuckbotHelpCommand
 from .cogs.random import Random
 from .cogs.bank import Bank
 from .cogs.game import Game
+from .cogs.fact import Fact
 from .util.database import App, buildGameDB
 
 logger = logging.getLogger(__name__)
@@ -77,6 +78,7 @@ class DuckbotDiscordClient(Bot):
         self.add_cog(Random())
         self.add_cog(Bank())
         self.add_cog(Game())
+        self.add_cog(Fact())
 
     async def on_ready(self):
         r"""Gather information when logged into client."""
