@@ -9,6 +9,7 @@ Random
 import logging
 
 import re
+import random
 
 from discord.ext import commands
 
@@ -127,11 +128,7 @@ class Random(commands.Cog):
         ctx
             Context information for the command
         """
-        result = doRoll(2)
-        if result == 1:
-            message = 'You got: HEADS'
-        else:
-            message = 'You got: TAILS'
+        message = random.choice(['You got: HEADS', 'You got: TAILS'])
         await ctx.send(f'{ctx.message.author.mention} {message} {ctx.bot.emoji}')
 
     @commands.command(
@@ -151,7 +148,7 @@ class Random(commands.Cog):
             list of things to pick from
         """
         if len(picks) in self._pick_range:
-            pick = picks[doRoll(len(picks)-1)]
+            pick = random.choice(picks)
             response = f'I choose: {pick}'
         else:
             botmoji = str(ctx.bot.emoji)
@@ -175,7 +172,7 @@ class Random(commands.Cog):
         ctx
             Context information for the command
         """
-        message = eightball_messages[doRoll(len(eightball_messages)-1)]
+        message = random.choice(eightball_messages)
         await ctx.send(f'{ctx.message.author.mention} {message} {ctx.bot.emoji}')
 
     async def cog_command_error(self, ctx, error):

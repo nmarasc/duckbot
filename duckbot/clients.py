@@ -161,8 +161,7 @@ class DuckbotDiscordClient(Bot):
     async def _setGame(self):
         r"""Set a new game status."""
         if self.db:
-            appid = random.randint(1, len(App.objects))
-            playing = discord.Game(App.objects(appid=appid)[0].name)
+            playing = discord.Game(random.choice(App.objects).name)
             await self.change_presence(activity=playing)
         else:
             await self.change_presence(activity=discord.Game('duck things'))
