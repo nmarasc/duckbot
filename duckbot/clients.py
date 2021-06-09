@@ -152,10 +152,11 @@ class DuckbotDiscordClient(Bot):
     async def on_regen(self):
         r"""Regen bank bucks."""
         logger.info('Regen event triggered')
+        self.get_cog('Bank').regen()
 
     async def on_game_change(self):
         r"""Change game status event handler."""
-        logger.info('Time to play a new game')
+        logger.info('Game change event triggered')
         await self._setGame()
 
     async def _setGame(self):

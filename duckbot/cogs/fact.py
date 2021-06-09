@@ -105,10 +105,9 @@ class Fact(commands.Cog):
         badurls = ['disambiguation', 'List', 'gallery']
         while not fact:
             req = requests.get(url)
-            for bad in badurls:
-                if bad in req.url:
-                    logger.info(f'Bad url: {req.url}')
-                    continue
+            if any(map(req.url.__contains__, badurls)):
+                logger.info(f'Bad url: {req.url}')
+                continue
             soup = BeautifulSoup(req.content, 'html.parser')
             soup.aside.clear()
             div = soup.find('div', {'class': 'mw-parser-output'})
