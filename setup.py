@@ -19,13 +19,13 @@ REQUIRES_PYTHON = '>=3.7.0'
 # Only include direct dependencies, transitive dependencies should be
 # handled automatically.
 REQUIRED = [
-    'discord.py', 'emoji', 'steam', 'mongoengine'
+    'discord.py', 'emoji', 'steam', 'mongoengine', 'bs4'
 ]
 
 # What packages are optional?
 # Development environment includes packages for testing
 EXTRAS = {
-    'dev': ['pytest', 'flake8', 'mypy']
+    'dev': ['pytest', 'flake8']
 }
 
 # The rest you shouldn't have to touch too much :)
