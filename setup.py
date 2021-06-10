@@ -19,7 +19,7 @@ REQUIRES_PYTHON = '>=3.7.0'
 # Only include direct dependencies, transitive dependencies should be
 # handled automatically.
 REQUIRED = [
-    'discord.py', 'emoji', 'steam', 'mongoengine', 'bs4'
+    'discord.py', 'emoji', 'steam', 'mongoengine', 'beautifulsoup4'
 ]
 
 # What packages are optional?
