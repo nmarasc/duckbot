@@ -1,4 +1,3 @@
-# Last Updated: 2.3.0
 # Created by https://www.gitignore.io/api/vim,venv,linux,python,windows
 
 ### Linux ###
@@ -143,6 +142,15 @@ Session.vim
 # auto-generated tag files
 tags
 
+### VisualStudioCode ###
+.vscode/*
+*.code-workspace
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+.ionide
+
 ### Windows ###
 # Windows thumbnail cache files
 Thumbs.db
@@ -164,10 +172,11 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Windows git bash failures
+bash.exe.stackdump
+
 # End of https://www.gitignore.io/api/vim,venv,linux,python,windows
 
-log.txt
-error.txt
-bash.exe.stackdump
 .log/
 .config/
+start.py
