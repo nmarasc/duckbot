@@ -397,7 +397,7 @@ class Bank(commands.Cog):
               '`[user]` - mention of the user you want to check\n'
               '\toptional, default checks own collection'),
         ignore_extra=True,
-        aliases=['gacha', 'pool']
+        aliases=['gacha', 'pool', 'list']
     )
     async def collection(self, ctx, target=None):
         r"""Check collection subcommand handler.
