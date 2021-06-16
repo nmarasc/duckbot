@@ -29,10 +29,13 @@ class Fact(commands.Cog):
         Fact DBZ subcommand handler
     sponge
         Fact sponge subcommand handler
+    monster
+        Fact monster subcommand handler
     """
 
     _DBZ_URL = 'https://dragonball.fandom.com/wiki/Special:Random'
     _SPONGE_URL = 'https://spongebob.fandom.com/wiki/Special:Random'
+    _MONSTER_URL = 'https://monster.fandom.com/wiki/Special:Random'
 
     @property
     def description(self):
@@ -87,6 +90,20 @@ class Fact(commands.Cog):
             Command context information
         """
         await ctx.send(f'Did you know {self._getFact(self._SPONGE_URL)}?')
+
+    @fact.command(
+        help='Fun facts about monsters',
+        ignore_extra=True
+    )
+    async def monster(self, ctx):
+        r"""Produce a monster fact.
+
+        Parameters
+        ----------
+        ctx
+            Command context information
+        """
+        await ctx.send(f'Did you know {self._getFact(self._MONSTER_URL)}?')
 
     def _getFact(self, url):
         r"""Retrieve a sentence of text from a fandom wiki.
